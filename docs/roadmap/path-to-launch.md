@@ -8,7 +8,7 @@ decision, account or content only the founder can supply.
 
 | Item | Who | Status |
 | --- | --- | --- |
-| Put the code in a private GitHub repository so CI (tests, scans) and reviews run; nothing is committed yet | Founder + Dev | Not started |
+| Code on GitHub with CI (tests, scans) running | Founder + Dev | Done: `tech-siliconbox/siliconBox` (public by founder's choice), CI green |
 
 ## Phase 2: Content (in progress)
 
@@ -50,7 +50,8 @@ decision, account or content only the founder can supply.
 | Checkout, signed webhook, refunds, entitlement writes (pricing rules already done and tested) | Dev | Rules done; endpoints not started |
 | Email provider: verification, receipts, new-device alerts, expiry reminders | Founder + Dev | Deferred |
 | Vercel Pro, Cloudflare (WAF, Access + MFA on admin), staging and production | Founder + Dev | Deferred |
-| Least-privilege Atlas users and a dedicated Mumbai cluster | Founder + Dev | Not started |
+| Dedicated Mumbai cluster | Founder | Done (`siliconbox-dev`, ap-south-1) |
+| Least-privilege Atlas app user | Founder + Dev | Not started: create the `siliconboxApp` role and user in Atlas |
 | Backups to off-cluster storage, one encrypted restore drill | Founder + Dev | Script ready; storage not chosen |
 | Terms (no-sharing clause), refund policy, privacy notice and DPDP consent, export and delete | Founder (lawyer) + Dev | Not started |
 | Analytics and Drill pass rates | Dev | Not started |

@@ -40,6 +40,6 @@ Use with `/release-check`. Mark each item done with evidence.
 Partly done, not ticked:
 - Hidden collections: `infra/mongodb/create-app-role.js` defines the least-privilege role, but the dev database still uses an admin user, so it is not enforced yet.
 - Entitlement matrix: rows 1 to 16 and 22 are automated; rows 17 to 21 and 24 arrive with payments (phase 4); row 23 is the one-device e2e test.
-- Secret scanning, dependency scanning, CI: configured in `.github/workflows/ci.yml`, never run, because the code is not yet in a GitHub repository.
+- Secret scanning, dependency scanning, CI: running on GitHub and green since `bdbc8eb`; versions are locked by `pnpm-lock.yaml` (ranges in package.json).
 - Audit log: written for sign-ins, device replacement and access grants; append-only in code, and in the database once the app role is in use.
 - Backups: script and workflow ready; one unencrypted local restore drill passed; storage not chosen.
