@@ -4,13 +4,17 @@ version = "0.1.0"
 description = "Private formal-verification service for SiliconBox. Only the SiliconBox backend may call it."
 requires-python = ">=3.12"
 dependencies = [
+  "defusedxml>=0.7",
   "fastapi>=0.120",
   "pydantic-settings>=2.6",
+  "pyjwt>=2.10",
+  "redis>=5.2",
   "uvicorn[standard]>=0.32",
 ]
 
 [dependency-groups]
-dev = ["httpx2", "pytest>=8.3", "ruff>=0.8", "vulture>=2.13"]
+# click: SymbiYosys needs it when run from this virtualenv on a developer machine.
+dev = ["click>=8.1", "fakeredis>=2.26", "httpx2", "pytest>=8.3", "ruff>=0.8", "vulture>=2.13"]
 
 [tool.ruff]
 line-length = 100
@@ -25,6 +29,11 @@ max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ANN", "S105", "S106"]
+# The SVA engine imported from formal-verify-backend keeps its original style; security rules
+# (S) still apply. New code goes in other modules under the full rule set.
+"app/engine/{sva_parser,sva_lowering,sv_preprocessor,sby_generator,vcd}.py" = [
+  "ANN", "C901", "E501", "PTH", "RET504", "SIM102", "SIM105",
+]
 
 [tool.vulture]
 paths = ["app", "tests"]

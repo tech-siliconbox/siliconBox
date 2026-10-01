@@ -41,7 +41,7 @@ checklists: `docs/roadmap/`.
 | Drills | Written in the CMS with private solutions and per-level caps; learners run them once the solver exists (phase 3) |
 | Admin tools | Lesson preview, security alerts for Support, Industry Ready services switched open or locked |
 | Career tools | Resume Builder (ATS-friendly PDF) and CV screening (formal verification report); free for learners with active access |
-| Solver | Skeleton only: service-token auth, no public docs; hardening is phase 3 |
+| Solver | Engine imported from `formal-verify-backend` and hardened (13 findings fixed with tests); signed calls, Redis job queue and worker; not yet in a container or wired to the site |
 
 ### In progress (phase 2)
 

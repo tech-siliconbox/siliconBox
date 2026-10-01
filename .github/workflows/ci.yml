@@ -88,9 +88,16 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
+      # Yosys and SymbiYosys, so the real-solver tests run instead of being skipped.
+      - uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-10-01'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e . --group dev
       - run: .venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/vulture
       - run: .venv/bin/pytest -q
+        env:
+          SOLVER_REQUIRE_SBY: '1'
 
   security:
     runs-on: ubuntu-latest

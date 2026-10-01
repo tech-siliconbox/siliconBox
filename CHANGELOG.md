@@ -5,6 +5,7 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 ## [Unreleased]
 
 ### Added
+- Solver (phase 3): the SVA engine from `formal-verify-backend` in `apps/solver`, hardened. Signed, scoped, short-lived service tokens; `POST /v1/jobs` and `GET /v1/jobs/{id}` with UUIDv4 ids owned by the learner; Redis queue and worker; each job in its own process group with a hard time limit and no secrets; `.sby` files only from a checked template; UUID work folders removed only after a path check; file-reading code refused; no server paths in results. 13 hardening findings fixed with regression tests (ADR 0020). CI installs OSS CAD Suite and runs the real-solver tests.
 - Question answers for learners with an active content entitlement: `/questions/[id]` and `GET /api/v1/questions/:id/answer`, paced and watermarked.
 - Three least-privilege database users (site, answers reader, admin) with roles defined once in `infra/mongodb/roles.json`, applied on Atlas by `atlas-roles.mjs`, and checked by `pnpm db:verify-roles` (ADR 0019).
 

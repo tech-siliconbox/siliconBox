@@ -37,10 +37,10 @@ decision, account or content only the founder can supply.
 
 | Item | Who | Status |
 | --- | --- | --- |
-| Bring in `formal-verify-backend` and fix its eight security findings, each with a test | Dev | Not started; needs repo access |
-| Job queue in Redis, isolated runner per job, quotas per level | Dev | Not started |
+| Bring in `formal-verify-backend` and fix its eight security findings, each with a test | Dev | Done: 13 findings fixed, each with a regression test |
+| Job queue in Redis, isolated runner per job, quotas per level | Dev | Queue and process-per-job runner done; container runner next (needs Docker running); quotas with the run API |
 | Run API (`POST /drills/:id/runs`, `GET /runs/:id`), result cache, polling | Dev | Not started |
-| Drill workspace (editor, output, waveform) from `formal-verify-frontend` | Dev | Not started; needs repo access |
+| Drill workspace (editor, output, waveform) from `formal-verify-frontend` | Dev | Not started; repo available locally |
 | Drill publish gate in CI (reference passes, every seeded bug fails) | Dev | Not started |
 | Always-on solver host and an outside attack test | Founder + Dev | Not started; budget needed |
 
@@ -67,4 +67,4 @@ Starts only when a stage threshold in `docs/architecture/scaling.md` is reached.
 ## Open decisions blocking engineering
 
 See "Blockers and founder decisions" in `README.md` of this folder. The ones that block code
-soonest: backup storage, and access to the solver repositories (phase 3).
+soonest: backup storage, and a host for the solver runner (phase 3).

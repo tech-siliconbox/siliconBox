@@ -15,7 +15,7 @@ Source repos: `gk2work/formal-verify-backend` (FastAPI) becomes `apps/solver`; `
 
 ## Result shape
 
-`status` (PASS, FAIL, TIMEOUT, ERROR), elapsed time, output, assertion, failure cycle, counterexample trace as JSON.
+`status` (PASS, FAIL, TIMEOUT, ERROR), elapsed time, output, assertion, failure cycle, counterexample trace as JSON. Each assert and cover is checked on its own and reported with its own status, step and trace. Exact fields: `apps/solver/CLAUDE.md`; design: ADR 0020.
 
 ## Where it runs
 

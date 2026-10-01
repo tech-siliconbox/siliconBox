@@ -23,3 +23,4 @@ Each file records one hard-to-reverse decision. Add a new one with `/new-adr <ti
 | [0017](0017-nonce-csp-renders-every-page-dynamically.md) | Nonce-based CSP; every page renders per request (proposed) |
 | [0018](0018-learners-read-published-content-directly.md) | Learners read published content directly; the CMS API is admin-only |
 | [0019](0019-three-database-users.md) | Three database users: site, answers reader, admin |
+| [0020](0020-solver-jobs-signed-calls-and-a-redis-queue.md) | Solver: signed calls, a Redis queue and one process per job |
