@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { API_ROUTES, ROUTES } from '@siliconbox/shared';
-import { grantContent, signInAsAdmin } from './cms/publish';
+import { grantAccess, signInAsAdmin } from './cms/publish';
 import { withAdminDb } from './db';
 import type { Page } from '@playwright/test';
 import { expect, failOnCspViolation, newLearner, signUp, submitSignIn, test } from './helpers';
@@ -30,7 +30,7 @@ test('an entitled learner builds, saves and downloads an ATS-friendly resume', a
   page,
 }, info) => {
   failOnCspViolation(page);
-  await grantContent(await signInAsAdmin('support'), learner.email);
+  await grantAccess(await signInAsAdmin('support'), learner.email);
   await signIn(page);
   await page.goto(ROUTES.resumeBuilder);
 

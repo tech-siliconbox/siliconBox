@@ -24,8 +24,8 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `orders` | Order id, user, product, credit applied, amount, status, Razorpay ids | Server |
 | `entitlements` | user, kind (`content` or `tool`), level, starts, ends, source (order or admin), reason | Server |
 | `progress` | Lesson progress: `{ userId, lessonId (public id), completedAt }`; Drill progress later | Owner |
-| `runs` | Run summary: user, Drill, status, elapsed, hash, log pointer | Owner |
-| `run_cache` | Result by content hash | Server |
+| `runs` | One learner run: user, Drill, request id, the learner's properties, state, result (with log and traces), hash, cached flag; kept 180 days | Owner |
+| `run_cache` | PASS/FAIL result by hash of design, properties and settings; kept 30 days | Server |
 | `services` | Industry Ready service cards and status (`open` or `locked`), locked reason, order | Public list |
 | `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
 | `resumes` | One saved Resume Builder resume per learner | Owner, with delete |
@@ -37,7 +37,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 
 - Unique: payment id in `orders` (partial: only once a payment id is set); session token; user email; `{ userId, kind, level }` in `entitlements` (a later purchase of the same level replaces its window).
 - `{ userId, level, kind }`, `{ userId, lessonId }` for progress, `{ userId, createdAt }` for runs.
-- TTL on old `runs` (retention period to be set in phase 3), expired `sessions` and `verifications`, and `ended_sessions` after 7 days. Raw logs go to object storage.
+- TTL on `runs` (180 days) and `run_cache` (30 days), expired `sessions` and `verifications`, and `ended_sessions` after 7 days. Run logs are kept in the run document (capped at 64 KB) until object storage exists.
 - Text index on public question text.
 
 ## Integrity

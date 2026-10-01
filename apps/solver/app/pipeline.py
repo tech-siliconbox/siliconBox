@@ -27,7 +27,7 @@ from app.engine.sva_lowering import SVALoweringEngine
 from app.engine.sva_parser import ParsedSVA, parse_sva
 from app.engine.vcd import read_counterexample_vcd
 from app.limits import MAX_LOG_CHARS, MAX_TRACES
-from app.models import CheckResult, JobResult, JobSpec, RunSettings, error_result
+from app.models import CheckResult, JobResult, JobSpec, RunSettings, Trace, error_result
 from app.tools import SbyTool
 from app.workspace import check_folder
 
@@ -185,7 +185,7 @@ def _not_run(check: Check, run_dir: Path, status: str, message: str) -> CheckRun
     return CheckRun(check, result, run_dir, {"status": status, "step": 0, "message": message})
 
 
-def _trace(run: CheckRun) -> dict | None:
+def _trace(run: CheckRun) -> Trace | None:
     """The run's VCD, only if it sits inside this check's own folder."""
     root = run.run_dir.resolve()
     task_dir = run.result.log_paths.get("task_dir", "")
@@ -197,7 +197,7 @@ def _trace(run: CheckRun) -> dict | None:
         path = candidate.resolve()
         if path.is_relative_to(root) and path.is_file():
             trace = read_counterexample_vcd(path)
-            return None if "error" in trace else trace
+            return None if "error" in trace else Trace.model_validate(trace)
     return None
 
 

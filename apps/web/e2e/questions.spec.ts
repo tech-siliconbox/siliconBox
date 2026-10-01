@@ -1,5 +1,5 @@
 import { ROUTES } from '@siliconbox/shared';
-import { createDoc, grantContent, paragraph, signInAsAdmin } from './cms/publish';
+import { createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
 import { expect, failOnCspViolation, newLearner, signUp, test } from './helpers';
 
 const run = crypto.randomUUID().slice(0, 8);
@@ -69,7 +69,7 @@ test('the answer opens only for a learner with active access, watermarked', asyn
   expect(await page.content()).not.toContain('must never be public');
   expect((await page.request.get(`/api/v1/questions/${questionId}/answer`)).status()).toBe(403);
 
-  expect((await grantContent(await signInAsAdmin('support'), learner.email)).status()).toBe(201);
+  expect((await grantAccess(await signInAsAdmin('support'), learner.email)).status()).toBe(201);
   await page.goto(`${ROUTES.questions}?topic=e2e-topic-${run}`);
   await page.getByRole('link', { name: /Read the answer/ }).click();
   await expect(page).toHaveURL(ROUTES.question(questionId));

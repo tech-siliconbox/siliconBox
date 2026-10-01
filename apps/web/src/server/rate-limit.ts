@@ -14,6 +14,8 @@ export const RATE_LIMITS = {
   write: { name: 'write', limit: 30, windowMs: 60_000 },
   // Parsing a CV is CPU work; a learner rarely needs more than a few runs an hour.
   cvScreen: { name: 'cv-screen', limit: 10, windowMs: 60 * 60 * 1000 },
+  // Starting a Drill run queues solver work; the daily quota per level sits on top of this.
+  runStart: { name: 'run-start', limit: 6, windowMs: 60_000 },
   // docs/architecture/content-delivery.md: about a dozen lesson reads a minute per account.
   contentRead: { name: 'content-read', limit: 12, windowMs: 60_000 },
   // A daily cap per account; the number is a starting point to tune from real reading data.

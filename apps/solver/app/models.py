@@ -3,7 +3,7 @@
 On the wire fields are camelCase (the web app is TypeScript); in Python they are snake_case.
 """
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_camel
@@ -56,6 +56,27 @@ class JobSpec(WireModel):
         return _within_bytes(value, MAX_PROPERTIES_BYTES, "properties")
 
 
+class TraceChange(WireModel):
+    time: int
+    value: str
+
+
+class TraceSignal(WireModel):
+    name: str
+    full_name: str
+    width: int
+    transitions: list[TraceChange]
+
+
+class Trace(WireModel):
+    """A counterexample or cover witness: one entry per signal with its value changes."""
+
+    timescale: str
+    end_time: int
+    timepoints: list[int]
+    signals: list[TraceSignal]
+
+
 class CheckResult(WireModel):
     """One assert or cover statement, checked on its own."""
 
@@ -64,7 +85,7 @@ class CheckResult(WireModel):
     status: CheckStatus
     step: int | None = None
     message: str = ""
-    trace: dict[str, Any] | None = None
+    trace: Trace | None = None
 
 
 class JobResult(WireModel):

@@ -34,7 +34,7 @@ def test_a_seeded_bug_fails_with_a_counterexample() -> None:
     assert result.failure_cycle is not None
     failing = result.checks[0]
     assert failing.trace is not None
-    names = {signal["name"] for signal in failing.trace["signals"]}
+    names = {signal.name for signal in failing.trace.signals}
     assert "count" in names
 
 

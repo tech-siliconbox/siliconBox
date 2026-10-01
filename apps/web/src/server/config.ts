@@ -14,6 +14,9 @@ export const ConfigSchema = z
     // Read-only access to paid answers, used only after the entitlement check.
     MONGODB_URI_ANSWERS: z.string().startsWith('mongodb'),
     REDIS_URL: z.string().startsWith('redis'),
+    // The private solver service and the key that signs every call to it (solver ADR 0020).
+    SOLVER_URL: z.url(),
+    SOLVER_SIGNING_KEY: z.string().min(32),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     GOOGLE_CLIENT_ID: optional,

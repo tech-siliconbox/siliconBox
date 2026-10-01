@@ -60,14 +60,18 @@ export const EVERY_OTHER_BLOCK = [
   },
 ];
 
-/** A Support admin grants a learner Basic content access for a day, through the CMS API. */
-export async function grantContent(support: APIRequestContext, learnerEmail: string) {
+/** A Support admin grants a learner Basic content (or tool) access for a day, via the CMS API. */
+export async function grantAccess(
+  support: APIRequestContext,
+  learnerEmail: string,
+  kind: 'content' | 'tool' = 'content',
+) {
   const now = Date.now();
   return support.post('/cms-api/access-grants', {
     data: {
       learnerEmail,
-      kind: 'content',
-      level: 'basic',
+      kind,
+      ...(kind === 'content' ? { level: 'basic' } : {}),
       startsAt: new Date(now - 60_000).toISOString(),
       endsAt: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
       reason: 'End-to-end test grant',

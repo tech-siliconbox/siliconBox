@@ -6,6 +6,8 @@ const base = {
   MONGODB_URI_APP: 'mongodb://127.0.0.1:27017/siliconbox_test',
   MONGODB_URI_ANSWERS: 'mongodb://127.0.0.1:27017/siliconbox_test',
   REDIS_URL: 'redis://127.0.0.1:6379',
+  SOLVER_URL: 'http://127.0.0.1:8001',
+  SOLVER_SIGNING_KEY: 'k'.repeat(32),
   BETTER_AUTH_SECRET: 'x'.repeat(32),
   BETTER_AUTH_URL: 'http://localhost:3000',
 };

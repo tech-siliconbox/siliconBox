@@ -46,6 +46,7 @@ jobs:
       MONGODB_URI_ANSWERS: mongodb://127.0.0.1:27017/siliconbox_ci?replicaSet=rs0&directConnection=true
       REDIS_URL: redis://127.0.0.1:6379
       BETTER_AUTH_URL: http://localhost:3000
+      SOLVER_URL: http://127.0.0.1:8001
     services:
       redis:
         image: redis:8-alpine
@@ -64,6 +65,25 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:migrate
+      # The Drill run tests need the real solver: API plus one worker, sharing a throwaway key.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-10-01'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Start the solver
+        working-directory: apps/solver
+        run: |
+          key="$(openssl rand -hex 32)"
+          echo "::add-mask::$key"
+          echo "SOLVER_SIGNING_KEY=$key" >> "$GITHUB_ENV"
+          export SOLVER_SIGNING_KEY="$key"
+          python -m venv .venv && .venv/bin/pip install -q -U pip && .venv/bin/pip install -q -e .
+          nohup .venv/bin/python -m app.worker > worker.log 2>&1 &
+          nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 > api.log 2>&1 &
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8001/v1/health && break; sleep 1; done
       - name: Build and run end-to-end tests
         run: |
           export BETTER_AUTH_SECRET="$(openssl rand -base64 48)"
@@ -75,7 +95,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-traces
-          path: apps/web/test-results/
+          path: |
+            apps/web/test-results/
+            apps/solver/*.log
           retention-days: 7
 
   solver:
@@ -95,9 +117,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e . --group dev
       - run: .venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/vulture
+      # The runner image, so the container tests (isolation and attacks) run instead of skipping.
+      - run: docker build -t siliconbox-solver:ci .
       - run: .venv/bin/pytest -q
         env:
           SOLVER_REQUIRE_SBY: '1'
+          SOLVER_REQUIRE_IMAGE: '1'
+          SOLVER_TEST_IMAGE: siliconbox-solver:ci
 
   security:
     runs-on: ubuntu-latest

@@ -12,10 +12,18 @@ from app.process import ProcessOutcome, run_bounded
 SBY_GRACE_SECONDS = 5
 
 
+SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
+
+
 def tool_path() -> str:
-    """PATH for the tools: the OSS CAD Suite path in the image, plus this Python for sby."""
-    configured = os.environ.get("SOLVER_TOOL_PATH") or os.environ.get("PATH", "")
-    return os.pathsep.join([str(Path(sys.executable).parent), configured])
+    """PATH for the tools: this Python (for sby on a developer machine), the OSS CAD Suite in the
+    image, then the system folders its launcher scripts need (bash, env)."""
+    parts = [
+        str(Path(sys.executable).parent),
+        os.environ.get("SOLVER_TOOL_PATH", ""),
+        os.environ.get("PATH") or SYSTEM_PATH,
+    ]
+    return os.pathsep.join(part for part in parts if part)
 
 
 @dataclass(frozen=True)

@@ -10,8 +10,8 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
-from app.config import get_settings
-from app.runners import LocalRunner, Runner
+from app.config import Settings, get_settings
+from app.runners import ContainerRunner, LocalRunner, Runner
 from app.store import JobStore
 
 logger = logging.getLogger("solver.worker")
@@ -32,6 +32,12 @@ def process_next(store: JobStore, runner: Runner, wait_seconds: int = WAIT_SECON
     return True
 
 
+def make_runner(settings: Settings) -> Runner:
+    if settings.solver_runner == "container":
+        return ContainerRunner(settings.solver_runner_image, settings.solver_container_runtime)
+    return LocalRunner()
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     settings = get_settings()
@@ -43,8 +49,8 @@ def main() -> None:
         health_check_interval=WAIT_SECONDS,
     )
     store = JobStore(redis, settings.max_queue_length)
-    runner = LocalRunner()
-    logger.info("worker ready")
+    runner = make_runner(settings)
+    logger.info("worker ready (%s runner)", settings.solver_runner)
     while True:
         try:
             process_next(store, runner)

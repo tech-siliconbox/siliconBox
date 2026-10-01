@@ -27,9 +27,11 @@ solver.
   and an environment holding only `PATH` and the work root: no Redis URL, no signing key. The
   job process reads the job on stdin and writes the result on stdout, so the whole pipeline
   (parsing, lowering, Yosys, solver) is inside the sandbox and is killed together.
-- **Next:** a `ContainerRunner` with the same interface runs `app.job_runner` in a fresh container
-  per job (no network, read-only root, CPU, memory and process limits, gVisor or Firecracker).
-  Only the runner changes; the API, store and pipeline stay as they are.
+- **Containers:** `ContainerRunner` (same interface, `SOLVER_RUNNER=container`) runs
+  `app.job_runner` in a fresh container per job from the solver image: no network, read-only
+  root, CPU, memory and process limits, no capabilities, non-root, gVisor when
+  `SOLVER_CONTAINER_RUNTIME=runsc`. The worker needs a Docker daemon; on a host without one,
+  another runner (for example Fly Machines) can implement the same interface.
 - **Engine:** the SVA parser, lowering engine and project generator are kept from the original
   repository. The `.sby` file is built only by `app/engine/sby_template.py`; work folders are
   made and removed only by `app/workspace.py`. The AI assertion generator and debugger are not

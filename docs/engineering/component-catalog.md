@@ -41,7 +41,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Name | Purpose | Status |
 | --- | --- | --- |
 | useSessionCheck | Periodic session validity check against `GET /api/v1/me` | Built |
-| useRunPolling | Poll a Drill run with 1 s, 2 s, 5 s backoff | Planned |
+| useRunPolling | Poll a Drill run with 1 s, 2 s, 5 s backoff (`RUN_POLL_DELAYS_MS`) | Planned |
 
 ## Feature parts (`features/<name>`)
 
@@ -134,6 +134,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | isActive, addMonths, windowFrom | Window arithmetic (UTC calendar months) | Built |
 | formatInr | Paise to "₹5,000" | Built |
 | DRILL_LIMITS, drillLimitProblem, TOP_MODULE_PATTERN | Per-level Drill caps and safe top-module names | Built |
+| RunInputSchema, RunResultSchema, RunViewSchema, isDrillSolved, DRILL_RUN_DAILY_QUOTA, dailyRunQuota | Drill run input, solver result, learner view, solved rule and daily quota by level (`schemas/run.ts`, `entitlements/run-quota.ts`) | Built |
+| solver-client (`submitJob`, `readJob`) | The only code that calls the solver; signs a one-minute token per learner and scope (`server/solver-client.ts`) | Built |
+| startRun, readRun | Run service: Drill access, cache, quota, solver, status refresh (`server/runs.ts`) | Built |
 | AlertKindSchema, ServiceStatusSchema | Alert kinds; service status | Built |
 | ResumeSchema, emptyResume, formatResumePeriod | Resume data, blank resume, date display | Built |
 | screenCv, CvReportSchema, CvScreeningSchema | Pure CV screening rules and report shapes | Built |

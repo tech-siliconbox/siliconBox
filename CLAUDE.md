@@ -39,6 +39,7 @@ infra/          Deploy and environment notes
 pnpm install            install all workspaces
 docker compose up -d    local MongoDB (replica set) and Redis
 pnpm --filter @siliconbox/solver setup   create the solver's Python venv
+docker build -t siliconbox-solver:dev apps/solver   solver image (job containers use it)
 pnpm dev                run web and solver locally
 pnpm typecheck          TypeScript across the repo
 pnpm lint               ESLint + Prettier check

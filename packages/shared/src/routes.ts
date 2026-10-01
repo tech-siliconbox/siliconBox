@@ -24,6 +24,8 @@ export const API_ROUTES = {
   resume: '/api/v1/resume',
   resumePdf: '/api/v1/resume/pdf',
   cvScreenings: '/api/v1/cv-screenings',
+  drillRuns: (drillId: string) => `/api/v1/drills/${drillId}/runs`,
+  run: (runId: string) => `/api/v1/runs/${runId}`,
 } as const;
 
 /** Query value the sign-in page reads to explain a sign-out caused by another device. */

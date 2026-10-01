@@ -2,12 +2,18 @@ import 'server-only';
 import {
   type CourseOutline,
   CourseOutlineSchema,
+  DRILL_MODES,
+  DRILL_SOLVERS,
+  DRILL_TARGETS,
   type Level,
   LevelSchema,
+  PublicIdSchema,
   type PublishedLesson,
   PublishedLessonSchema,
+  TOP_MODULE_PATTERN,
 } from '@siliconbox/shared';
 import type { Document } from 'mongodb';
+import { z } from 'zod';
 import { getDb } from './client';
 import { COLLECTIONS } from './collections';
 
@@ -59,6 +65,36 @@ export async function findPublishedLesson(
     lesson: PublishedLessonSchema.parse(found.lesson),
     level: LevelSchema.parse(found.level),
   };
+}
+
+const DrillForRunSchema = z.object({
+  publicId: PublicIdSchema,
+  designCode: z
+    .string()
+    .nullish()
+    .transform((code) => code ?? ''),
+  mode: z.enum(DRILL_MODES),
+  solver: z.enum(DRILL_SOLVERS),
+  target: z.enum(DRILL_TARGETS),
+  depth: z.number().int().positive(),
+  timeoutSeconds: z.number().int().positive(),
+  topModule: z.string().regex(TOP_MODULE_PATTERN),
+});
+export type DrillForRun = z.infer<typeof DrillForRunSchema> & { level: Level };
+
+/** A published Drill's design and solver settings, for starting a run. Never its private part. */
+export async function findPublishedDrillForRun(publicId: string): Promise<DrillForRun | null> {
+  const [found] = await getDb()
+    .collection(COLLECTIONS.drills)
+    .aggregate([
+      { $match: { publicId, _status: PUBLISHED } },
+      { $limit: 1 },
+      ...withModuleAndCourse('module'),
+      { $project: { _id: 0, drill: '$$ROOT', level: '$course.level' } },
+    ])
+    .toArray();
+  if (found === undefined) return null;
+  return { ...DrillForRunSchema.parse(found.drill), level: LevelSchema.parse(found.level) };
 }
 
 /** Published courses with module and lesson titles only. Never lesson text. */

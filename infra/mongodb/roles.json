@@ -13,6 +13,7 @@
         "orders",
         "progress",
         "runs",
+        "run_cache",
         "ended_sessions",
         "watermark_codes",
         "resumes",

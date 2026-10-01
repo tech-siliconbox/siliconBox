@@ -38,8 +38,8 @@ decision, account or content only the founder can supply.
 | Item | Who | Status |
 | --- | --- | --- |
 | Bring in `formal-verify-backend` and fix its eight security findings, each with a test | Dev | Done: 13 findings fixed, each with a regression test |
-| Job queue in Redis, isolated runner per job, quotas per level | Dev | Queue and process-per-job runner done; container runner next (needs Docker running); quotas with the run API |
-| Run API (`POST /drills/:id/runs`, `GET /runs/:id`), result cache, polling | Dev | Not started |
+| Job queue in Redis, isolated runner per job, quotas per level | Dev | Done: container per job, attack-tested; daily quota by level |
+| Run API (`POST /drills/:id/runs`, `GET /runs/:id`), result cache, polling | Dev | Done (API and cache); polling with the workspace UI |
 | Drill workspace (editor, output, waveform) from `formal-verify-frontend` | Dev | Not started; repo available locally |
 | Drill publish gate in CI (reference passes, every seeded bug fails) | Dev | Not started |
 | Always-on solver host and an outside attack test | Founder + Dev | Not started; budget needed |

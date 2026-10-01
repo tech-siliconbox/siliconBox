@@ -1,6 +1,7 @@
 """The one place solver settings come from. Values are read from the environment."""
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,6 +17,11 @@ class Settings(BaseSettings):
     redis_url: SecretStr
     # Jobs waiting beyond this are refused with 503 so the web app can say "busy, try later".
     max_queue_length: int = Field(default=500, ge=1)
+    # How the worker isolates a job: "local" (process group, development) or "container".
+    solver_runner: Literal["local", "container"] = "local"
+    # Image for job containers, and an optional OCI runtime such as "runsc" (gVisor).
+    solver_runner_image: str = "siliconbox-solver:dev"
+    solver_container_runtime: str | None = None
 
 
 @lru_cache

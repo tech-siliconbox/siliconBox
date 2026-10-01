@@ -22,6 +22,14 @@ export const ERRORS = {
     message: 'Upload a PDF or Word (.docx) file of up to 5 MB.',
   },
   RATE_LIMITED: { status: 429, message: 'Too many requests. Please wait a moment and try again.' },
+  RUN_QUOTA_REACHED: {
+    status: 429,
+    message: "You have used all of today's Drill runs. They reset tomorrow.",
+  },
+  SOLVER_BUSY: {
+    status: 503,
+    message: 'The formal tool is busy or unavailable. Please try again in a minute.',
+  },
   INTERNAL: { status: 500, message: 'Something went wrong. Please try again.' },
 } as const satisfies Record<string, { status: number; message: string }>;
 

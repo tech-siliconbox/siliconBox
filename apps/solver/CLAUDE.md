@@ -32,11 +32,13 @@ app/limits.py       ceilings and allow-lists
 app/engine/         imported SVA parser, lowering, project generator, VCD reader;
                     sby_template.py is the only writer of .sby files
 tests/              pytest; one or more regression tests per hardening finding
-Dockerfile          minimal runner image with OSS CAD Suite (next)
+Dockerfile          solver image: API, worker and per-job runner (OSS CAD Suite, non-root)
 ```
 
 Run locally: `pnpm --filter @siliconbox/solver dev` (API on 127.0.0.1:8001 plus a worker). It reads
-`apps/solver/.env.local` (`SOLVER_SIGNING_KEY`, same as the web app's, and `REDIS_URL`).
+`apps/solver/.env.local` (`SOLVER_SIGNING_KEY`, same as the web app's, and `REDIS_URL`). Jobs run
+as local process groups by default; with `SOLVER_RUNNER=container` each runs in a fresh container
+from `SOLVER_RUNNER_IMAGE` (build it with `docker build -t siliconbox-solver:dev apps/solver`).
 
 Result shape (camelCase on the wire): status (PASS, FAIL, TIMEOUT, ERROR), elapsedSeconds,
 depthReached, checks (name, kind, status, step, message, trace), failedCheck, failureCycle,

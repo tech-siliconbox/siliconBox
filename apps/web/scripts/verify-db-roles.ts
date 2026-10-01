@@ -40,6 +40,11 @@ const CHECKS: Record<'MONGODB_URI_APP' | 'MONGODB_URI_ANSWERS' | 'MONGODB_URI_AD
       allowed: false,
       run: (db) => db.collection('lessons').updateOne(NOTHING, { $set: { x: 1 } }),
     },
+    {
+      what: 'record Drill runs and cached results',
+      allowed: true,
+      run: (db) => db.collection('run_cache').updateOne(NOTHING, { $set: { x: 1 } }),
+    },
   ],
   MONGODB_URI_ANSWERS: [
     { what: 'read paid answers', allowed: true, run: (db) => db.collection('answers').findOne({}) },

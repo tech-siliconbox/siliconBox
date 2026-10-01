@@ -41,7 +41,7 @@ checklists: `docs/roadmap/`.
 | Drills | Written in the CMS with private solutions and per-level caps; learners run them once the solver exists (phase 3) |
 | Admin tools | Lesson preview, security alerts for Support, Industry Ready services switched open or locked |
 | Career tools | Resume Builder (ATS-friendly PDF) and CV screening (formal verification report); free for learners with active access |
-| Solver | Engine imported from `formal-verify-backend` and hardened (13 findings fixed with tests); signed calls, Redis job queue and worker; not yet in a container or wired to the site |
+| Solver | Engine from `formal-verify-backend`, hardened (13 findings fixed with tests); signed calls, Redis queue, worker, one locked-down container per run; the site's run API (`POST /api/v1/drills/:id/runs`, `GET /api/v1/runs/:id`) with quotas and a result cache. The Drill workspace page is next |
 
 ### In progress (phase 2)
 

@@ -23,8 +23,13 @@ ADR 0020.
 ## Runner isolation target
 
 One container per job; no network; read-only root; CPU, memory and time limits; gVisor or
-Firecracker. Status: `LocalRunner` (own process group, hard time limit, no secrets in its
-environment) is built; `ContainerRunner` and the runner image are next.
+Firecracker. Status: built. `ContainerRunner` starts a fresh container per job from the solver
+image with `--network none --read-only`, tmpfs work and tmp folders, 1 CPU, 1 GB memory (no swap),
+256 processes, `--cap-drop ALL`, `no-new-privileges`, user 65534, and no environment beyond the
+work root; the container is removed by name after a timeout. gVisor: set
+`SOLVER_CONTAINER_RUNTIME=runsc` on a host with gVisor installed. `tests/test_container_runner.py`
+attacks a real container (network, root writes, fork bomb, memory hog, endless run, secrets) and
+runs in CI. The attack test against the deployed runner waits for a host.
 
 ## Gate
 

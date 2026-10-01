@@ -1,13 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { ROUTES } from '@siliconbox/shared';
 import type { Page } from '@playwright/test';
-import {
-  EVERY_OTHER_BLOCK,
-  createDoc,
-  grantContent,
-  paragraph,
-  signInAsAdmin,
-} from './cms/publish';
+import { EVERY_OTHER_BLOCK, createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
 import { withAdminDb } from './db';
 import { expect, failOnCspViolation, newLearner, signUp, test } from './helpers';
 
@@ -140,9 +134,9 @@ test('a learner reads the preview, is refused the paid lesson, then reads it onc
 
   // Only Support (or the Owner) may grant access, and every grant is audited.
   const author = await signInAsAdmin('author');
-  expect((await grantContent(author, learner.email)).status()).toBe(403);
+  expect((await grantAccess(author, learner.email)).status()).toBe(403);
   const support = await signInAsAdmin('support');
-  expect((await grantContent(support, learner.email)).status()).toBe(201);
+  expect((await grantAccess(support, learner.email)).status()).toBe(201);
   const me = (await (await page.request.get('/api/v1/me')).json()) as { id: string };
   const audited = await withAdminDb((db) =>
     db.collection('audit_log').countDocuments({ action: 'entitlement_change', subjectId: me.id }),
@@ -211,6 +205,6 @@ test('progress is refused without a session and for an unknown lesson', async ({
 
 test('a grant for an email nobody signed up with is refused', async () => {
   const support = await signInAsAdmin('support');
-  const response = await grantContent(support, newLearner().email);
+  const response = await grantAccess(support, newLearner().email);
   expect(response.status()).toBe(400);
 });
