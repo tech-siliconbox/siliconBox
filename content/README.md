@@ -5,6 +5,10 @@ Payload is the published source of truth; after the first import, edit in the ad
 
 ## Importing courses (JSON)
 
+> The GitHub repository is **public**. Real course files in `content/import/` are git-ignored
+> and must never be committed; keep them locally (or in private storage) and import from there.
+> Only `placeholders.json` and `demo-formal-verification.json` are tracked.
+
 ```
 pnpm content:import content/import/<file>.json check   # validate only, writes nothing
 pnpm content:import content/import/<file>.json         # create or update

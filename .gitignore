@@ -15,3 +15,9 @@ next-env.d.ts
 test-results/
 playwright-report/
 *.egg-info/
+
+# The repository is public: real course content must never be committed.
+# Only the placeholder and demo files may live in git; real files stay local.
+content/import/*.json
+!content/import/placeholders.json
+!content/import/demo-formal-verification.json
