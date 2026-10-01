@@ -11,6 +11,8 @@ export const ConfigSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']),
     MONGODB_URI_APP: z.string().startsWith('mongodb'),
+    // Read-only access to paid answers, used only after the entitlement check.
+    MONGODB_URI_ANSWERS: z.string().startsWith('mongodb'),
     REDIS_URL: z.string().startsWith('redis'),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),

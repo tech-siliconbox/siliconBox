@@ -1,13 +1,10 @@
 import 'server-only';
-import { type LessonBlock, type PublishedLesson, PublicIdSchema } from '@siliconbox/shared';
+import { type PublishedLesson, PublicIdSchema } from '@siliconbox/shared';
 import { findPublishedLesson } from '@/db/content';
 import type { Identity } from './auth/authenticate';
-import { getConfig } from './config';
 import { assertEntitled } from './entitlements';
 import { AppError } from './errors';
-import { embedMark, markCode } from './invisible-mark';
-import { raiseAlert } from './alerts';
-import { RATE_LIMITS, enforceRateLimit, redisRateLimiter } from './rate-limit';
+import { enforceReadPacing, learnerMarkCode, markBlocks } from './paid-content';
 import { createTtlCache } from './ttl-cache';
 
 /**
@@ -19,7 +16,7 @@ export async function readLesson(
   lessonId: string,
   now: Date = new Date(),
 ): Promise<PublishedLesson> {
-  await enforcePacing(identity.userId);
+  await enforceReadPacing(identity.userId);
   const id = PublicIdSchema.safeParse(lessonId);
   if (!id.success) throw new AppError('NOT_FOUND', 'malformed lesson id');
   const found = await findPublishedLessonCached(id.data);
@@ -27,7 +24,7 @@ export async function readLesson(
 
   const resource = { kind: 'lesson', level: found.level, isPreview: found.lesson.preview } as const;
   await assertEntitled(resource, identity, now);
-  return markLesson(found.lesson, markCode(identity.userId, getConfig().BETTER_AUTH_SECRET));
+  return markLesson(found.lesson, learnerMarkCode(identity.userId));
 }
 
 // docs/architecture/content-delivery.md: keep a published lesson 30 to 60 seconds in memory.
@@ -50,25 +47,6 @@ export function clearLessonCache(): void {
   publishedLessons.clear();
 }
 
-/** About a dozen reads a minute and a daily cap. Hitting the cap soft-locks and raises an alert. */
-async function enforcePacing(userId: string): Promise<void> {
-  const key = `user:${userId}`;
-  await enforceRateLimit(redisRateLimiter, key, RATE_LIMITS.contentRead);
-  await enforceRateLimit(redisRateLimiter, key, RATE_LIMITS.contentReadDaily).catch(
-    async (error: unknown) => {
-      await raiseAlert('content_daily_cap', userId);
-      throw error;
-    },
-  );
-}
-
-/** Hides the learner's code in every passage of prose; code samples stay untouched. */
 export function markLesson(lesson: PublishedLesson, code: number): PublishedLesson {
-  return { ...lesson, blocks: lesson.blocks.map((block) => markBlock(block, code)) };
-}
-
-function markBlock(block: LessonBlock, code: number): LessonBlock {
-  return block.blockType === 'paragraph' || block.blockType === 'callout'
-    ? { ...block, text: embedMark(block.text, code) }
-    : block;
+  return { ...lesson, blocks: markBlocks(lesson.blocks, code) };
 }

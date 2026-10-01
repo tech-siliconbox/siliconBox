@@ -73,7 +73,9 @@ export default defineConfig(
     extends: [tseslint.configs.disableTypeChecked],
   },
   {
-    files: ['infra/mongodb/*.js'],
-    languageOptions: { globals: { db: 'readonly', print: 'readonly' } },
+    // mongosh and plain Node scripts: CommonJS `require` is how they load files.
+    files: ['infra/mongodb/*.{js,cjs}'],
+    languageOptions: { globals: { ...globals.commonjs, db: 'readonly', print: 'readonly' } },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
 );

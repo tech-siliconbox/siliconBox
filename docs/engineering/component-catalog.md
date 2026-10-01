@@ -31,6 +31,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | CompanyTag | Company name, with the logo once permission is confirmed | Built |
 | EmptyState | Standard empty display | Built |
 | ErrorState | Standard error display (used by the site's `error.tsx`) | Built |
+| PaidContentLocked | Why a lesson or answer is locked, with the way forward | Built |
 | SessionGuard | Re-checks the session every minute and on focus; sends the learner to sign-in with the reason | Built |
 | LessonBlockRenderer | Renders lesson blocks on the server (`components/lesson`); diagrams go through `sanitizeSvg` | Built |
 | Prose | Text with `backtick` spans as inline code (`components/lesson`) | Built |
@@ -80,6 +81,10 @@ Check here before writing a component, hook or helper. Add a row when you create
 | recordProgress | Progress for a published lesson the learner may read (`server/progress.ts`) | Built |
 | optionalPageIdentity | The signed-in learner on a public page, or null | Built |
 | readLessonPreview | Latest lesson draft for a signed-in CMS admin (`server/preview.ts`) | Built |
+| enforceReadPacing, learnerMarkCode, markBlocks | Shared by every paid read (`server/paid-content.ts`) | Built |
+| loadPaidContent, isLocked | Page helper: not found becomes 404, no access becomes a lock reason (`server/paid-page.ts`) | Built |
+| paidReadRoute | GET route for one paid item by public id (`server/api/paid-read-route.ts`) | Built |
+| readAnswer, findPublishedQuestion, findPublishedAnswerBlocks | Question answers through the answers-only user (`server/answers.ts`, `db/answers.ts`) | Built |
 | createTtlCache, clearLessonCache | In-memory cache with expiry; the published-lesson cache | Built |
 | signInAnomalies, clientCountry | Pure sign-in anomaly detection (`server/anomalies.ts`) | Built |
 | raiseAlert, recordAlert | Records a security alert for review (`server/alerts.ts`, `db/security-alerts.ts`) | Built |

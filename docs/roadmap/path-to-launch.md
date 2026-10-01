@@ -21,7 +21,7 @@ decision, account or content only the founder can supply.
 | Course content (10 modules per course) | Founder | In preparation |
 | Demo content in the dev database: 30 original demo lessons (titles end in "(demo)") stand in until the real content is imported over the same slugs; none may remain at launch | Founder + Dev | Demo published on dev |
 | Question bank: questions, companies, answers in the CMS; public list, search, filters | Dev | Done |
-| Question bank: serving answers to entitled learners | Dev | Waits on the answers database-user decision |
+| Question bank: serving answers to entitled learners | Dev | Done (answers-only database user, ADR 0019) |
 | Drills in the CMS (starter code, private solution and bugs, per-level caps) | Dev | Done; learner Drill page in phase 3 |
 | Industry Ready tab with admin-controlled services | Dev | Done (all locked until built) |
 | Resume Builder and CV screening | Dev | Done (open; CV files are never stored, only reports) |
@@ -53,7 +53,7 @@ decision, account or content only the founder can supply.
 | Email provider: verification, receipts, new-device alerts, expiry reminders | Founder + Dev | Deferred |
 | Vercel Pro, Cloudflare (WAF, Access + MFA on admin), staging and production | Founder + Dev | Deferred |
 | Dedicated Mumbai cluster | Founder | Done (`siliconbox-dev`, ap-south-1) |
-| Least-privilege Atlas app user | Founder + Dev | Not started: create the `siliconboxApp` role and user in Atlas |
+| Least-privilege Atlas users | Founder + Dev | Done: site, answers reader and admin users, verified |
 | Backups to off-cluster storage, one encrypted restore drill | Founder + Dev | Script ready; storage not chosen |
 | Terms (no-sharing clause), refund policy, privacy notice and DPDP consent, export and delete | Founder (lawyer) + Dev | Not started |
 | Analytics and Drill pass rates | Dev | Not started |
@@ -67,5 +67,4 @@ Starts only when a stage threshold in `docs/architecture/scaling.md` is reached.
 ## Open decisions blocking engineering
 
 See "Blockers and founder decisions" in `README.md` of this folder. The ones that block code
-soonest: how the server reads `answers` (question bank), where CVs are stored (Industry Ready),
-and backup storage.
+soonest: backup storage, and access to the solver repositories (phase 3).

@@ -21,6 +21,7 @@ In code the order is: origin check on writes, authenticate, rate-limit (per acco
 | `GET /api/v1/services` | Anyone | `read` |
 | `GET, PUT, DELETE /api/v1/resume`; `GET /api/v1/resume/pdf` | Signed in; service open and an active content entitlement (DELETE always allowed) | `read` / `write` |
 | `POST, GET, DELETE /api/v1/cv-screenings`; `DELETE /api/v1/cv-screenings/:id` | Same; uploads are multipart, PDF or .docx up to 5 MB | `cvScreen` (10 an hour) / `read` / `write` |
+| `GET /api/v1/questions/:id/answer` | Signed in; active content entitlement (`readAnswer` calls assertEntitled) | `read`, plus `contentRead` |
 | `GET /api/v1/questions` | Anyone; `q`, `topic`, `company`, `page` (strict query schema) | `read` |
 | `POST /api/v1/progress` | Signed in; lesson must be published and readable by the learner | `write` |
 | `GET /api/v1/lessons/:id` | Signed in; `readLesson` checks the lesson's level with `assertEntitled` | `read`, plus `contentRead` (12 a minute) |

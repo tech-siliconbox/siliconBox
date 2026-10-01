@@ -3,6 +3,7 @@ export const ROUTES = {
   home: '/',
   pricing: '/pricing',
   questions: '/questions',
+  question: (publicId: string) => `/questions/${publicId}`,
   industryReady: '/industry-ready',
   resumeBuilder: '/industry-ready/resume-builder',
   cvScreening: '/industry-ready/cv-screening',

@@ -1,4 +1,4 @@
-import type { PublicQuestion } from '@siliconbox/shared';
+import { type PublicQuestion, ROUTES } from '@siliconbox/shared';
 import Link from 'next/link';
 import { CompanyTag } from '@/components/shared/company-tag';
 import { Badge } from '@/components/ui/badge';
@@ -29,9 +29,12 @@ export function QuestionCard({ question }: { question: PublicQuestion }) {
             <Badge>{topic}</Badge>
           </Link>
         ))}
-        <span className="ml-auto text-[12px] text-muted-foreground">
-          Answer: for learners with active access
-        </span>
+        <Link
+          href={ROUTES.question(question.publicId)}
+          className="ml-auto text-[12px] underline underline-offset-4"
+        >
+          Read the answer (active access)
+        </Link>
       </div>
     </article>
   );

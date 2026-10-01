@@ -9,7 +9,7 @@ Goal: editors can publish content and learners can read it safely.
 - [x] Block editor: heading, paragraph, code, assertion snippet, callout, diagram (SVG)
 - [ ] Draft, preview as learner, schedule, publish, rollback
 - [x] Content importer (`pnpm content:import`): JSON, matched by slug, through Payload (Markdown can be added if authors want it)
-- [ ] Question bank: public list with company logo and name; private answers; text index search
+- [x] Question bank: public list with company logo and name; private answers; text index search (logos shown once each company's permission is on file; names only until then, as `docs/legal/trademark-and-logos.md` requires)
 - [x] Learning API: `GET /lessons/:id` with entitlement check, `no-store`, one lesson per response
 - [x] Sequential release and opaque ids
 - [x] Watermarks: visible tile and invisible text pattern on every paid view; private trace table
@@ -45,6 +45,8 @@ Goal: editors can publish content and learners can read it safely.
 - Industry Ready (2026-10-02): `services` collection, public `/industry-ready` page and `GET /api/v1/services`. The five services are seeded **locked** ("Opening soon"), including Resume Builder and CV screening, which the product doc lists as open: they open in the admin once they work, so no card leads nowhere.
 
 - Career tools (2026-10-02): **Resume Builder** at `/industry-ready/resume-builder`: structured editor (contact, summary, skills, experience, projects, education, certifications) with live preview, two single-column ATS-friendly templates, server-rendered text PDF, save and delete. **CV screening** at `/industry-ready/cv-screening`: drag-and-drop PDF or .docx (5 MB), checked by file content not name; rule-based report (ATS readability, contact, sections, length, impact, formal verification keywords) with scores and specific fixes; only the report is stored, never the file, and reports can be deleted. Both require an open service and an active content entitlement; a locked service refuses every call. Migration 5 opened both services.
+
+- Answers (2026-10-02): `/questions/[id]` and `GET /api/v1/questions/:id/answer` for learners with an active content entitlement: paced like lessons, watermarked, read through the answers-only database user after the entitlement check (ADR 0019).
 
 ## Gate
 

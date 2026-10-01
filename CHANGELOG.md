@@ -5,6 +5,11 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 ## [Unreleased]
 
 ### Added
+- Question answers for learners with an active content entitlement: `/questions/[id]` and `GET /api/v1/questions/:id/answer`, paced and watermarked.
+- Three least-privilege database users (site, answers reader, admin) with roles defined once in `infra/mongodb/roles.json`, applied on Atlas by `atlas-roles.mjs`, and checked by `pnpm db:verify-roles` (ADR 0019).
+
+### Changed
+- Redis outages are logged through the app logger (`redis_unavailable`) instead of an unhandled client event.
 - Resume Builder: structured editor with live preview, two ATS-friendly templates, server-generated text PDF, save and delete.
 - CV screening: drag-and-drop PDF or Word upload, rule-based ATS and formal verification keyword report with scores and fixes; files are read in memory and never stored; reports can be deleted.
 - Migration 5: `resumes` and `cv_screenings` collections; Resume Builder and CV screening services opened.

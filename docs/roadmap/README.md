@@ -29,7 +29,7 @@ Phase 2 (in progress). Phase 1 code is done; its gate waits on staging (Vercel, 
 - [ ] Course content and questions written, owned and ready to import
 - [ ] First free lesson: the access model says free for everyone, the test matrix says sign-in required (code follows the matrix for now)
 - [ ] Buying a lower level while a higher one is active (code refuses it for now)
-- [ ] How the server reads `answers` when the app database user cannot (likely a separate read-only user)
+- [x] How the server reads `answers`: a separate answers-only database user (ADR 0019, 2026-10-02)
 - [ ] If Redis is down, should any routes stay open (code refuses every gated call for now)
 - [ ] Approve ADR 0017 (nonce CSP means public pages are not cached at the edge)
 - [ ] Backup storage (proposed: encrypted GitHub Actions artifacts, 30 days)

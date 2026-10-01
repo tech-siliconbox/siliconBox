@@ -10,7 +10,8 @@
     "test:e2e": "playwright test",
     "db:migrate": "migrate-mongo up -f migrate-mongo-config.js && migrate-mongo status -f migrate-mongo-config.js",
     "cms:types": "payload generate:types && payload generate:importmap",
-    "content:import": "payload run scripts/content-import.ts"
+    "content:import": "payload run scripts/content-import.ts",
+    "db:verify-roles": "node scripts/verify-db-roles.ts"
   },
   "dependencies": {
     "@payloadcms/db-mongodb": "^3.90.2",

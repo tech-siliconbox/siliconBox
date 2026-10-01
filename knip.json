@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "ignore": ["infra/mongodb/*.js"],
+  "ignore": ["infra/mongodb/*.js", "infra/mongodb/*.mjs", "infra/mongodb/*.cjs"],
   "workspaces": {
     ".": {},
     "apps/web": {

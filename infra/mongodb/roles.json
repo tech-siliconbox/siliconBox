@@ -1,0 +1,29 @@
+{
+  "comment": "Least-privilege roles for the SiliconBox database. Read by create-app-role.js (mongosh) and atlas-roles.mjs (Atlas). Deliberately absent from siliconboxApp: answers and drill_private (hidden material), the migration collections, and update/remove on audit_log (append-only).",
+  "database": "siliconbox",
+  "roles": {
+    "siliconboxApp": {
+      "readWrite": [
+        "users",
+        "sessions",
+        "accounts",
+        "verifications",
+        "twoFactors",
+        "entitlements",
+        "orders",
+        "progress",
+        "runs",
+        "ended_sessions",
+        "watermark_codes",
+        "resumes",
+        "cv_screenings"
+      ],
+      "insertOnly": ["security-alerts"],
+      "findInsert": ["audit_log"],
+      "readOnly": ["courses", "modules", "lessons", "drills", "questions", "companies", "services"]
+    },
+    "siliconboxAnswersReader": {
+      "readOnly": ["answers"]
+    }
+  }
+}

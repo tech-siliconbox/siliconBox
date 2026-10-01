@@ -37,7 +37,7 @@ checklists: `docs/roadmap/`.
 | Content | Payload CMS at `/admin` with Author, Editor, Support and Owner roles, drafts and versions; courses, modules and lessons with six block types; JSON importer; 3 demo courses with 10 modules each (original demo text, to be replaced by the real content) |
 | Support | Grant, extend or shorten a learner's access in the admin, with a reason, audited |
 | Learning | Public course outlines; lesson page and API that serve published lessons only to entitled learners, paced (per minute and per day) and watermarked; progress marks |
-| Question bank | Public, searchable list with company tags and years; answers written in the CMS (serving them waits on a decision) |
+| Question bank | Public, searchable list with company tags and years; answers for learners with active access |
 | Drills | Written in the CMS with private solutions and per-level caps; learners run them once the solver exists (phase 3) |
 | Admin tools | Lesson preview, security alerts for Support, Industry Ready services switched open or locked |
 | Career tools | Resume Builder (ATS-friendly PDF) and CV screening (formal verification report); free for learners with active access |
@@ -45,7 +45,7 @@ checklists: `docs/roadmap/`.
 
 ### In progress (phase 2)
 
-Serving question answers (waits on a decision) and scheduled publishing (needs the host's cron). Full list of
+Scheduled publishing (needs the host's cron). Phase 2 is otherwise complete. Full list of
 what is left before launch: `docs/roadmap/path-to-launch.md`.
 
 ### Waiting on the founder

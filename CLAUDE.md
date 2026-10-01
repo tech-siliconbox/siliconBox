@@ -51,6 +51,7 @@ pnpm dedupe:check       copy-paste detection (jscpd)
 pnpm unused:check       unused files, exports, dependencies (knip)
 pnpm deps:check         layering and circular imports (dependency-cruiser)
 pnpm --filter @siliconbox/web cms:types   regenerate Payload types and admin import map
+pnpm --filter @siliconbox/web db:verify-roles   prove each database user's access (after role changes)
 ```
 
 Planned for phase 2: `pnpm content:import` (Markdown from `content/` into Payload).

@@ -43,6 +43,7 @@ jobs:
     env:
       MONGODB_URI_APP: mongodb://127.0.0.1:27017/siliconbox_ci?replicaSet=rs0&directConnection=true
       MONGODB_URI_ADMIN: mongodb://127.0.0.1:27017/siliconbox_ci?replicaSet=rs0&directConnection=true
+      MONGODB_URI_ANSWERS: mongodb://127.0.0.1:27017/siliconbox_ci?replicaSet=rs0&directConnection=true
       REDIS_URL: redis://127.0.0.1:6379
       BETTER_AUTH_URL: http://localhost:3000
     services:

@@ -10,7 +10,7 @@ Goal: a safe base that every later phase builds on.
 - [x] Shared foundations created once: `packages/shared` constants, schemas, error codes; `withApiGate`, `assertEntitled`, `AppError`, config; UI primitives and `Watermarked`, `LockedCard`, `CompanyTag`; catalog updated
 - [x] CI: typecheck, lint, test, dependency scan, secret scan
 - [ ] Environments: dev, staging, production; preview deployments per PR
-- [ ] MongoDB Atlas (Mumbai) with separate roles: learner-facing user cannot read `drill_private` or `answers`
+- [x] MongoDB Atlas (Mumbai) with separate roles: learner-facing user cannot read `drill_private` or `answers`
 - [x] migrate-mongo wired into CI; first migration creates core collections and unique indexes
 - [ ] Nightly `mongodump` job to private storage; one restore practised
 - [x] Better Auth with MongoDB adapter: email + password (breached check), Google, TOTP (Google is wired but untested until a Google client id is set)
@@ -28,7 +28,7 @@ Goal: a safe base that every later phase builds on.
 
 - Done in code and verified locally; the items below still need an account or host set up.
 - GitHub: code lives in `tech-siliconbox/siliconBox` (public, by founder's choice; real course content is git-ignored). CI passes on every job since commit `bdbc8eb` (web checks, end-to-end on a fresh replica set, solver, secret and dependency scans).
-- Atlas: the app now runs on the dedicated `siliconbox-dev` cluster in AWS Mumbai (ap-south-1), database `siliconbox`, with data and migrations moved from the old shared cluster; all end-to-end tests pass there (2026-10-01). Still open: the connection uses an `atlasAdmin` user, so the least-privilege `siliconboxApp` role and user (`infra/mongodb/`) must be created in Atlas before the hidden-collection rule is enforced.
+- Atlas: the app now runs on the dedicated `siliconbox-dev` cluster in AWS Mumbai (ap-south-1), database `siliconbox`, with data and migrations moved from the old shared cluster; all end-to-end tests pass there (2026-10-01). Since 2026-10-02 the app uses three least-privilege users (site, answers reader, admin; ADR 0019), verified by `pnpm db:verify-roles` and the full end-to-end suite.
 - Upstash: connected over TCP (`rediss://`); rate limits verified there with the e2e suite. Locally every request shares the `ip:unknown` bucket because no proxy sets the client IP header; on Vercel `x-real-ip` separates them.
 - Deferred by founder decision (2026-10-01): Vercel, Cloudflare and the email provider are integrated later. Object storage is not added for now; MongoDB is the only store.
 - Nightly backup: script and workflow written (`infra/scripts/`, `.github/workflows/nightly-backup.yml`); storage bucket not chosen. A local dump-and-restore drill passed; an encrypted drill against staging is still due.

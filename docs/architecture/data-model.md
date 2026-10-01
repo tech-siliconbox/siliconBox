@@ -14,7 +14,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `drills` | Title, module (level comes from its course), topic, top module, mode, solver, target, depth, timeout, brief, design and starter code, `publicId`; drafts | Server (read-only) |
 | `drill_private` | Reference solution, hidden properties, seeded-bug variants (one per Drill) | Runner service and admin only |
 | `questions` | Text, topics, company tags (company, year, internal source note), `publicId`; written by Payload with drafts | Public (published only; source note internal) |
-| `answers` | Private answer blocks, one per question (`question` unique); written by Payload | Admin now; server for active learners once the reader user is decided |
+| `answers` | Private answer blocks, one per question (`question` unique); written by Payload | The answers-only database user, after the entitlement check (ADR 0019) |
 | `companies` | Name, slug (logo later, with permission and storage); written by Payload | Public |
 | `users` | Account, roles, MFA state (Better Auth) | Server |
 | `sessions` | Active session, device, created, last seen (Better Auth) | Server |

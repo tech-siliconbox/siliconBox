@@ -1,52 +1,19 @@
-// mongosh script: creates the least-privilege role for the learner-facing app user.
+// mongosh script for self-managed MongoDB (local or staging): creates the roles in roles.json.
 // Usage: mongosh "$MONGODB_URI_ADMIN" --file infra/mongodb/create-app-role.js
-// On Atlas, create the same custom role in the UI or Admin API with these privileges.
-//
-// Deliberately absent: drill_private and answers (hidden material), the migration
-// collections, and update/remove on audit_log (append-only).
+// On Atlas use atlas-roles.mjs instead: Atlas does not allow createRole from a shell.
 
-const ROLE = 'siliconboxApp';
-const READ_WRITE = ['find', 'insert', 'update', 'remove'];
+const path = require('path');
+const { privilegesFor } = require(path.join(__dirname, 'privileges.cjs'));
+const { roles } = JSON.parse(
+  require('fs').readFileSync(path.join(__dirname, 'roles.json'), 'utf8'),
+);
 
-const dbName = db.getName();
-const readWrite = [
-  'users',
-  'sessions',
-  'accounts',
-  'verifications',
-  'twoFactors',
-  'entitlements',
-  'orders',
-  'progress',
-  'runs',
-  'ended_sessions',
-  'watermark_codes',
-  'resumes',
-  'cv_screenings',
-].map((collection) => ({ resource: { db: dbName, collection }, actions: READ_WRITE }));
-const appendOnly = [
-  { resource: { db: dbName, collection: 'audit_log' }, actions: ['find', 'insert'] },
-  { resource: { db: dbName, collection: 'security-alerts' }, actions: ['insert'] },
-];
-// Content is written by the CMS (admin user); the site only reads published documents.
-const readOnly = [
-  'courses',
-  'modules',
-  'lessons',
-  'drills',
-  'questions',
-  'companies',
-  'services',
-].map((collection) => ({
-  resource: { db: dbName, collection },
-  actions: ['find'],
-}));
-const privileges = [...readWrite, ...appendOnly, ...readOnly];
-
-if (db.getRole(ROLE) === null) {
-  db.createRole({ role: ROLE, privileges, roles: [] });
-  print(`created role ${ROLE}`);
-} else {
-  db.updateRole(ROLE, { privileges, roles: [] });
-  print(`updated role ${ROLE}`);
+for (const [name, role] of Object.entries(roles)) {
+  const privileges = privilegesFor(role).map(({ collection, actions }) => ({
+    resource: { db: db.getName(), collection },
+    actions,
+  }));
+  if (db.getRole(name) === null) db.createRole({ role: name, privileges, roles: [] });
+  else db.updateRole(name, { privileges, roles: [] });
+  print(`role ${name}: ${privileges.length} privileges`);
 }
