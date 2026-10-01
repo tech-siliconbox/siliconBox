@@ -1,0 +1,19 @@
+import 'server-only';
+
+/**
+ * Collection names used by repositories. Migrations keep their own copies on purpose:
+ * a migration is a frozen snapshot and must not change when this file does.
+ */
+export const COLLECTIONS = {
+  users: 'users',
+  entitlements: 'entitlements',
+  progress: 'progress',
+  auditLog: 'audit_log',
+  endedSessions: 'ended_sessions',
+  watermarkCodes: 'watermark_codes',
+  courses: 'courses',
+  modules: 'modules',
+  lessons: 'lessons',
+  questions: 'questions',
+  companies: 'companies',
+} as const;

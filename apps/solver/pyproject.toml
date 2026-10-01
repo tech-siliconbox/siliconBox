@@ -1,0 +1,34 @@
+[project]
+name = "siliconbox-solver"
+version = "0.1.0"
+description = "Private formal-verification service for SiliconBox. Only the SiliconBox backend may call it."
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.120",
+  "pydantic-settings>=2.6",
+  "uvicorn[standard]>=0.32",
+]
+
+[dependency-groups]
+dev = ["httpx2", "pytest>=8.3", "ruff>=0.8", "vulture>=2.13"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "ANN", "SIM", "RET", "PTH", "C90"]
+ignore = ["S101"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN", "S105", "S106"]
+
+[tool.vulture]
+paths = ["app", "tests"]
+min_confidence = 80
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

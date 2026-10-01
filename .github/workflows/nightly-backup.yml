@@ -1,0 +1,29 @@
+name: Nightly backup
+
+on:
+  schedule:
+    - cron: '30 20 * * *' # 02:00 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y age
+      - name: Dump, encrypt and upload
+        env:
+          MONGODB_URI_BACKUP: ${{ secrets.MONGODB_URI_BACKUP }}
+          BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+          BACKUP_BUCKET_URL: ${{ vars.BACKUP_BUCKET_URL }}
+          BACKUP_S3_ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          TMPDIR: ${{ runner.temp }}
+          MONGODUMP: docker run --rm --network host -v ${{ runner.temp }}:${{ runner.temp }} mongo:8 mongodump
+        run: infra/scripts/backup-mongo.sh

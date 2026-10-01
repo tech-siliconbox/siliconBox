@@ -1,0 +1,724 @@
+{
+  "courses": [
+    {
+      "slug": "basic",
+      "title": "Basic course (placeholder title)",
+      "level": "basic",
+      "summary": "Placeholder. Replace with one or two sentences for the public outline.",
+      "order": 1,
+      "status": "draft",
+      "modules": [
+        {
+          "slug": "basic-module-01",
+          "title": "Module 1 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 1,
+          "lessons": [
+            {
+              "slug": "basic-module-01-lesson-01",
+              "title": "Module 1, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": true,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-02",
+          "title": "Module 2 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 2,
+          "lessons": [
+            {
+              "slug": "basic-module-02-lesson-01",
+              "title": "Module 2, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-03",
+          "title": "Module 3 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 3,
+          "lessons": [
+            {
+              "slug": "basic-module-03-lesson-01",
+              "title": "Module 3, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-04",
+          "title": "Module 4 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 4,
+          "lessons": [
+            {
+              "slug": "basic-module-04-lesson-01",
+              "title": "Module 4, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-05",
+          "title": "Module 5 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 5,
+          "lessons": [
+            {
+              "slug": "basic-module-05-lesson-01",
+              "title": "Module 5, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-06",
+          "title": "Module 6 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 6,
+          "lessons": [
+            {
+              "slug": "basic-module-06-lesson-01",
+              "title": "Module 6, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-07",
+          "title": "Module 7 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 7,
+          "lessons": [
+            {
+              "slug": "basic-module-07-lesson-01",
+              "title": "Module 7, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-08",
+          "title": "Module 8 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 8,
+          "lessons": [
+            {
+              "slug": "basic-module-08-lesson-01",
+              "title": "Module 8, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-09",
+          "title": "Module 9 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 9,
+          "lessons": [
+            {
+              "slug": "basic-module-09-lesson-01",
+              "title": "Module 9, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-10",
+          "title": "Module 10 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 10,
+          "lessons": [
+            {
+              "slug": "basic-module-10-lesson-01",
+              "title": "Module 10, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "intermediate",
+      "title": "Intermediate course (placeholder title)",
+      "level": "intermediate",
+      "summary": "Placeholder. Replace with one or two sentences for the public outline.",
+      "order": 2,
+      "status": "draft",
+      "modules": [
+        {
+          "slug": "intermediate-module-01",
+          "title": "Module 1 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 1,
+          "lessons": [
+            {
+              "slug": "intermediate-module-01-lesson-01",
+              "title": "Module 1, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": true,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-02",
+          "title": "Module 2 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 2,
+          "lessons": [
+            {
+              "slug": "intermediate-module-02-lesson-01",
+              "title": "Module 2, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-03",
+          "title": "Module 3 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 3,
+          "lessons": [
+            {
+              "slug": "intermediate-module-03-lesson-01",
+              "title": "Module 3, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-04",
+          "title": "Module 4 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 4,
+          "lessons": [
+            {
+              "slug": "intermediate-module-04-lesson-01",
+              "title": "Module 4, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-05",
+          "title": "Module 5 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 5,
+          "lessons": [
+            {
+              "slug": "intermediate-module-05-lesson-01",
+              "title": "Module 5, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-06",
+          "title": "Module 6 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 6,
+          "lessons": [
+            {
+              "slug": "intermediate-module-06-lesson-01",
+              "title": "Module 6, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-07",
+          "title": "Module 7 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 7,
+          "lessons": [
+            {
+              "slug": "intermediate-module-07-lesson-01",
+              "title": "Module 7, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-08",
+          "title": "Module 8 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 8,
+          "lessons": [
+            {
+              "slug": "intermediate-module-08-lesson-01",
+              "title": "Module 8, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-09",
+          "title": "Module 9 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 9,
+          "lessons": [
+            {
+              "slug": "intermediate-module-09-lesson-01",
+              "title": "Module 9, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-10",
+          "title": "Module 10 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 10,
+          "lessons": [
+            {
+              "slug": "intermediate-module-10-lesson-01",
+              "title": "Module 10, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "advance",
+      "title": "Advance course (placeholder title)",
+      "level": "advance",
+      "summary": "Placeholder. Replace with one or two sentences for the public outline.",
+      "order": 3,
+      "status": "draft",
+      "modules": [
+        {
+          "slug": "advance-module-01",
+          "title": "Module 1 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 1,
+          "lessons": [
+            {
+              "slug": "advance-module-01-lesson-01",
+              "title": "Module 1, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": true,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-02",
+          "title": "Module 2 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 2,
+          "lessons": [
+            {
+              "slug": "advance-module-02-lesson-01",
+              "title": "Module 2, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-03",
+          "title": "Module 3 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 3,
+          "lessons": [
+            {
+              "slug": "advance-module-03-lesson-01",
+              "title": "Module 3, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-04",
+          "title": "Module 4 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 4,
+          "lessons": [
+            {
+              "slug": "advance-module-04-lesson-01",
+              "title": "Module 4, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-05",
+          "title": "Module 5 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 5,
+          "lessons": [
+            {
+              "slug": "advance-module-05-lesson-01",
+              "title": "Module 5, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-06",
+          "title": "Module 6 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 6,
+          "lessons": [
+            {
+              "slug": "advance-module-06-lesson-01",
+              "title": "Module 6, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-07",
+          "title": "Module 7 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 7,
+          "lessons": [
+            {
+              "slug": "advance-module-07-lesson-01",
+              "title": "Module 7, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-08",
+          "title": "Module 8 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 8,
+          "lessons": [
+            {
+              "slug": "advance-module-08-lesson-01",
+              "title": "Module 8, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-09",
+          "title": "Module 9 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 9,
+          "lessons": [
+            {
+              "slug": "advance-module-09-lesson-01",
+              "title": "Module 9, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-10",
+          "title": "Module 10 (placeholder)",
+          "summary": "Placeholder. Replace with one sentence on what the learner can do after this module.",
+          "order": 10,
+          "lessons": [
+            {
+              "slug": "advance-module-10-lesson-01",
+              "title": "Module 10, lesson 1 (placeholder)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "draft",
+              "blocks": [
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Placeholder. The lesson content will be imported here."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

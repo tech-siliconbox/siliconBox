@@ -1,0 +1,1457 @@
+{
+  "courses": [
+    {
+      "slug": "basic",
+      "title": "Formal Verification Foundations (demo)",
+      "level": "basic",
+      "summary": "From your first assertion to a complete property set, with bounded model checking and counterexample debugging.",
+      "order": 1,
+      "status": "published",
+      "modules": [
+        {
+          "slug": "basic-module-01",
+          "title": "Why formal verification",
+          "summary": "Explain what formal checking proves that simulation cannot.",
+          "order": 1,
+          "lessons": [
+            {
+              "slug": "basic-module-01-lesson-01",
+              "title": "What formal verification proves (demo)",
+              "order": 1,
+              "preview": true,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Simulation samples, formal exhausts"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A simulation test checks the input sequences you wrote. A formal tool reads the design and a set of properties, then explores every input sequence the design could receive, up to a bound or across all reachable states. If a property can fail, the tool returns the shortest trace that breaks it."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "This changes the question you ask. Instead of “did my tests pass?” you ask “is there any input that breaks this rule?”"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) !(grant_a && grant_b));",
+                  "caption": "Two masters must never be granted the bus in the same cycle."
+                },
+                {
+                  "blockType": "diagram",
+                  "alt": "Simulation follows a few chosen paths; formal covers every path up to a depth",
+                  "svg": "<svg viewBox=\"0 0 360 120\" xmlns=\"http://www.w3.org/2000/svg\"><text x=\"10\" y=\"16\" font-size=\"11\" font-family=\"monospace\">simulation</text><line x1=\"20\" y1=\"60\" x2=\"160\" y2=\"30\" stroke=\"#121212\"/><line x1=\"20\" y1=\"60\" x2=\"160\" y2=\"90\" stroke=\"#121212\"/><circle cx=\"20\" cy=\"60\" r=\"4\" fill=\"#121212\"/><text x=\"200\" y=\"16\" font-size=\"11\" font-family=\"monospace\">formal</text><path d=\"M210 60 L350 25 M210 60 L350 45 M210 60 L350 65 M210 60 L350 85 M210 60 L350 105\" stroke=\"#121212\"/><circle cx=\"210\" cy=\"60\" r=\"4\" fill=\"#121212\"/></svg>"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Start with rules that must hold in every cycle: mutual exclusion, no overflow, legal states only."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-02",
+          "title": "Logic for hardware properties",
+          "summary": "Read and write the Boolean conditions properties are made of.",
+          "order": 2,
+          "lessons": [
+            {
+              "slug": "basic-module-02-lesson-01",
+              "title": "Boolean conditions in properties (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Properties are Boolean rules over time"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Every property starts with a Boolean condition over signals in one cycle. “If `valid` is high then `data_ok` is high” is the same as “`valid` is low or `data_ok` is high”."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) !valid || data_ok);",
+                  "caption": "Written as a plain Boolean: whenever valid is high, data_ok is high."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Reduction and one-hot helpers keep conditions short: `$onehot(state)` is true when exactly one bit is set, and `$onehot0(grant)` allows zero or one."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Write each property in words first. If the sentence is hard to say, the property will be hard to debug."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-03",
+          "title": "Immediate and concurrent assertions",
+          "summary": "Choose between immediate and concurrent assertions.",
+          "order": 3,
+          "lessons": [
+            {
+              "slug": "basic-module-03-lesson-01",
+              "title": "Two kinds of assertion (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Immediate assertions check now"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "An immediate assertion is evaluated like an `if` statement, at the moment the procedural code runs. It suits combinational checks."
+                },
+                {
+                  "blockType": "code",
+                  "language": "systemverilog",
+                  "code": "always_comb begin\n  assert (count <= MAX_COUNT);\nend"
+                },
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Concurrent assertions check on a clock"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A concurrent assertion samples signals at a clock edge and can describe behaviour across several cycles. Most formal work uses concurrent assertions."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) count <= MAX_COUNT);"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Concurrent assertions see the values signals had just before the clock edge, so they do not race with the logic they check."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-04",
+          "title": "Sequences",
+          "summary": "Describe events spread over several cycles.",
+          "order": 4,
+          "lessons": [
+            {
+              "slug": "basic-module-04-lesson-01",
+              "title": "Describing behaviour over cycles (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Delays and ranges"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "`##1` moves one clock cycle forward. `##[1:3]` means between one and three cycles later. `a [*3]` means `a` holds for three consecutive cycles."
+                },
+                {
+                  "blockType": "code",
+                  "language": "systemverilog",
+                  "code": "sequence req_then_ack;\n  req ##[1:3] ack;\nendsequence"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A sequence on its own is not a check. It becomes one inside a property, usually on the right of an implication."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Keep ranges as tight as the specification allows; a wide range can hide a slow, buggy path."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-05",
+          "title": "Implication",
+          "summary": "Use overlapping and non-overlapping implication correctly.",
+          "order": 5,
+          "lessons": [
+            {
+              "slug": "basic-module-05-lesson-01",
+              "title": "When this happens, that must follow (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Two forms of implication"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "`a |-> b` checks `b` in the same cycle `a` matched. `a |=> b` checks `b` one cycle later, and is the same as `a |-> ##1 b`."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) req |=> busy);",
+                  "caption": "After a request, the block is busy in the next cycle."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "When the left side does not match, the implication passes without checking anything. That is useful and also a trap, covered in the lesson on vacuity."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Read `|->` as “then, in this cycle” and `|=>` as “then, from the next cycle”."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-06",
+          "title": "Assumptions",
+          "summary": "Constrain inputs to legal behaviour without hiding bugs.",
+          "order": 6,
+          "lessons": [
+            {
+              "slug": "basic-module-06-lesson-01",
+              "title": "Telling the tool what inputs are legal (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Assume describes the environment"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A formal tool drives every input freely. If a neighbouring block never pushes into a full FIFO, say so with an assumption, or the tool will report failures that cannot happen."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assume property (@(posedge clk) !(push && full));",
+                  "caption": "The environment never pushes when the FIFO is full."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Each assumption removes behaviour from the search. Too many assumptions, or a wrong one, can remove the very input that exposes a bug."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "warning",
+                  "text": "Every assumption in a block should be proven as an assertion on the block that drives those signals."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-07",
+          "title": "Cover properties and vacuity",
+          "summary": "Prove that properties can actually trigger.",
+          "order": 7,
+          "lessons": [
+            {
+              "slug": "basic-module-07-lesson-01",
+              "title": "Making sure a pass means something (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "A pass can be empty"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "If the left side of an implication can never be true, the property passes vacuously: it never checked anything. Over-constrained assumptions are a common cause."
+                },
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Cover shows a behaviour is reachable"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "cover property (@(posedge clk) req ##[1:3] ack);",
+                  "caption": "Ask the tool for a trace where a request is acknowledged."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Pair important assertions with covers of their trigger condition. An unreachable cover is a finding to investigate, not a success."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "If a cover fails, look at your assumptions before you look at the design."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-08",
+          "title": "Bounded model checking",
+          "summary": "Understand what a bounded proof does and does not show.",
+          "order": 8,
+          "lessons": [
+            {
+              "slug": "basic-module-08-lesson-01",
+              "title": "Checking every input up to a depth (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Unrolling the design"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Bounded model checking unrolls the design for a fixed number of cycles from reset and asks a solver whether any input sequence of that length breaks a property. A pass means no failure exists within that depth."
+                },
+                {
+                  "blockType": "code",
+                  "language": "sby",
+                  "code": "[options]\nmode bmc\ndepth 20\n\n[engines]\nsmtbmc"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A bug that needs more cycles than the depth to appear is not found. Choose the depth from the design: pipeline length, counter widths and protocol timeouts."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "A bounded pass is strong evidence, not a full proof. Unbounded proofs come in the Intermediate course."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-09",
+          "title": "Reading a counterexample",
+          "summary": "Debug a failing property from its trace.",
+          "order": 9,
+          "lessons": [
+            {
+              "slug": "basic-module-09-lesson-01",
+              "title": "From failing trace to root cause (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "The trace is the shortest path to failure"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "When a property fails, the tool writes a waveform from reset to the failing cycle. Because formal finds the shortest trace, every cycle in it matters."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Start at the failing cycle, check the property's condition there, then walk backwards to the first cycle where a signal took a value you did not expect."
+                },
+                {
+                  "blockType": "code",
+                  "language": "text",
+                  "code": "failing property : req |=> busy\nfailing cycle    : 7\nfirst surprise   : cycle 6, busy cleared while req was high"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Ask whether the failure is a design bug, a wrong property or a missing assumption. Each needs a different fix."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "basic-module-10",
+          "title": "A first property set",
+          "summary": "Write and check a complete set of properties for a handshake.",
+          "order": 10,
+          "lessons": [
+            {
+              "slug": "basic-module-10-lesson-01",
+              "title": "Putting it together on a handshake (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "A request and acknowledge handshake"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Rules in words: an acknowledge only follows a request; a request stays high until it is acknowledged; every request is acknowledged within four cycles."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) ack |-> $past(req));",
+                  "caption": "No acknowledge without a request in the cycle before."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) req && !ack |=> req);",
+                  "caption": "A request is held until acknowledged."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) req |-> ##[0:4] ack);",
+                  "caption": "Every request is acknowledged within four cycles."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "cover property (@(posedge clk) req ##1 !ack ##1 ack);",
+                  "caption": "The slow path can actually happen."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Notice the pattern: assertions for the rules, plus a cover that proves the interesting case is reachable."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "intermediate",
+      "title": "Property Writing and Proofs (demo)",
+      "level": "intermediate",
+      "summary": "Unbounded proofs with k-induction, helper invariants, and full property sets for FIFOs and arbiters.",
+      "order": 2,
+      "status": "published",
+      "modules": [
+        {
+          "slug": "intermediate-module-01",
+          "title": "Sampled-value functions",
+          "summary": "Use $past, $rose, $fell and $stable in properties.",
+          "order": 1,
+          "lessons": [
+            {
+              "slug": "intermediate-module-01-lesson-01",
+              "title": "Looking back in time (demo)",
+              "order": 1,
+              "preview": true,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Functions that compare cycles"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "`$past(x)` is the value of `x` one cycle ago. `$rose(x)` is true when `x` went from 0 to 1, `$fell(x)` the reverse, and `$stable(x)` when it did not change."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) $rose(start) |=> busy);",
+                  "caption": "Starting makes the block busy from the next cycle."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) busy |-> $stable(config));",
+                  "caption": "Configuration must not change while busy."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "In the first cycle after reset there is no meaningful past value. The next lesson shows how to guard for it."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-02",
+          "title": "Resets in properties",
+          "summary": "Keep properties correct across reset.",
+          "order": 2,
+          "lessons": [
+            {
+              "slug": "intermediate-module-02-lesson-01",
+              "title": "Handling reset (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Disable during reset"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "`disable iff (rst)` abandons a property while reset is active, so half-finished sequences do not fail when the design is reset."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) req |=> busy);"
+                },
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Guarding $past"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A common idiom is a register that becomes 1 after the first clock edge, so checks that use `$past` only run once a past value exists."
+                },
+                {
+                  "blockType": "code",
+                  "language": "systemverilog",
+                  "code": "reg f_past_valid = 1'b0;\nalways @(posedge clk) f_past_valid <= 1'b1;\n\nalways @(posedge clk)\n  if (f_past_valid && !$past(rst))\n    assert (count == $past(count) + $past(inc));"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Also prove that reset puts the design in a legal state; otherwise every later check rests on an assumption."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-03",
+          "title": "Safety and liveness",
+          "summary": "Tell safety properties from liveness properties.",
+          "order": 3,
+          "lessons": [
+            {
+              "slug": "intermediate-module-03-lesson-01",
+              "title": "Bad things and good things (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Safety: nothing bad happens"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A safety property fails at a specific cycle, so a finite trace shows the failure. “The FIFO never overflows” is safety."
+                },
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Liveness: something good eventually happens"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A liveness property promises an event with no fixed deadline, such as “every request is eventually granted”. A failure is an infinite trace where the event never comes."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) req |-> s_eventually grant);"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Bounded model checking cannot prove liveness. Many teams turn liveness into safety with an explicit bound, such as “within 16 cycles”, when the specification allows it."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Liveness usually needs fairness assumptions about the environment, for example that a busy signal does not stay high forever."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-04",
+          "title": "k-induction",
+          "summary": "Go from bounded checks to full proofs.",
+          "order": 4,
+          "lessons": [
+            {
+              "slug": "intermediate-module-04-lesson-01",
+              "title": "Proving for all time (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Base case and step"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "k-induction proves a property in two parts. The base case checks the first k cycles from reset, like bounded model checking. The step shows that any k consecutive cycles where the property holds are followed by a cycle where it still holds."
+                },
+                {
+                  "blockType": "code",
+                  "language": "sby",
+                  "code": "[options]\nmode prove\ndepth 16\n\n[engines]\nsmtbmc"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "The step starts from any state, including states the design can never reach from reset. If one of those unreachable states leads to a failure, the step fails even though the design is correct."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "A step failure that starts from an impossible state means a helper invariant is missing, not that the design is broken."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-05",
+          "title": "Helper invariants",
+          "summary": "Strengthen properties so induction succeeds.",
+          "order": 5,
+          "lessons": [
+            {
+              "slug": "intermediate-module-05-lesson-01",
+              "title": "Strengthening the proof (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Rule out unreachable states"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Add assertions that describe how state variables relate. Each one is proven in its own right and removes impossible states from the induction step."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) count == wr_ptr - rd_ptr);",
+                  "caption": "Ties the occupancy counter to the two pointers."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Look at the step counterexample, find the variables whose values cannot occur together, and write the rule that connects them."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Good helper invariants read like comments a designer would write about the state machine."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-06",
+          "title": "Verifying a FIFO",
+          "summary": "Write a complete property set for a FIFO.",
+          "order": 6,
+          "lessons": [
+            {
+              "slug": "intermediate-module-06-lesson-01",
+              "title": "A FIFO, end to end (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Control properties"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) count <= DEPTH);"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) full == (count == DEPTH));"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) empty == (count == 0));"
+                },
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Environment"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assume property (@(posedge clk) !(push && full) && !(pop && empty));"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Data integrity, that values leave in the order they entered, needs a little modelling code; the Advanced course covers it with a tracked-value technique."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Cover a full FIFO and an empty FIFO. If either cover fails, the depth or the assumptions are wrong."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-07",
+          "title": "Verifying an arbiter",
+          "summary": "Check mutual exclusion, validity and fairness.",
+          "order": 7,
+          "lessons": [
+            {
+              "slug": "intermediate-module-07-lesson-01",
+              "title": "Arbiter properties (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Three questions for every arbiter"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) $onehot0(grant));",
+                  "caption": "At most one grant at a time."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) (grant & ~req) == '0);",
+                  "caption": "No grant without a request."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) req[0] |-> ##[0:7] grant[0]);",
+                  "caption": "Requester 0 is served within eight cycles."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "The last property is a bounded form of fairness. Write one for each requester."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Cover the case where all requesters ask at once; it is where fairness bugs live."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-08",
+          "title": "Abstraction",
+          "summary": "Shrink a problem without losing the bugs.",
+          "order": 8,
+          "lessons": [
+            {
+              "slug": "intermediate-module-08-lesson-01",
+              "title": "Making proofs smaller (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Data independence"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Control logic often treats data as opaque. Then a proof with 1-bit or 2-bit data is as strong as one with 64-bit data, and much faster."
+                },
+                {
+                  "blockType": "code",
+                  "language": "systemverilog",
+                  "code": "// In the formal testbench\nfifo #(.WIDTH(2), .DEPTH(4)) dut (.*);"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Counters and depths can often shrink too, as long as every interesting case, such as wrap-around, still happens at the smaller size."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "warning",
+                  "text": "Check that the reduced design still reaches its corner cases with cover properties."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-09",
+          "title": "Debugging constraints",
+          "summary": "Find assumptions that hide behaviour.",
+          "order": 9,
+          "lessons": [
+            {
+              "slug": "intermediate-module-09-lesson-01",
+              "title": "When assumptions go wrong (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Over-constraining"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "If assumptions contradict each other, no input satisfies them and every assertion passes. If they are too strict, some legal behaviour is never explored."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Covers expose both problems: a cover of ordinary behaviour that fails points straight at an assumption."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "cover property (@(posedge clk) push ##1 pop);"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Remove assumptions one at a time and watch which covers become reachable again."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "intermediate-module-10",
+          "title": "SymbiYosys project files",
+          "summary": "Set up a formal run with a .sby file.",
+          "order": 10,
+          "lessons": [
+            {
+              "slug": "intermediate-module-10-lesson-01",
+              "title": "Running a proof (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "The four sections"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A `.sby` file names the mode and depth, the solver engine, the commands that read the design, and the files to copy into the run folder."
+                },
+                {
+                  "blockType": "code",
+                  "language": "sby",
+                  "code": "[options]\nmode prove\ndepth 20\n\n[engines]\nsmtbmc\n\n[script]\nread -formal fifo.sv fifo_props.sv\nprep -top fifo_props\n\n[files]\nfifo.sv\nfifo_props.sv"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "On SiliconBox the server sets the mode, depth and top module for each Drill, so learners only edit the design and property files."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Keep one property file per block; it makes failures easy to trace back."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "advance",
+      "title": "Advanced Formal Methods (demo)",
+      "level": "advance",
+      "summary": "Protocols, modelling code, assume-guarantee, equivalence checking and formal sign-off.",
+      "order": 3,
+      "status": "published",
+      "modules": [
+        {
+          "slug": "advance-module-01",
+          "title": "Valid and ready handshakes",
+          "summary": "Write the stability rules of a valid/ready interface.",
+          "order": 1,
+          "lessons": [
+            {
+              "slug": "advance-module-01-lesson-01",
+              "title": "Handshake stability rules (demo)",
+              "order": 1,
+              "preview": true,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Once offered, hold it"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "In a valid/ready interface a transfer happens in a cycle where both are high. The sender must not withdraw or change an offer that has not been taken."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) valid && !ready |=> valid);",
+                  "caption": "Valid stays high until the transfer happens."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) valid && !ready |=> $stable(data));",
+                  "caption": "Data does not change while waiting."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "On the receiving side these same rules become assumptions about the sender."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Write the interface rules once in a property module and bind it to every instance of the interface."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-02",
+          "title": "Transaction ordering",
+          "summary": "Track issued and completed transactions.",
+          "order": 2,
+          "lessons": [
+            {
+              "slug": "advance-module-02-lesson-01",
+              "title": "Counting transactions (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Counters as properties"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Many protocol rules are about counts: no more responses than requests, and no more requests in flight than the slave can hold."
+                },
+                {
+                  "blockType": "code",
+                  "language": "systemverilog",
+                  "code": "logic [3:0] outstanding;\nalways @(posedge clk)\n  if (rst) outstanding <= '0;\n  else outstanding <= outstanding + (req_fire) - (resp_fire);"
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "assert property (@(posedge clk) disable iff (rst) resp_fire |-> outstanding != 0);",
+                  "caption": "No response without a request in flight."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Size the counter so it cannot wrap within the proof; otherwise add an assertion that it never saturates."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-03",
+          "title": "Modelling code",
+          "summary": "Use auxiliary logic to check data paths.",
+          "order": 3,
+          "lessons": [
+            {
+              "slug": "advance-module-03-lesson-01",
+              "title": "Checking data with a tracked value (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Follow one value instead of all"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "To prove a FIFO keeps order, let the tool pick any value and any moment. Record when that chosen value enters, then check it leaves in the right position. Because the choice is free, the proof covers every value."
+                },
+                {
+                  "blockType": "code",
+                  "language": "systemverilog",
+                  "code": "(* anyconst *) logic [WIDTH-1:0] f_value;\nlogic f_tracking;\n// set f_tracking when f_value is pushed;\n// check the popped data equals f_value when it reaches the head"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "The modelling code lives in the property module, never in the design."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "warning",
+                  "text": "Modelling code is design work: review it as carefully as the design it checks."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-04",
+          "title": "Assume-guarantee reasoning",
+          "summary": "Split a large proof into proofs per block.",
+          "order": 4,
+          "lessons": [
+            {
+              "slug": "advance-module-04-lesson-01",
+              "title": "Proving blocks separately (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Contracts between blocks"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Prove block A under assumptions about its inputs. Those same assumptions are then proven as assertions on the block that drives A. Together the proofs cover the connected system without proving it in one run."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "// In block A's proof\nassume property (@(posedge clk) !(push && full));\n// In block B's proof (B drives push)\nassert property (@(posedge clk) !(push && full));"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Keep a table of every assumption and where it is proven. An assumption proven nowhere is a gap in sign-off."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-05",
+          "title": "Cutpoints and black boxes",
+          "summary": "Remove logic the property does not need.",
+          "order": 5,
+          "lessons": [
+            {
+              "slug": "advance-module-05-lesson-01",
+              "title": "Cutting the design down (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Free signals instead of logic"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A cutpoint replaces the output of some logic with a free input. A black box removes a whole module and leaves its outputs free. Both shrink the problem."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A free signal can do anything, including things the real logic never does, so new failures may appear. A pass with cutpoints still holds for the real design."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "When a cutpoint causes a false failure, add an assumption that describes what the removed logic guarantees, then prove that assumption on the real block."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-06",
+          "title": "Equivalence checking",
+          "summary": "Show that two designs behave the same.",
+          "order": 6,
+          "lessons": [
+            {
+              "slug": "advance-module-06-lesson-01",
+              "title": "Same inputs, same outputs (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "The miter"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Instantiate both versions, drive them with the same inputs and assert that their outputs are equal. Combinational equivalence compares logic cones; sequential equivalence also needs matching state."
+                },
+                {
+                  "blockType": "code",
+                  "language": "systemverilog",
+                  "code": "ref_impl  ref_i  (.clk, .rst, .in, .out(out_ref));\nnew_impl  new_i  (.clk, .rst, .in, .out(out_new));\n\nalways @(posedge clk)\n  if (!rst) assert (out_ref == out_new);"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Equivalence is the safest way to sign off a timing fix or a retimed pipeline."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-07",
+          "title": "Coverage with formal",
+          "summary": "Use covers to measure what the proofs exercised.",
+          "order": 7,
+          "lessons": [
+            {
+              "slug": "advance-module-07-lesson-01",
+              "title": "Closing coverage formally (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Covers as a checklist"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Write a cover for every state, transition and corner case the specification names. A reachable cover gives a trace you can review; an unreachable one is either dead logic or an over-constrained environment."
+                },
+                {
+                  "blockType": "assertion",
+                  "code": "cover property (@(posedge clk) state == FLUSH ##1 state == IDLE);"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Review a sample of cover traces by eye. A trace that looks wrong is often the first sign of a wrong assumption."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-08",
+          "title": "Proof depth",
+          "summary": "Choose a depth that means something.",
+          "order": 8,
+          "lessons": [
+            {
+              "slug": "advance-module-08-lesson-01",
+              "title": "How deep is deep enough (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Depth from the design"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "A bounded proof is only as strong as its depth. Add up the longest latency a bug needs to show: pipeline stages, timeouts, counter ranges and protocol waits."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "If full proofs do not converge, report the bounded depth reached for each property, together with the reasoning for why that depth covers the design."
+                },
+                {
+                  "blockType": "code",
+                  "language": "text",
+                  "code": "property                  result     depth\nno_overflow               proven     -\ndata_order                bounded    32\nreq_served_within_8       proven     -"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "warning",
+                  "text": "A cover that needs more cycles than your proof depth tells you the depth is too shallow."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-09",
+          "title": "State explosion",
+          "summary": "Keep large proofs tractable.",
+          "order": 9,
+          "lessons": [
+            {
+              "slug": "advance-module-09-lesson-01",
+              "title": "When proofs do not finish (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "Techniques that work"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Shrink widths and depths that do not affect the property. Split one large property into several smaller ones. Case-split by mode, proving each mode with an assumption that fixes it, and add a property that the modes cover every case."
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "Helper invariants, cutpoints and assume-guarantee from the earlier lessons are the other main tools."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "tip",
+                  "text": "Change one thing at a time and record run times; otherwise it is hard to know what helped."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "advance-module-10",
+          "title": "Formal sign-off",
+          "summary": "Report formal results so others can trust them.",
+          "order": 10,
+          "lessons": [
+            {
+              "slug": "advance-module-10-lesson-01",
+              "title": "Signing off a block (demo)",
+              "order": 1,
+              "preview": false,
+              "durationMinutes": 10,
+              "status": "published",
+              "blocks": [
+                {
+                  "blockType": "heading",
+                  "level": "2",
+                  "text": "What a sign-off report contains"
+                },
+                {
+                  "blockType": "paragraph",
+                  "text": "List every assertion with its result (proven, bounded with depth, or failing with a waiver), every assumption with where it is proven, and every cover with its status. Vacuous passes and unreachable covers need an explanation."
+                },
+                {
+                  "blockType": "code",
+                  "language": "text",
+                  "code": "assertions : 42 proven, 3 bounded (depth 40)\nassumptions: 9, each proven on the driving block\ncovers     : 57 reached, 1 unreachable (dead code, filed)"
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "A reviewer should be able to rerun every result from the report and the checked-in property files."
+                },
+                {
+                  "blockType": "callout",
+                  "tone": "note",
+                  "text": "Demo lesson written for SiliconBox development. It will be replaced by the course author's own content before launch."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

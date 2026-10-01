@@ -1,0 +1,12 @@
+pnpm-lock.yaml
+.next/
+coverage/
+dist/
+next-env.d.ts
+apps/solver/
+docs/
+content/
+.claude/
+*.md
+apps/web/src/cms/payload-types.ts
+apps/web/src/app/(payload)/admin/importMap.js

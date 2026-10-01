@@ -1,0 +1,11 @@
+{
+  "path": ["apps/web/src", "packages/shared/src"],
+  "format": ["typescript", "tsx"],
+  "ignore": ["**/*.test.ts", "**/*.test.tsx", "**/payload-types.ts"],
+  "minLines": 6,
+  "minTokens": 60,
+  "threshold": 1,
+  "reporters": ["console"],
+  "exitCode": 1,
+  "gitignore": true
+}

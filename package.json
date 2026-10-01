@@ -1,0 +1,40 @@
+{
+  "name": "siliconbox",
+  "private": true,
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=22"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @siliconbox/web --filter @siliconbox/solver dev",
+    "build": "pnpm --filter @siliconbox/web build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:entitlements": "vitest run --project shared entitlements pricing",
+    "test:e2e": "pnpm --filter @siliconbox/web test:e2e",
+    "db:migrate": "pnpm --filter @siliconbox/web db:migrate",
+    "dedupe:check": "jscpd",
+    "unused:check": "knip",
+    "deps:check": "depcruise apps/web/src packages/shared/src",
+    "naming:check": "scripts/check-naming.sh",
+    "content:import": "pnpm --filter @siliconbox/web content:import"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@next/eslint-plugin-next": "^16.3.8",
+    "dependency-cruiser": "^18.5.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "jscpd": "^5.4.0",
+    "knip": "^6.39.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  }
+}
