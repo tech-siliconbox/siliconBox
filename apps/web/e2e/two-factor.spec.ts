@@ -46,6 +46,7 @@ test('the two-factor step refuses a wrong code', async ({ page }) => {
   await page.getByRole('button', { name: 'Turn on two-factor' }).click();
   await page.getByLabel('Code from your authenticator app').fill('000000');
   await page.getByRole('button', { name: 'Confirm and turn on' }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
+  // Scoped to the form: Next's page announcer also has role="alert".
+  await expect(page.locator('form [role="alert"]')).toBeVisible();
   await expect(page.getByTestId('two-factor-status')).toContainText('Off.');
 });
