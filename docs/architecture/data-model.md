@@ -11,8 +11,8 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `admins` | CMS accounts with role (Author, Editor, Support, Owner), separate from learner `users` | Admin |
 | `access-grants` | Append-only record of each admin grant: learner, kind, level, window, reason, who granted | Support, Owner |
 | `payload-preferences`, `payload-migrations`, `payload-locked-documents` | Payload's own bookkeeping | Admin |
-| `drills` | Title, level, topic, top module, mode, solver, depth, timeout, starter code | Server |
-| `drill_private` | Reference solution, hidden properties, seeded-bug variants | Runner service and admin only |
+| `drills` | Title, module (level comes from its course), topic, top module, mode, solver, target, depth, timeout, brief, design and starter code, `publicId`; drafts | Server (read-only) |
+| `drill_private` | Reference solution, hidden properties, seeded-bug variants (one per Drill) | Runner service and admin only |
 | `questions` | Text, topics, company tags (company, year, internal source note), `publicId`; written by Payload with drafts | Public (published only; source note internal) |
 | `answers` | Private answer blocks, one per question (`question` unique); written by Payload | Admin now; server for active learners once the reader user is decided |
 | `companies` | Name, slug (logo later, with permission and storage); written by Payload | Public |
@@ -26,7 +26,8 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `progress` | Lesson progress: `{ userId, lessonId (public id), completedAt }`; Drill progress later | Owner |
 | `runs` | Run summary: user, Drill, status, elapsed, hash, log pointer | Owner |
 | `run_cache` | Result by content hash | Server |
-| `services` | Industry Ready service cards and status (`open` or `locked`) | Public list |
+| `services` | Industry Ready service cards and status (`open` or `locked`), locked reason, order | Public list |
+| `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
 | `user_documents` | CVs for Resume Builder and CV screening | Owner, with delete |
 | `audit_log` | Append-only: sign-ins, purchases, admin edits, entitlement changes | Owner role |
 | `watermark_codes` | Invisible watermark code to learner, for tracing leaks; `{ code, userId }` unique | Server |

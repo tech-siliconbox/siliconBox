@@ -4,5 +4,6 @@ import { ROUTES } from '@siliconbox/shared';
 export const NAV_LINKS = [
   { href: ROUTES.courses, label: 'Courses' },
   { href: ROUTES.questions, label: 'Questions' },
+  { href: ROUTES.industryReady, label: 'Industry Ready' },
   { href: ROUTES.pricing, label: 'Pricing' },
 ] as const;

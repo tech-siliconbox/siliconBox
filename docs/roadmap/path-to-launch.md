@@ -22,12 +22,14 @@ decision, account or content only the founder can supply.
 | Demo content in the dev database: 30 original demo lessons (titles end in "(demo)") stand in until the real content is imported over the same slugs; none may remain at launch | Founder + Dev | Demo published on dev |
 | Question bank: questions, companies, answers in the CMS; public list, search, filters | Dev | Done |
 | Question bank: serving answers to entitled learners | Dev | Waits on the answers database-user decision |
-| Drills in the CMS (starter code, private solution and bugs) | Dev | Not started |
-| Industry Ready tab; Resume Builder and CV screening | Dev | Not started; CV storage needs a decision (founder chose MongoDB-only for now) |
+| Drills in the CMS (starter code, private solution and bugs, per-level caps) | Dev | Done; learner Drill page in phase 3 |
+| Industry Ready tab with admin-controlled services | Dev | Done (all locked until built) |
+| Resume Builder and CV screening | Founder + Dev | Needs a short spec of what each does; CVs would be stored in MongoDB (founder's MongoDB-only choice) |
 | Progress tracking | Dev | Done |
-| Preview as a learner; scheduled publishing | Dev | Not started; scheduling needs the host's cron |
+| Preview as a learner | Dev | Done |
+| Scheduled publishing | Dev | Waits on the host's cron (Vercel) |
 | Daily reading cap | Dev | Done (150 a day, to tune) |
-| Anomaly alerts, lesson memory cache | Dev | Not started |
+| Anomaly alerts, lesson memory cache | Dev | Done (alerts by email wait on the email provider) |
 | Test: no paid content in any bundle, sitemap or feed | Dev | Done |
 | Watermark trace tool for admins | Dev | Not started |
 

@@ -18,8 +18,8 @@ async function removeTestLearners(db: Db): Promise<void> {
     ...['sessions', 'accounts', 'twoFactors'].map((name) =>
       db.collection(name).deleteMany({ userId: { $in: ids } }),
     ),
-    ...['ended_sessions', 'entitlements', 'watermark_codes', 'progress'].map((name) =>
-      db.collection(name).deleteMany({ userId: { $in: idStrings } }),
+    ...['ended_sessions', 'entitlements', 'watermark_codes', 'progress', 'security-alerts'].map(
+      (name) => db.collection(name).deleteMany({ userId: { $in: idStrings } }),
     ),
     db.collection('audit_log').deleteMany({ subjectId: { $in: idStrings } }),
   ]);
@@ -27,7 +27,14 @@ async function removeTestLearners(db: Db): Promise<void> {
 }
 
 async function removeTestContent(db: Db): Promise<void> {
-  for (const name of ['lessons', 'modules', 'courses']) {
+  const drills = await db
+    .collection('drills')
+    .find({ slug: TEST_SLUG }, { projection: { _id: 1 } })
+    .toArray();
+  await db
+    .collection('drill_private')
+    .deleteMany({ drill: { $in: drills.map((drill) => drill._id) } });
+  for (const name of ['drills', 'lessons', 'modules', 'courses']) {
     const docs = await db
       .collection(name)
       .find({ slug: TEST_SLUG }, { projection: { _id: 1 } })

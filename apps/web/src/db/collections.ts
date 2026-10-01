@@ -9,6 +9,7 @@ export const COLLECTIONS = {
   entitlements: 'entitlements',
   progress: 'progress',
   auditLog: 'audit_log',
+  securityAlerts: 'security-alerts',
   endedSessions: 'ended_sessions',
   watermarkCodes: 'watermark_codes',
   courses: 'courses',
@@ -16,4 +17,5 @@ export const COLLECTIONS = {
   lessons: 'lessons',
   questions: 'questions',
   companies: 'companies',
+  services: 'services',
 } as const;

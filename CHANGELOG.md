@@ -5,6 +5,11 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 ## [Unreleased]
 
 ### Added
+- Drills in the CMS: `drills` and private `drill_private`, with depth and timeout checked against per-level caps.
+- Lesson preview for admins (latest draft, `/preview/lessons/[id]`, "Preview" button in the admin).
+- Security alerts: new-country sign-in, headless or scripted client, daily reading cap; reviewed in the admin.
+- Industry Ready tab: `services` collection, `/industry-ready`, `GET /api/v1/services`; five services seeded locked (migration 4).
+- 30-second in-memory cache for published lesson content, cleared on CMS changes.
 - Demo course content: 30 original demo lessons across Basic, Intermediate and Advance (`content/import/demo-formal-verification.json`), published on the dev database over the placeholder slugs; each lesson says it is demo content.
 - Question bank: companies, questions (with company tags, year and source note) and private answers in the CMS; public `/questions` page and `GET /api/v1/questions` with text search and filters. Answers are not served yet.
 - Progress: `POST /api/v1/progress`, "Mark as done" on lessons, done marks on course outlines.

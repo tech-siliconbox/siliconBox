@@ -1,6 +1,10 @@
 import { LEVELS } from '@siliconbox/shared';
 import type { CollectionConfig } from 'payload';
 import { contentAccess } from '../access';
+import {
+  clearLessonCacheAfterChange,
+  clearLessonCacheAfterDelete,
+} from '../hooks/clear-lesson-cache';
 import { orderField, titleField } from '../fields/common';
 import { publicIdField } from '../fields/public-id';
 import { slugField } from '../fields/slug';
@@ -9,6 +13,10 @@ export const Courses: CollectionConfig = {
   slug: 'courses',
   admin: { useAsTitle: 'title', defaultColumns: ['title', 'level', 'order', '_status'] },
   access: contentAccess,
+  hooks: {
+    afterChange: [clearLessonCacheAfterChange],
+    afterDelete: [clearLessonCacheAfterDelete],
+  },
   versions: { drafts: true, maxPerDoc: 50 },
   defaultSort: 'order',
   fields: [

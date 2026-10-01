@@ -26,6 +26,7 @@ test.describe.configure({ mode: 'serial' });
 let paidLessonId = '';
 let previewLessonId = '';
 let paidLessonDbId = '';
+let moduleDbId = '';
 
 test('an author cannot publish, an editor can', async () => {
   // Editor first: on an empty CMS the first admin becomes the owner, and the author must not.
@@ -45,6 +46,7 @@ test('an author cannot publish, an editor can', async () => {
     course: course.id,
     order: 1,
   });
+  moduleDbId = module.id;
   const lesson = (slug: string, text: string, preview: boolean) => ({
     title: `Invented ${slug}`,
     slug: `e2e-${slug}-${run}`,
@@ -68,6 +70,49 @@ test('an author cannot publish, an editor can', async () => {
     data: { blocks: [paragraph(passage(DRAFT))], _status: 'draft' },
   });
   expect(draft.ok()).toBe(true);
+});
+
+test('an editor writes a Drill within the level caps, with its private part', async () => {
+  const editor = await signInAsAdmin('editor');
+  const drill = (slug: string, depth: number) => ({
+    title: `Invented Drill ${slug}`,
+    slug: `e2e-drill-${slug}-${run}`,
+    module: moduleDbId,
+    order: 1,
+    mode: 'prove',
+    solver: 'boolector',
+    target: 'PASS',
+    depth,
+    timeoutSeconds: 60,
+    topModule: 'top',
+    brief: [paragraph('Invented Drill brief.')],
+    starterCode: 'module top(input clk); endmodule',
+    _status: 'draft',
+  });
+  // The course is Basic, whose depth cap is 40.
+  expect((await createDoc(editor, 'drills', drill('too-deep', 41))).status).toBe(400);
+  const valid = await createDoc(editor, 'drills', drill('ok', 20));
+  expect(valid.status).toBe(201);
+  const hidden = await createDoc(editor, 'drill_private', {
+    drill: valid.id,
+    referenceSolution: 'module top(input clk); endmodule',
+    bugVariants: [{ name: 'off by one', code: 'module top(input clk); endmodule' }],
+  });
+  expect(hidden.status).toBe(201);
+});
+
+test('an admin previews the latest draft; a learner cannot', async ({ page }) => {
+  const editor = await signInAsAdmin('editor');
+  await page.context().addCookies((await editor.storageState()).cookies);
+  await page.goto(ROUTES.lessonPreview(paidLessonDbId));
+  await expect(page.getByRole('status')).toContainText('Preview of the latest draft');
+  await expect(page.getByText(DRAFT)).toBeVisible();
+
+  await page.context().clearCookies();
+  await signUp(page, newLearner());
+  const response = await page.goto(ROUTES.lessonPreview(paidLessonDbId));
+  expect(response?.status()).toBe(404);
+  expect(await page.content()).not.toContain(DRAFT);
 });
 
 test('the public outline lists lesson titles but no lesson text', async ({ page }) => {

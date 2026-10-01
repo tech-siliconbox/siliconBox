@@ -1,10 +1,13 @@
 import type { Browser, Page } from '@playwright/test';
+import { withAdminDb } from './db';
 import { expect, failOnCspViolation, newLearner, signUp, submitSignIn, test } from './helpers';
 
 const learner = newLearner();
 
-async function signInOnNewDevice(browser: Browser): Promise<Page> {
-  const page = await (await browser.newContext()).newPage();
+async function signInOnNewDevice(browser: Browser, userAgent?: string): Promise<Page> {
+  const page = await (
+    await browser.newContext(userAgent === undefined ? {} : { userAgent })
+  ).newPage();
   failOnCspViolation(page);
   await submitSignIn(page, learner);
   await expect(page).toHaveURL('/account');
@@ -28,6 +31,20 @@ test('signing in on a second device signs the first out with a reason', async ({
   await firstDevice.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(firstDevice).toHaveURL('/sign-in?reason=replaced');
   await expect(firstDevice.getByRole('status')).toContainText('signed in on another device');
+});
+
+test('a sign-in from a headless browser is recorded as a security alert', async ({ browser }) => {
+  const page = await signInOnNewDevice(
+    browser,
+    'Mozilla/5.0 (X11; Linux x86_64) HeadlessChrome/131.0',
+  );
+  const account = (await (await page.request.get('/api/v1/me')).json()) as { id: string };
+  const alerts = await withAdminDb((db) =>
+    db
+      .collection('security-alerts')
+      .countDocuments({ userId: account.id, kind: 'headless_browser' }),
+  );
+  expect(alerts).toBeGreaterThan(0);
 });
 
 test('the account API refuses a request without a session', async ({ request }) => {

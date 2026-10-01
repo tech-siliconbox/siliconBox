@@ -71,10 +71,14 @@ export interface Config {
     courses: Course;
     modules: Module;
     lessons: Lesson;
+    drills: Drill;
+    drill_private: DrillPrivate;
     companies: Company;
     questions: Question;
     answers: Answer;
+    services: Service;
     'access-grants': AccessGrant;
+    'security-alerts': SecurityAlert;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -86,10 +90,14 @@ export interface Config {
     courses: CoursesSelect<false> | CoursesSelect<true>;
     modules: ModulesSelect<false> | ModulesSelect<true>;
     lessons: LessonsSelect<false> | LessonsSelect<true>;
+    drills: DrillsSelect<false> | DrillsSelect<true>;
+    drill_private: DrillPrivateSelect<false> | DrillPrivateSelect<true>;
     companies: CompaniesSelect<false> | CompaniesSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     answers: AnswersSelect<false> | AnswersSelect<true>;
+    services: ServicesSelect<false> | ServicesSelect<true>;
     'access-grants': AccessGrantsSelect<false> | AccessGrantsSelect<true>;
+    'security-alerts': SecurityAlertsSelect<false> | SecurityAlertsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -251,6 +259,100 @@ export interface Lesson {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "drills".
+ */
+export interface Drill {
+  id: string;
+  title: string;
+  slug: string;
+  module: string | Module;
+  order: number;
+  topic?: string | null;
+  mode: 'bmc' | 'prove' | 'cover';
+  solver: 'boolector' | 'yices' | 'z3';
+  target: 'PASS' | 'FAIL';
+  depth: number;
+  timeoutSeconds: number;
+  topModule: string;
+  brief: (
+    | {
+        level: '2' | '3';
+        text: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'heading';
+      }
+    | {
+        text: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'paragraph';
+      }
+    | {
+        language: 'systemverilog' | 'sby' | 'text';
+        code: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'code';
+      }
+    | {
+        code: string;
+        caption?: string | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'assertion';
+      }
+    | {
+        tone: 'note' | 'tip' | 'warning';
+        text: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'callout';
+      }
+    | {
+        svg: string;
+        alt: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'diagram';
+      }
+  )[];
+  /**
+   * Shown to the learner read-only (optional).
+   */
+  designCode?: string | null;
+  /**
+   * What the learner starts editing.
+   */
+  starterCode: string;
+  publicId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "drill_private".
+ */
+export interface DrillPrivate {
+  id: string;
+  drill: string | Drill;
+  referenceSolution: string;
+  hiddenProperties?: string | null;
+  /**
+   * Each seeded bug must FAIL on the real solver.
+   */
+  bugVariants: {
+    name: string;
+    code: string;
+    note?: string | null;
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "companies".
  */
 export interface Company {
@@ -343,6 +445,24 @@ export interface Answer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services".
+ */
+export interface Service {
+  id: string;
+  title: string;
+  slug: string;
+  summary?: string | null;
+  /**
+   * Open only once the service works end to end.
+   */
+  status: 'open' | 'locked';
+  lockedReason?: string | null;
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "access-grants".
  */
 export interface AccessGrant {
@@ -358,6 +478,27 @@ export interface AccessGrant {
   reason: string;
   learnerId?: string | null;
   grantedBy?: (string | null) | Admin;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "security-alerts".
+ */
+export interface SecurityAlert {
+  id: string;
+  kind: 'signin_new_country' | 'headless_browser' | 'content_daily_cap';
+  userId: string;
+  details?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  reviewed?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -402,6 +543,14 @@ export interface PayloadLockedDocument {
         value: string | Lesson;
       } | null)
     | ({
+        relationTo: 'drills';
+        value: string | Drill;
+      } | null)
+    | ({
+        relationTo: 'drill_private';
+        value: string | DrillPrivate;
+      } | null)
+    | ({
         relationTo: 'companies';
         value: string | Company;
       } | null)
@@ -414,8 +563,16 @@ export interface PayloadLockedDocument {
         value: string | Answer;
       } | null)
     | ({
+        relationTo: 'services';
+        value: string | Service;
+      } | null)
+    | ({
         relationTo: 'access-grants';
         value: string | AccessGrant;
+      } | null)
+    | ({
+        relationTo: 'security-alerts';
+        value: string | SecurityAlert;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -580,6 +737,99 @@ export interface LessonsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "drills_select".
+ */
+export interface DrillsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  module?: T;
+  order?: T;
+  topic?: T;
+  mode?: T;
+  solver?: T;
+  target?: T;
+  depth?: T;
+  timeoutSeconds?: T;
+  topModule?: T;
+  brief?:
+    | T
+    | {
+        heading?:
+          | T
+          | {
+              level?: T;
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        paragraph?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        code?:
+          | T
+          | {
+              language?: T;
+              code?: T;
+              id?: T;
+              blockName?: T;
+            };
+        assertion?:
+          | T
+          | {
+              code?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        callout?:
+          | T
+          | {
+              tone?: T;
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        diagram?:
+          | T
+          | {
+              svg?: T;
+              alt?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  designCode?: T;
+  starterCode?: T;
+  publicId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "drill_private_select".
+ */
+export interface DrillPrivateSelect<T extends boolean = true> {
+  drill?: T;
+  referenceSolution?: T;
+  hiddenProperties?: T;
+  bugVariants?:
+    | T
+    | {
+        name?: T;
+        code?: T;
+        note?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "companies_select".
  */
 export interface CompaniesSelect<T extends boolean = true> {
@@ -671,6 +921,20 @@ export interface AnswersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services_select".
+ */
+export interface ServicesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  summary?: T;
+  status?: T;
+  lockedReason?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "access-grants_select".
  */
 export interface AccessGrantsSelect<T extends boolean = true> {
@@ -682,6 +946,18 @@ export interface AccessGrantsSelect<T extends boolean = true> {
   reason?: T;
   learnerId?: T;
   grantedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "security-alerts_select".
+ */
+export interface SecurityAlertsSelect<T extends boolean = true> {
+  kind?: T;
+  userId?: T;
+  details?: T;
+  reviewed?: T;
   updatedAt?: T;
   createdAt?: T;
 }

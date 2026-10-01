@@ -52,6 +52,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules and lesson titles only, done marks for signed-in learners | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
+| industry-ready: ServiceCard | Open or locked service card; links only to built services | Built |
 | pricing: LevelCard | One level's price and windows, from shared constants | Built |
 
 ## Server helpers (`server`, `db`)
@@ -75,6 +76,12 @@ Check here before writing a component, hook or helper. Add a row when you create
 | setLessonDone, findDoneLessonIds | Lesson progress (`db/progress.ts`) | Built |
 | recordProgress | Progress for a published lesson the learner may read (`server/progress.ts`) | Built |
 | optionalPageIdentity | The signed-in learner on a public page, or null | Built |
+| readLessonPreview | Latest lesson draft for a signed-in CMS admin (`server/preview.ts`) | Built |
+| createTtlCache, clearLessonCache | In-memory cache with expiry; the published-lesson cache | Built |
+| signInAnomalies, clientCountry | Pure sign-in anomaly detection (`server/anomalies.ts`) | Built |
+| raiseAlert, recordAlert | Records a security alert for review (`server/alerts.ts`, `db/security-alerts.ts`) | Built |
+| findLastSignInCountry | Country of the learner's previous sign-in (`db/audit-log.ts`) | Built |
+| findServices | Industry Ready services (`db/services.ts`) | Built |
 | assertEntitled | The one entitlement check used by every route | Built |
 | visibleMark | Builds the visible watermark text per user (`server/watermark.ts`) | Built |
 | redisRateLimiter, RATE_LIMITS | Fixed-window limiter (one Redis command a request) and per-route budgets | Built |
@@ -95,6 +102,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | LESSON_BLOCKS | Editor forms for the shared lesson block types | Built |
 | AccessGrants | Append-only grants collection; hooks apply the grant (`cms/collections/access-grants.ts`) | Built |
 | Companies, Questions, Answers | Question bank collections; answers admins-only | Built |
+| Drills, DrillPrivate | Drill authoring; private part never readable by the site | Built |
+| Services, SecurityAlerts | Industry Ready services; read-only alerts for Support | Built |
+| levelOfModule, relationId | Level of a module's course; id from a relationship value | Built |
 | content-import script | `pnpm content:import` (`scripts/content-import.ts`), format in `ContentImportSchema` | Built |
 
 ## Shared package (`packages/shared`)
@@ -110,3 +120,5 @@ Check here before writing a component, hook or helper. Add a row when you create
 | decideAccess | Pure access decision for lessons, Drills, answers and career tools | Built |
 | isActive, addMonths, windowFrom | Window arithmetic (UTC calendar months) | Built |
 | formatInr | Paise to "₹5,000" | Built |
+| DRILL_LIMITS, drillLimitProblem, TOP_MODULE_PATTERN | Per-level Drill caps and safe top-module names | Built |
+| AlertKindSchema, ServiceStatusSchema | Alert kinds; service status | Built |

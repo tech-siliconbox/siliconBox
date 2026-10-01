@@ -29,7 +29,15 @@ export async function signInAsAdmin(role: AdminRole): Promise<APIRequestContext>
 /** Creates a CMS document; empty ids mean the CMS refused it (see `status`). */
 export async function createDoc(
   client: APIRequestContext,
-  collection: 'courses' | 'modules' | 'lessons' | 'companies' | 'questions' | 'answers',
+  collection:
+    | 'courses'
+    | 'modules'
+    | 'lessons'
+    | 'drills'
+    | 'drill_private'
+    | 'companies'
+    | 'questions'
+    | 'answers',
   data: Record<string, unknown>,
 ): Promise<{ id: string; publicId: string; status: number }> {
   const response = await client.post(`/cms-api/${collection}`, { data });

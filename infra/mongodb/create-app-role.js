@@ -24,9 +24,18 @@ const readWrite = [
 ].map((collection) => ({ resource: { db: dbName, collection }, actions: READ_WRITE }));
 const appendOnly = [
   { resource: { db: dbName, collection: 'audit_log' }, actions: ['find', 'insert'] },
+  { resource: { db: dbName, collection: 'security-alerts' }, actions: ['insert'] },
 ];
 // Content is written by the CMS (admin user); the site only reads published documents.
-const readOnly = ['courses', 'modules', 'lessons', 'questions', 'companies'].map((collection) => ({
+const readOnly = [
+  'courses',
+  'modules',
+  'lessons',
+  'drills',
+  'questions',
+  'companies',
+  'services',
+].map((collection) => ({
   resource: { db: dbName, collection },
   actions: ['find'],
 }));

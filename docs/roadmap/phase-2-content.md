@@ -5,7 +5,7 @@ Goal: editors can publish content and learners can read it safely.
 ## Tasks
 
 - [x] Payload CMS inside `apps/web` with roles Author, Editor, Support, Owner
-- [ ] Collections and Zod schemas: courses, modules, lessons, lesson_versions, drills, drill_private, questions, answers, companies, services
+- [x] Collections and Zod schemas: courses, modules, lessons, lesson_versions, drills, drill_private, questions, answers, companies, services
 - [x] Block editor: heading, paragraph, code, assertion snippet, callout, diagram (SVG)
 - [ ] Draft, preview as learner, schedule, publish, rollback
 - [x] Content importer (`pnpm content:import`): JSON, matched by slug, through Payload (Markdown can be added if authors want it)
@@ -13,9 +13,9 @@ Goal: editors can publish content and learners can read it safely.
 - [x] Learning API: `GET /lessons/:id` with entitlement check, `no-store`, one lesson per response
 - [x] Sequential release and opaque ids
 - [x] Watermarks: visible tile and invisible text pattern on every paid view; private trace table
-- [ ] Pacing limits and anomaly alerts (countries, headless signs, read bursts)
+- [x] Pacing limits and anomaly alerts (countries, headless signs, read bursts)
 - [x] Manual entitlement grants by Support with a required reason and audit entry
-- [ ] Industry Ready tab with service cards and admin-controlled status
+- [x] Industry Ready tab with service cards and admin-controlled status
 - [ ] Resume Builder and CV screening (free for active learners), per-user storage and delete
 - [x] Progress tracking
 - [x] Test: no paid content in any bundle, static file, sitemap or feed
@@ -37,6 +37,12 @@ Goal: editors can publish content and learners can read it safely.
 - Pacing (2026-10-02): daily cap of 150 lesson reads per account (a starting value to tune), logged as an alert event when reached. Anomaly alerts still to do.
 - Leak tests (2026-10-02): the locked lesson page's scripts never contain the paid text, and the build prerenders no lesson, API, account, course or question page. The site has no sitemap or feed.
 - Migration 3: Payload owns the indexes of the collections it manages (`companies`, `answers`); Payload builds indexes before serving (`ensureIndexes`).
+
+- Drills (2026-10-02): `drills` (brief, read-only design, starter code, mode, solver, target, depth, timeout, top module; drafts) and `drill_private` (reference solution, hidden properties, at least one seeded-bug variant; never readable by the site's database user). Depth and timeout are checked against per-level caps in `packages/shared` (Basic 40/60 s, Intermediate 80/120 s, Advance 150/300 s: starting values to tune). The learner Drill page and the publish gate (reference PASS, variants FAIL) need the solver (phase 3).
+- Preview (2026-10-02): "Preview" on a lesson in the admin opens `/preview/lessons/[id]`, the latest draft rendered as learners will see it, for signed-in admins only. Scheduled publishing still waits on the host's cron.
+- Lesson cache (2026-10-02): published lesson content is kept 30 seconds in memory; CMS changes clear it. Pacing, entitlement and watermarks still run on every read.
+- Alerts (2026-10-02): sign-in from a new country, headless or scripted clients, and the daily reading cap raise records in the admin's read-only "Security alerts" (Support and Owner). Alerts never lock an account by themselves. Email delivery waits on the email provider.
+- Industry Ready (2026-10-02): `services` collection, public `/industry-ready` page and `GET /api/v1/services`. The five services are seeded **locked** ("Opening soon"), including Resume Builder and CV screening, which the product doc lists as open: they open in the admin once they work, so no card leads nowhere.
 
 ## Gate
 

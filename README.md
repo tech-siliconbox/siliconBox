@@ -20,7 +20,7 @@ A paid learning platform for formal verification: lessons, hands-on Drills and a
 | `infra/` | Environment and deployment notes |
 | `.claude/` | Claude Code rules, subagents, commands and skills |
 
-## Status (2026-10-02)
+## Status (2026-10-02, evening)
 
 Nothing is deployed yet; everything runs locally against the development MongoDB Atlas database
 and Upstash Redis. Payments stay disabled until the phase 3 solver gate is met. Details and
@@ -38,12 +38,14 @@ checklists: `docs/roadmap/`.
 | Support | Grant, extend or shorten a learner's access in the admin, with a reason, audited |
 | Learning | Public course outlines; lesson page and API that serve published lessons only to entitled learners, paced (per minute and per day) and watermarked; progress marks |
 | Question bank | Public, searchable list with company tags and years; answers written in the CMS (serving them waits on a decision) |
+| Drills | Written in the CMS with private solutions and per-level caps; learners run them once the solver exists (phase 3) |
+| Admin tools | Lesson preview, security alerts for Support, Industry Ready services switched open or locked |
 | Solver | Skeleton only: service-token auth, no public docs; hardening is phase 3 |
 
 ### In progress (phase 2)
 
-Serving question answers, Drills in the CMS, preview as a learner, the Industry Ready tab and
-anomaly alerts. Full list of
+Serving question answers (waits on a decision), Resume Builder and CV screening (need a short
+spec), scheduled publishing (needs the host's cron). Full list of
 what is left before launch: `docs/roadmap/path-to-launch.md`.
 
 ### Waiting on the founder

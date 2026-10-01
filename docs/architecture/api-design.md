@@ -18,6 +18,7 @@ In code the order is: origin check on writes, authenticate, rate-limit (per acco
 | Route | Access | Rate limit |
 | --- | --- | --- |
 | `GET /api/v1/me` | Signed in | `read` |
+| `GET /api/v1/services` | Anyone | `read` |
 | `GET /api/v1/questions` | Anyone; `q`, `topic`, `company`, `page` (strict query schema) | `read` |
 | `POST /api/v1/progress` | Signed in; lesson must be published and readable by the learner | `write` |
 | `GET /api/v1/lessons/:id` | Signed in; `readLesson` checks the lesson's level with `assertEntitled` | `read`, plus `contentRead` (12 a minute) |
