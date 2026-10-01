@@ -1,3 +1,8 @@
 packages:
   - apps/*
   - packages/*
+
+# Security fixes for transitive dependencies; remove each once the parent ships the patch.
+overrides:
+  # GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3 (via payload)
+  undici@>=7.0.0 <7.29.1: ^7.29.1
