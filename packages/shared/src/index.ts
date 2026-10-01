@@ -1,4 +1,6 @@
 export * from './constants';
+export * from './cv-screening/report';
+export * from './cv-screening/rules';
 export * from './errors';
 export * from './money';
 export * from './routes';
@@ -12,6 +14,7 @@ export * from './schemas/lesson';
 export * from './schemas/level';
 export * from './schemas/progress';
 export * from './schemas/question';
+export * from './schemas/resume';
 export * from './schemas/role';
 export * from './schemas/service';
 export * from './entitlements/access';

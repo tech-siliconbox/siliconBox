@@ -16,3 +16,11 @@ export async function findServices(): Promise<PublicService[]> {
     .toArray();
   return documents.map((document) => PublicServiceSchema.parse(document));
 }
+
+/** Whether a service is open; unknown services count as locked. */
+export async function isServiceOpen(slug: string): Promise<boolean> {
+  const service = await getDb()
+    .collection(COLLECTIONS.services)
+    .findOne({ slug }, { projection: { _id: 0, status: 1 } });
+  return service?.status === 'open';
+}

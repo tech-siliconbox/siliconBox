@@ -24,7 +24,7 @@ decision, account or content only the founder can supply.
 | Question bank: serving answers to entitled learners | Dev | Waits on the answers database-user decision |
 | Drills in the CMS (starter code, private solution and bugs, per-level caps) | Dev | Done; learner Drill page in phase 3 |
 | Industry Ready tab with admin-controlled services | Dev | Done (all locked until built) |
-| Resume Builder and CV screening | Founder + Dev | Needs a short spec of what each does; CVs would be stored in MongoDB (founder's MongoDB-only choice) |
+| Resume Builder and CV screening | Dev | Done (open; CV files are never stored, only reports) |
 | Progress tracking | Dev | Done |
 | Preview as a learner | Dev | Done |
 | Scheduled publishing | Dev | Waits on the host's cron (Vercel) |

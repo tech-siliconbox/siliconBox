@@ -16,7 +16,7 @@ Goal: editors can publish content and learners can read it safely.
 - [x] Pacing limits and anomaly alerts (countries, headless signs, read bursts)
 - [x] Manual entitlement grants by Support with a required reason and audit entry
 - [x] Industry Ready tab with service cards and admin-controlled status
-- [ ] Resume Builder and CV screening (free for active learners), per-user storage and delete
+- [x] Resume Builder and CV screening (free for active learners), per-user storage and delete
 - [x] Progress tracking
 - [x] Test: no paid content in any bundle, static file, sitemap or feed
 
@@ -43,6 +43,8 @@ Goal: editors can publish content and learners can read it safely.
 - Lesson cache (2026-10-02): published lesson content is kept 30 seconds in memory; CMS changes clear it. Pacing, entitlement and watermarks still run on every read.
 - Alerts (2026-10-02): sign-in from a new country, headless or scripted clients, and the daily reading cap raise records in the admin's read-only "Security alerts" (Support and Owner). Alerts never lock an account by themselves. Email delivery waits on the email provider.
 - Industry Ready (2026-10-02): `services` collection, public `/industry-ready` page and `GET /api/v1/services`. The five services are seeded **locked** ("Opening soon"), including Resume Builder and CV screening, which the product doc lists as open: they open in the admin once they work, so no card leads nowhere.
+
+- Career tools (2026-10-02): **Resume Builder** at `/industry-ready/resume-builder`: structured editor (contact, summary, skills, experience, projects, education, certifications) with live preview, two single-column ATS-friendly templates, server-rendered text PDF, save and delete. **CV screening** at `/industry-ready/cv-screening`: drag-and-drop PDF or .docx (5 MB), checked by file content not name; rule-based report (ATS readability, contact, sections, length, impact, formal verification keywords) with scores and specific fixes; only the report is stored, never the file, and reports can be deleted. Both require an open service and an active content entitlement; a locked service refuses every call. Migration 5 opened both services.
 
 ## Gate
 

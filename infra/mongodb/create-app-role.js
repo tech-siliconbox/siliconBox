@@ -21,6 +21,8 @@ const readWrite = [
   'runs',
   'ended_sessions',
   'watermark_codes',
+  'resumes',
+  'cv_screenings',
 ].map((collection) => ({ resource: { db: dbName, collection }, actions: READ_WRITE }));
 const appendOnly = [
   { resource: { db: dbName, collection: 'audit_log' }, actions: ['find', 'insert'] },

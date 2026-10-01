@@ -10,6 +10,7 @@ const ORIGIN = 'https://siliconbox.test';
 const POLICY: RateLimitPolicy = { name: 'test', limit: 2, windowMs: 60_000 };
 const learner: Identity = {
   userId: 'learner-test-1',
+  name: 'Invented Learner',
   email: 'learner@example.test',
   role: 'learner',
   emailVerified: true,

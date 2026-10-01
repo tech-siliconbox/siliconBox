@@ -7,6 +7,7 @@ import { getAuth } from './auth';
 
 export type Identity = {
   userId: string;
+  name: string;
   email: string;
   role: Role;
   emailVerified: boolean;
@@ -19,6 +20,7 @@ export async function authenticate(headers: Headers): Promise<Identity> {
   if (result !== null) {
     return {
       userId: result.user.id,
+      name: result.user.name,
       email: result.user.email,
       role: RoleSchema.parse(result.user.role),
       emailVerified: result.user.emailVerified,

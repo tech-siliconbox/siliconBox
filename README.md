@@ -40,12 +40,12 @@ checklists: `docs/roadmap/`.
 | Question bank | Public, searchable list with company tags and years; answers written in the CMS (serving them waits on a decision) |
 | Drills | Written in the CMS with private solutions and per-level caps; learners run them once the solver exists (phase 3) |
 | Admin tools | Lesson preview, security alerts for Support, Industry Ready services switched open or locked |
+| Career tools | Resume Builder (ATS-friendly PDF) and CV screening (formal verification report); free for learners with active access |
 | Solver | Skeleton only: service-token auth, no public docs; hardening is phase 3 |
 
 ### In progress (phase 2)
 
-Serving question answers (waits on a decision), Resume Builder and CV screening (need a short
-spec), scheduled publishing (needs the host's cron). Full list of
+Serving question answers (waits on a decision) and scheduled publishing (needs the host's cron). Full list of
 what is left before launch: `docs/roadmap/path-to-launch.md`.
 
 ### Waiting on the founder

@@ -12,6 +12,8 @@ export const RATE_LIMITS = {
   authWrite: { name: 'auth-write', limit: 10, windowMs: 60_000 },
   read: { name: 'read', limit: 120, windowMs: 60_000 },
   write: { name: 'write', limit: 30, windowMs: 60_000 },
+  // Parsing a CV is CPU work; a learner rarely needs more than a few runs an hour.
+  cvScreen: { name: 'cv-screen', limit: 10, windowMs: 60 * 60 * 1000 },
   // docs/architecture/content-delivery.md: about a dozen lesson reads a minute per account.
   contentRead: { name: 'content-read', limit: 12, windowMs: 60_000 },
   // A daily cap per account; the number is a starting point to tune from real reading data.

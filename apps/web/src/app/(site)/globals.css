@@ -17,6 +17,7 @@
   --color-muted-foreground: hsl(var(--muted-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-success: hsl(var(--success));
+  --color-warning: var(--status-warn);
   --color-link-idle: var(--link-idle);
   --color-link-hover: var(--link-hover);
 

@@ -5,6 +5,9 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 ## [Unreleased]
 
 ### Added
+- Resume Builder: structured editor with live preview, two ATS-friendly templates, server-generated text PDF, save and delete.
+- CV screening: drag-and-drop PDF or Word upload, rule-based ATS and formal verification keyword report with scores and fixes; files are read in memory and never stored; reports can be deleted.
+- Migration 5: `resumes` and `cv_screenings` collections; Resume Builder and CV screening services opened.
 - Drills in the CMS: `drills` and private `drill_private`, with depth and timeout checked against per-level caps.
 - Lesson preview for admins (latest draft, `/preview/lessons/[id]`, "Preview" button in the admin).
 - Security alerts: new-country sign-in, headless or scripted client, daily reading cap; reviewed in the admin.

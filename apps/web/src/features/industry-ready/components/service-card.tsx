@@ -1,4 +1,4 @@
-import type { PublicService } from '@siliconbox/shared';
+import { type PublicService, ROUTES } from '@siliconbox/shared';
 import Link from 'next/link';
 import { LockedCard } from '@/components/shared/locked-card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,10 @@ import { Card } from '@/components/ui/card';
  * Pages for open services, added as each service is built. An open service without a page here
  * shows no link, so a card never leads nowhere.
  */
-const SERVICE_PAGES: Readonly<Record<string, string>> = {};
+const SERVICE_PAGES: Readonly<Record<string, string>> = {
+  'resume-builder': ROUTES.resumeBuilder,
+  'cv-screening': ROUTES.cvScreening,
+};
 
 export function ServiceCard({ service }: { service: PublicService }) {
   if (service.status === 'locked') {

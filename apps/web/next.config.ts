@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ['@siliconbox/shared'],
+  // Rendered and parsed in Node only; loading them unbundled keeps their WASM and workers intact.
+  serverExternalPackages: ['@react-pdf/renderer', 'unpdf', 'mammoth'],
   headers: () => Promise.resolve([{ source: '/:path*', headers: securityHeaders }]),
 };
 

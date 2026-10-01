@@ -10,7 +10,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Badge | Small mono label (`outline`, `muted`, `inverted`) | Built |
 | Card | Bordered surface, no shadow | Built |
 | Eyebrow | Mono uppercase label above headings | Built |
-| TextField | Labelled input | Built |
+| Field, TextField, TextAreaField | Label plus control; input and textarea share one wrapper | Built |
 | CspImage | `next/image` without the inline style the CSP blocks; use it instead of `next/image` | Built |
 | Tabs | Tab list and panels | Planned |
 | Dialog | Modal | Planned |
@@ -53,6 +53,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
 | industry-ready: ServiceCard | Open or locked service card; links only to built services | Built |
+| industry-ready: CareerToolLocked | Why a career tool is unavailable, with the next step | Built |
+| industry-ready (resume): ResumeBuilder, ResumeToolbar, ResumePreview, ListEditor, BasicsEditor, LinksEditor, SkillsEditor, ExperienceEditor, ProjectsEditor, EducationEditor, CertificationsEditor, BulletsField, MonthRange, useResumeDraft | Resume Builder editor, preview and save | Built |
+| industry-ready (cv): CvScreener, DropZone, CvReportView, ScreeningHistory, useCvScreenings | CV screening upload, report and history | Built |
 | pricing: LevelCard | One level's price and windows, from shared constants | Built |
 
 ## Server helpers (`server`, `db`)
@@ -81,7 +84,12 @@ Check here before writing a component, hook or helper. Add a row when you create
 | signInAnomalies, clientCountry | Pure sign-in anomaly detection (`server/anomalies.ts`) | Built |
 | raiseAlert, recordAlert | Records a security alert for review (`server/alerts.ts`, `db/security-alerts.ts`) | Built |
 | findLastSignInCountry | Country of the learner's previous sign-in (`db/audit-log.ts`) | Built |
-| findServices | Industry Ready services (`db/services.ts`) | Built |
+| findServices, isServiceOpen | Industry Ready services and their status (`db/services.ts`) | Built |
+| findResume, saveResume, deleteResume | Resume storage (`db/resumes.ts`) | Built |
+| saveScreening, listScreenings, deleteScreenings | Screening reports, never files (`db/cv-screenings.ts`) | Built |
+| assertCareerTool, careerToolState | Service open plus active content entitlement (`server/career-services.ts`) | Built |
+| extractCvText | PDF or .docx text, type checked by file bytes (`server/cv-text.ts`) | Built |
+| renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
 | assertEntitled | The one entitlement check used by every route | Built |
 | visibleMark | Builds the visible watermark text per user (`server/watermark.ts`) | Built |
 | redisRateLimiter, RATE_LIMITS | Fixed-window limiter (one Redis command a request) and per-route budgets | Built |
@@ -122,3 +130,5 @@ Check here before writing a component, hook or helper. Add a row when you create
 | formatInr | Paise to "₹5,000" | Built |
 | DRILL_LIMITS, drillLimitProblem, TOP_MODULE_PATTERN | Per-level Drill caps and safe top-module names | Built |
 | AlertKindSchema, ServiceStatusSchema | Alert kinds; service status | Built |
+| ResumeSchema, emptyResume, formatResumePeriod | Resume data, blank resume, date display | Built |
+| screenCv, CvReportSchema, CvScreeningSchema | Pure CV screening rules and report shapes | Built |

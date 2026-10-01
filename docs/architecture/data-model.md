@@ -28,7 +28,8 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `run_cache` | Result by content hash | Server |
 | `services` | Industry Ready service cards and status (`open` or `locked`), locked reason, order | Public list |
 | `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
-| `user_documents` | CVs for Resume Builder and CV screening | Owner, with delete |
+| `resumes` | One saved Resume Builder resume per learner | Owner, with delete |
+| `cv_screenings` | CV screening reports only (score, checks, keywords, file name); uploaded files are never stored | Owner, with delete |
 | `audit_log` | Append-only: sign-ins, purchases, admin edits, entitlement changes | Owner role |
 | `watermark_codes` | Invisible watermark code to learner, for tracing leaks; `{ code, userId }` unique | Server |
 

@@ -16,6 +16,11 @@ export const ERRORS = {
     status: 409,
     message: 'This purchase would not add anything to your current access.',
   },
+  SERVICE_LOCKED: { status: 403, message: 'This service is not open yet.' },
+  FILE_NOT_SUPPORTED: {
+    status: 415,
+    message: 'Upload a PDF or Word (.docx) file of up to 5 MB.',
+  },
   RATE_LIMITED: { status: 429, message: 'Too many requests. Please wait a moment and try again.' },
   INTERNAL: { status: 500, message: 'Something went wrong. Please try again.' },
 } as const satisfies Record<string, { status: number; message: string }>;
