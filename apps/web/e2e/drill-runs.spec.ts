@@ -1,8 +1,14 @@
 import { readFileSync } from 'node:fs';
-import { API_ROUTES, RUN_POLL_DELAYS_MS, type RunView } from '@siliconbox/shared';
+import {
+  API_ROUTES,
+  ROUTES,
+  RUN_POLL_DELAYS_MS,
+  type RunView,
+  isRunSettling,
+} from '@siliconbox/shared';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
-import { expect, newLearner, signUp, test } from './helpers';
+import { expect, failOnCspViolation, newLearner, signUp, test } from './helpers';
 
 // Phase 3: a learner runs their properties on a Drill through the solver. Needs the solver API
 // and a worker (`pnpm --filter @siliconbox/solver dev`) with the same SOLVER_SIGNING_KEY.
@@ -13,6 +19,10 @@ const run = crypto.randomUUID().slice(0, 8);
 // A unique comment keeps the first run of each test session out of the run cache.
 const BUGGY_DESIGN = `${fixture('counter_bug.sv')}\n// e2e ${run}\n`;
 const PROPERTIES = fixture('counter_props.sv');
+const HIDDEN_MARK = `hidden design ${run}`;
+const CORRECT_DESIGN = `${fixture('counter.sv')}\n// ${HIDDEN_MARK}\n`;
+// Too strict: also fails on the correct counter, which legally reaches 9.
+const TOO_STRICT = PROPERTIES.replace("count <= 4'd9", "count <= 4'd8");
 const BASE_URL = 'http://localhost:3000';
 
 test.describe.configure({ mode: 'serial' });
@@ -52,6 +62,14 @@ test('an editor publishes a Drill whose design has a seeded bug', async () => {
   });
   expect(drill.status).toBe(201);
   drillId = drill.publicId;
+  // The private part: the correct design every run is also graded against (ADR 0021).
+  const hidden = await createDoc(editor, 'drill_private', {
+    drill: drill.id,
+    referenceSolution: PROPERTIES,
+    referenceDesign: CORRECT_DESIGN,
+    bugVariants: [{ name: 'never wraps', code: BUGGY_DESIGN }],
+  });
+  expect(hidden.status).toBe(201);
 });
 
 function startRun(page: Page, body: Record<string, unknown>) {
@@ -66,7 +84,7 @@ async function waitForResult(request: APIRequestContext, runId: string): Promise
     const delay = RUN_POLL_DELAYS_MS[Math.min(attempt, RUN_POLL_DELAYS_MS.length - 1)];
     await new Promise((resolve) => setTimeout(resolve, delay));
     const view = (await (await request.get(API_ROUTES.run(runId))).json()) as RunView;
-    if (view.state === 'done') return view;
+    if (!isRunSettling(view)) return view;
   }
   throw new Error(`run ${runId} did not finish`);
 }
@@ -90,7 +108,9 @@ test('a run needs both content and tool access for the Drill level', async ({ pa
   const done = await waitForResult(page.request, queued.id);
   expect(done.result?.status).toBe('FAIL');
   expect(done.result?.failedCheck).toBe('ap_stays_in_range');
-  expect(done.solved).toBe(true); // a FAIL Drill is solved by catching the bug
+  // A FAIL Drill is solved by catching the bug while holding on the correct design.
+  expect(done.grading).toEqual({ kind: 'correctDesign', state: 'done', total: 1, met: 1 });
+  expect(done.solved).toBe(true);
   const failing = done.result?.checks.find((check) => check.status === 'FAIL');
   expect(failing?.trace?.signals.some((signal) => signal.name === 'count')).toBe(true);
   expect(JSON.stringify(done)).not.toMatch(/\/tmp|\/work|\/var\//);
@@ -114,6 +134,60 @@ test('a run needs both content and tool access for the Drill level', async ({ pa
   await signUp(otherPage, newLearner());
   expect((await otherPage.request.get(API_ROUTES.run(queued.id))).status()).toBe(404);
   await other.close();
+});
+
+test('a checker that also fails on the correct design does not solve the Drill', async ({
+  page,
+}) => {
+  const learner = newLearner();
+  await signUp(page, learner);
+  const support = await signInAsAdmin('support');
+  await grantAccess(support, learner.email);
+  await grantAccess(support, learner.email, 'tool');
+  const started = await startRun(page, { properties: TOO_STRICT, requestId: crypto.randomUUID() });
+  const done = await waitForResult(page.request, ((await started.json()) as RunView).id);
+  expect(done.result?.status).toBe('FAIL'); // it does "find" the bug on the visible design
+  expect(done.grading).toEqual({ kind: 'correctDesign', state: 'done', total: 1, met: 0 });
+  expect(done.solved).toBe(false);
+  expect(JSON.stringify(done)).not.toContain(HIDDEN_MARK); // hidden designs stay hidden
+});
+
+test('a learner reads the Drill, then runs it from the workspace once tool access is on', async ({
+  page,
+}) => {
+  failOnCspViolation(page);
+  const learner = newLearner();
+  await signUp(page, learner);
+  await page.goto(ROUTES.course(`e2e-run-course-${run}`));
+  await page.getByRole('link', { name: 'Invented counter Drill' }).click();
+  await expect(page.getByText('This Drill is locked')).toBeVisible();
+
+  const support = await signInAsAdmin('support');
+  await grantAccess(support, learner.email);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Invented counter Drill' })).toBeVisible();
+  await expect(page.getByText('Running Drills needs active tool access')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Run verification' })).toBeDisabled();
+
+  await grantAccess(support, learner.email, 'tool');
+  await page.reload();
+  await page.getByRole('tab', { name: /design\.sv/ }).click();
+  await expect(page.getByLabel('design.sv (read-only)')).toHaveValue(BUGGY_DESIGN);
+  await page.getByRole('tab', { name: 'properties.sv' }).click();
+  // A unique comment keeps this run out of the cache, so it goes through the solver.
+  await page.getByLabel('properties.sv').fill(`${PROPERTIES}\n// ui ${run}\n`);
+  await page.getByRole('button', { name: 'Run verification' }).click();
+
+  await expect(page.getByText('BUG FOUND').first()).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByText('Solved', { exact: true })).toBeVisible({ timeout: 90_000 });
+  await expect(
+    page.getByText('Your properties hold on a correct version of this design.'),
+  ).toBeVisible();
+  await page.getByText('Show trace').first().click();
+  await expect(page.getByRole('img', { name: 'Trace for ap_stays_in_range' })).toBeVisible();
+  // The draft is kept in this browser between visits.
+  await page.reload();
+  await expect(page.getByLabel('properties.sv')).toHaveValue(new RegExp(`// ui ${run}`));
 });
 
 test('a learner cannot choose solver settings', async ({ page }) => {

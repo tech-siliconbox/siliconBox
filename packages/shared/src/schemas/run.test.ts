@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RUN_PROPERTIES_MAX_BYTES, RunInputSchema, isDrillSolved } from './run';
+import { RUN_PROPERTIES_MAX_BYTES, RunInputSchema, drillSolved } from './run';
 
 const REQUEST_ID = '6f1c1d38-2f6b-4b0e-9c51-2d7d1c1f7a10';
 
@@ -31,12 +31,25 @@ describe('RunInputSchema', () => {
   });
 });
 
-describe('isDrillSolved', () => {
-  it('needs PASS on a PASS Drill and FAIL on a FAIL Drill', () => {
-    expect(isDrillSolved('PASS', 'PASS')).toBe(true);
-    expect(isDrillSolved('PASS', 'FAIL')).toBe(false);
-    expect(isDrillSolved('FAIL', 'FAIL')).toBe(true);
-    expect(isDrillSolved('FAIL', 'TIMEOUT')).toBe(false);
-    expect(isDrillSolved('FAIL', 'ERROR')).toBe(false);
+describe('drillSolved', () => {
+  const grading = (met: number, state: 'pending' | 'done' = 'done') =>
+    ({ kind: 'bugVariants', state, total: 2, met }) as const;
+
+  it('needs the target on the visible design', () => {
+    expect(drillSolved('PASS', 'FAIL', null)).toBe(false);
+    expect(drillSolved('FAIL', 'TIMEOUT', null)).toBe(false);
+    expect(drillSolved('FAIL', 'ERROR', grading(2))).toBe(false);
+    expect(drillSolved('PASS', null, null)).toBeNull();
+  });
+
+  it('needs every hidden design to give its expected answer', () => {
+    expect(drillSolved('PASS', 'PASS', grading(2))).toBe(true);
+    expect(drillSolved('PASS', 'PASS', grading(1))).toBe(false);
+    expect(drillSolved('FAIL', 'FAIL', grading(0))).toBe(false);
+  });
+
+  it('is unknown while grading runs, and falls back to the visible design without hidden ones', () => {
+    expect(drillSolved('PASS', 'PASS', grading(0, 'pending'))).toBeNull();
+    expect(drillSolved('FAIL', 'FAIL', null)).toBe(true);
   });
 });

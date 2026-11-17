@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { DRILL_TARGETS } from './drill';
+import type { DrillTarget } from './drill';
 import { PublicIdSchema } from './lesson';
 import type { Level } from './level';
 
@@ -76,6 +76,20 @@ export type RunResult = z.infer<typeof RunResultSchema>;
 export const RUN_STATES = ['queued', 'running', 'done'] as const;
 export type RunState = (typeof RUN_STATES)[number];
 
+/**
+ * Grading against the Drill's hidden designs (ADR 0021): the seeded bug variants of a PASS
+ * Drill (each must make the learner's properties FAIL), or the correct design of a FAIL Drill
+ * (it must PASS). Only counts reach the learner, never the hidden designs.
+ */
+export const GRADING_KINDS = ['bugVariants', 'correctDesign'] as const;
+export const GradingViewSchema = z.object({
+  kind: z.enum(GRADING_KINDS),
+  state: z.enum(['pending', 'done']),
+  total: z.number().int().min(0),
+  met: z.number().int().min(0),
+});
+export type GradingView = z.infer<typeof GradingViewSchema>;
+
 /** What `GET /api/v1/runs/:id` returns to the learner. */
 export const RunViewSchema = z.object({
   id: PublicIdSchema,
@@ -83,18 +97,36 @@ export const RunViewSchema = z.object({
   state: z.enum(RUN_STATES),
   position: z.number().int().nullable(),
   result: RunResultSchema.nullable(),
+  grading: GradingViewSchema.nullable(),
   solved: z.boolean().nullable(),
   createdAt: z.iso.datetime(),
 });
 export type RunView = z.infer<typeof RunViewSchema>;
 
-/**
- * Whether a finished run completes the Drill. PASS Drills: the learner's properties all hold on
- * a correct design. FAIL Drills: the learner's properties catch the seeded bug.
- */
-export function isDrillSolved(target: (typeof DRILL_TARGETS)[number], status: RunStatus): boolean {
+/** Whether a run on the visible design reached the Drill's target, so grading is worth doing. */
+export function meetsTarget(target: DrillTarget, status: RunStatus): boolean {
   return status === target;
 }
+
+/**
+ * Whether a run completes the Drill, or null while that is not known yet. The visible design
+ * must give the target, and every hidden design its expected answer: a checker that proves
+ * anything, or fails on everything, does not solve a Drill.
+ */
+export function drillSolved(
+  target: DrillTarget,
+  status: RunStatus | null,
+  grading: GradingView | null,
+): boolean | null {
+  if (status === null) return null;
+  if (!meetsTarget(target, status)) return false;
+  if (grading === null) return true;
+  return grading.state === 'pending' ? null : grading.met === grading.total;
+}
+
+/** A run the browser should keep polling: the solver or the grading is still working. */
+export const isRunSettling = (view: RunView): boolean =>
+  view.state !== 'done' || view.grading?.state === 'pending';
 
 /** Client polling: 1 s, 2 s, then every 5 s (solver-integration.md). */
 export const RUN_POLL_DELAYS_MS = [1_000, 2_000, 5_000] as const;

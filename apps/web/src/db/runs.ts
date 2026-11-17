@@ -1,8 +1,10 @@
 import 'server-only';
 import {
   DRILL_TARGETS,
+  GRADING_KINDS,
   PublicIdSchema,
   RUN_STATES,
+  RUN_STATUSES,
   type RunResult,
   RunResultSchema,
   type RunState,
@@ -10,6 +12,23 @@ import {
 import { z } from 'zod';
 import { getDb } from './client';
 import { COLLECTIONS } from './collections';
+
+/**
+ * Grading of one run against the Drill's hidden designs (ADR 0021): one solver job per hidden
+ * design, with the answer it must give. `kind` is null when the Drill has nothing hidden.
+ */
+const GradingRecordSchema = z.object({
+  kind: z.enum(GRADING_KINDS).nullable(),
+  jobs: z.array(
+    z.object({
+      hash: z.string(),
+      expect: z.enum(['PASS', 'FAIL']),
+      jobId: z.uuid().nullable(),
+      status: z.enum(RUN_STATUSES).nullable(),
+    }),
+  ),
+});
+export type GradingRecord = z.infer<typeof GradingRecordSchema>;
 
 /** One learner's run of one Drill. The learner's code is kept so the workspace can reopen it. */
 const RunRecordSchema = z.object({
@@ -24,6 +43,9 @@ const RunRecordSchema = z.object({
   position: z.number().int().nullable(),
   result: RunResultSchema.nullable(),
   cached: z.boolean(),
+  properties: z.string(),
+  // Runs stored before grading existed have no field.
+  grading: GradingRecordSchema.nullable().default(null),
   createdAt: z.date(),
 });
 export type RunRecord = z.infer<typeof RunRecordSchema>;
@@ -32,8 +54,8 @@ const runs = () => getDb().collection(COLLECTIONS.runs);
 const parse = (document: unknown) => RunRecordSchema.parse(document);
 const PROJECTION = { projection: { _id: 0 } };
 
-export async function insertRun(run: RunRecord, properties: string): Promise<void> {
-  await runs().insertOne({ ...RunRecordSchema.parse(run), properties });
+export async function insertRun(run: RunRecord): Promise<void> {
+  await runs().insertOne(RunRecordSchema.parse(run));
 }
 
 export async function findRun(userId: string, publicId: string): Promise<RunRecord | null> {
@@ -56,6 +78,10 @@ export async function updateRunState(
   position: number | null,
 ): Promise<void> {
   await runs().updateOne({ publicId }, { $set: { state, position } });
+}
+
+export async function saveGrading(publicId: string, grading: GradingRecord): Promise<void> {
+  await runs().updateOne({ publicId }, { $set: { grading } });
 }
 
 export async function finishRun(publicId: string, result: RunResult): Promise<void> {

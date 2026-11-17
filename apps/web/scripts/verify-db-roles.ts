@@ -8,7 +8,9 @@ type Check = { what: string; allowed: boolean; run: (db: Db) => Promise<unknown>
 
 const NOTHING = { _id: 'no-such-document' } as never;
 
-const CHECKS: Record<'MONGODB_URI_APP' | 'MONGODB_URI_ANSWERS' | 'MONGODB_URI_ADMIN', Check[]> = {
+type User = 'MONGODB_URI_APP' | 'MONGODB_URI_ANSWERS' | 'MONGODB_URI_GRADER' | 'MONGODB_URI_ADMIN';
+
+const CHECKS: Record<User, Check[]> = {
   MONGODB_URI_APP: [
     {
       what: 'read published lessons',
@@ -28,7 +30,8 @@ const CHECKS: Record<'MONGODB_URI_APP' | 'MONGODB_URI_ANSWERS' | 'MONGODB_URI_AD
     {
       what: 'read Drill solutions',
       allowed: false,
-      run: (db) => db.collection('drill_private').findOne({}),
+      // Payload stores the `drill_private` collection as `drill_privates`.
+      run: (db) => db.collection('drill_privates').findOne({}),
     },
     {
       what: 'edit the audit log',
@@ -57,6 +60,28 @@ const CHECKS: Record<'MONGODB_URI_APP' | 'MONGODB_URI_ANSWERS' | 'MONGODB_URI_AD
       what: 'edit answers',
       allowed: false,
       run: (db) => db.collection('answers').updateOne(NOTHING, { $set: { x: 1 } }),
+    },
+  ],
+  MONGODB_URI_GRADER: [
+    {
+      what: 'read Drill solutions and bug variants',
+      allowed: true,
+      run: (db) => db.collection('drill_privates').findOne({}),
+    },
+    {
+      what: 'read paid answers',
+      allowed: false,
+      run: (db) => db.collection('answers').findOne({}),
+    },
+    {
+      what: 'read learner accounts',
+      allowed: false,
+      run: (db) => db.collection('users').findOne({}),
+    },
+    {
+      what: 'edit Drill solutions',
+      allowed: false,
+      run: (db) => db.collection('drill_privates').updateOne(NOTHING, { $set: { x: 1 } }),
     },
   ],
   MONGODB_URI_ADMIN: [
