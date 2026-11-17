@@ -22,9 +22,7 @@ user). Why three users: ADR 0019. Roles are defined once in `roles.json`.
 5. Network Access: allow only the hosting provider's egress ranges.
 
 Dev (2026-10-02): all of the above done on `siliconbox-dev`; 11 of 11 checks pass.
-Dev (2026-11-18): `siliconbox_grader` still to create (Atlas CLI session expired); until then
-`MONGODB_URI_GRADER` in `apps/web/.env.local` falls back to the admin user, which
-`pnpm db:verify-roles` reports.
+Dev (2026-11-18): `siliconbox_grader` created with role `siliconboxGrader`; 16 of 16 checks pass.
 
 Payload stores the `drill_private` collection as `drill_privates`; roles and checks use that name.
 
