@@ -14,7 +14,7 @@ Summary of everything left before launch: [path-to-launch.md](path-to-launch.md)
 
 ## Current phase
 
-Phase 2 (in progress). Phase 1 code is done; its gate waits on staging (Vercel, deferred by the founder), and the founder asked to continue. See the progress notes in each phase file.
+Phase 3 (in progress): the solver, run API and container runner are done; the Drill workspace and the publish gate are next. Phase 2 is done apart from scheduled publishing (needs the host's cron); phase 1's gate waits on staging (Vercel, deferred by the founder). See the progress notes in each phase file.
 
 ## Blockers and founder decisions
 
@@ -27,13 +27,13 @@ Phase 2 (in progress). Phase 1 code is done; its gate waits on staging (Vercel, 
 - [ ] Legal documents: terms (with no-sharing clause), refund policy, privacy notice
 - [ ] GST registration timing
 - [ ] Course content and questions written, owned and ready to import
-- [ ] First free lesson: the access model says free for everyone, the test matrix says sign-in required (code follows the matrix for now)
+- [x] First free lesson: free for signed-in learners, as the test matrix says (founder, 2026-11-18)
 - [ ] Buying a lower level while a higher one is active (code refuses it for now)
 - [x] How the server reads `answers`: a separate answers-only database user (ADR 0019, 2026-10-02)
 - [ ] If Redis is down, should any routes stay open (code refuses every gated call for now)
 - [ ] Approve ADR 0017 (nonce CSP means public pages are not cached at the edge)
-- [ ] Backup storage (proposed: encrypted GitHub Actions artifacts, 30 days)
-- [ ] Vercel, Cloudflare and email provider: deferred on 2026-10-01
+- [x] Backup storage: encrypted GitHub Actions artifacts, 30 days (ADR 0022)
+- [x] Hosting until launch: free tiers (ADR 0022, `docs/architecture/hosting.md`); Vercel Pro and Atlas M10 at the first sale
 
 ## How to work a phase
 

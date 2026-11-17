@@ -18,7 +18,7 @@ decision, account or content only the founder can supply.
 | Content importer (`pnpm content:import`, JSON) and 30 placeholder modules | Dev | Done |
 | Support grants, extends or shortens access, audited | Dev | Done |
 | Lesson page and API, pacing, both watermarks | Dev | Done |
-| Course content (10 modules per course) | Founder | In preparation |
+| Course content (10 modules per course) | Founder | Basic converted and imported (2026-11-18); Intermediate and Advance in preparation |
 | Demo content in the dev database: 30 original demo lessons (titles end in "(demo)") stand in until the real content is imported over the same slugs; none may remain at launch | Founder + Dev | Demo published on dev |
 | Question bank: questions, companies, answers in the CMS; public list, search, filters | Dev | Done |
 | Question bank: serving answers to entitled learners | Dev | Done (answers-only database user, ADR 0019) |
@@ -40,8 +40,11 @@ decision, account or content only the founder can supply.
 | Bring in `formal-verify-backend` and fix its eight security findings, each with a test | Dev | Done: 13 findings fixed, each with a regression test |
 | Job queue in Redis, isolated runner per job, quotas per level | Dev | Done: container per job, attack-tested; daily quota by level |
 | Run API (`POST /drills/:id/runs`, `GET /runs/:id`), result cache, polling | Dev | Done (API and cache); polling with the workspace UI |
-| Drill workspace (editor, output, waveform) from `formal-verify-frontend` | Dev | Not started; repo available locally |
-| Drill publish gate in CI (reference passes, every seeded bug fails) | Dev | Not started |
+| Drill workspace (editor, output, waveform) | Dev | Done (2026-11-18) |
+| Basic Drills | Founder + Dev | Five drafts from Labs 4, 8, 9, gate-verified; founder to review and publish |
+| Grading against hidden designs (ADR 0021) | Founder + Dev | Built; `siliconbox_grader` user to create on Atlas |
+| Free-tier hosting plan (ADR 0022) | Founder + Dev | Decided; accounts to open: Vercel Hobby, Oracle Cloud free VM, Cloudflare |
+| Drill publish gate in CI (reference passes, every seeded bug fails) | Dev | Done (`pnpm drills:verify`) |
 | Always-on solver host and an outside attack test | Founder + Dev | Not started; budget needed |
 
 ## Phase 4: Payments and launch

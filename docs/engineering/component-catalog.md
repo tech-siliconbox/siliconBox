@@ -33,15 +33,16 @@ Check here before writing a component, hook or helper. Add a row when you create
 | ErrorState | Standard error display (used by the site's `error.tsx`) | Built |
 | PaidContentLocked | Why a lesson or answer is locked, with the way forward | Built |
 | SessionGuard | Re-checks the session every minute and on focus; sends the learner to sign-in with the reason | Built |
-| LessonBlockRenderer | Renders lesson blocks on the server (`components/lesson`); diagrams go through `sanitizeSvg` | Built |
-| Prose | Text with `backtick` spans as inline code (`components/lesson`) | Built |
+| LessonBlockRenderer | Renders lesson blocks on the server from one renderer per block type (`components/lesson`); diagrams go through `sanitizeSvg` | Built |
+| Prose, TextBody | Inline lesson text (`code`, **bold**, *italic*), and multi-line text with paragraphs and "- " bullets (`components/lesson/prose.tsx`) | Built |
+| LessonList, LessonTable | List blocks (answers behind "Show answer") and table blocks (`components/lesson`) | Built |
+| StateGraphFigure | Interactive simulation-vs-formal figure for a `stateGraph` block; panels, SVG and hooks in `components/lesson/state-graph`, pure rules in `state-graph-engine.ts`. The graph and its text come from the lesson | Built |
 
 ## Hooks (`hooks`)
 
 | Name | Purpose | Status |
 | --- | --- | --- |
 | useSessionCheck | Periodic session validity check against `GET /api/v1/me` | Built |
-| useRunPolling | Poll a Drill run with 1 s, 2 s, 5 s backoff (`RUN_POLL_DELAYS_MS`) | Planned |
 
 ## Feature parts (`features/<name>`)
 
@@ -50,7 +51,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | auth: AuthForm, useAuthAction, AuthPanel, FormError, formValue | Shared frame, submit and error handling for sign-in and sign-up | Built |
 | auth: SignInForm, SignUpForm, GoogleButton, SignOutButton | The auth actions | Built |
 | auth: TwoFactorSettings, EnableTwoFactor, TwoFactorChallengeForm, TotpQrCode, PasswordField | Two-factor setup, sign-in code step and turning it off | Built |
-| courses: CourseOutlineView, CourseLevelBadge | Public outline: modules and lesson titles only, done marks for signed-in learners | Built |
+| courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
+| drills: DrillWorkspace, CodeEditor, RunOutput, WaveformView | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
+| drills: useDrillRun, useDrillDraft, waveRows | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser; trace to waveform rows | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
 | industry-ready: ServiceCard | Open or locked service card; links only to built services | Built |
@@ -68,10 +71,15 @@ Check here before writing a component, hook or helper. Add a row when you create
 | authenticate, requirePageIdentity | Session to `Identity` for routes and for pages | Built |
 | getAuth, onSessionCreated | Better Auth instance; after each sign-in: audit, watermark code, end other sessions | Built |
 | readLesson, markLesson | One published lesson for one learner: paced, entitlement-checked, watermarked (`server/lessons.ts`) | Built |
+| startRun, readRun | Start and follow a run: visible job, then grading against the hidden designs (`server/runs.ts`) | Built |
+| gradingPlan, gradingView, startGrading, advanceGrading | ADR 0021 grading (`server/grading.ts`); hidden designs read only through `db/grading.ts` | Built |
+| solverJob, jobHash | The learner's code against a design with the Drill's settings; cache key (`server/drill-jobs.ts`) | Built |
+| readDrill | One published Drill for one learner: paced, readable with content access, `canRun` with tool access too, brief watermarked (`server/drills.ts`) | Built |
 | markCode, embedMark, findMarks | Invisible per-learner watermark in text (`server/invisible-mark.ts`) | Built |
 | sanitizeSvg | Allow-listed inline SVG for diagrams | Built |
 | enforceRateLimit | Throws RATE_LIMITED with Retry-After; used by the gate and by lesson reads | Built |
-| findPublishedLesson, findCourseOutlines | Published content reads (`db/content.ts`, ADR 0018) | Built |
+| createMongoClient | Every database user's client, with the small pool free Atlas needs (`db/client.ts`) | Built |
+| findPublishedLesson, findPublishedDrill, findPublishedDrillForRun, findCourseOutlines | Published content reads, sharing one published-with-level query (`db/content.ts`, ADR 0018) | Built |
 | registerMarkCode | Watermark code to learner trace table (`db/watermark-codes.ts`) | Built |
 | buildAdminGrant, applyAdminGrant | Admin grant to entitlement plus audit entry (`server/grants.ts`) | Built |
 | replaceEntitlement | Replaces one window and audits it in one transaction (`db/entitlements.ts`) | Built |
@@ -95,7 +103,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | assertCareerTool, careerToolState | Service open plus active content entitlement (`server/career-services.ts`) | Built |
 | extractCvText | PDF or .docx text, type checked by file bytes (`server/cv-text.ts`) | Built |
 | renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
-| assertEntitled | The one entitlement check used by every route | Built |
+| assertEntitled, isEntitled | The one entitlement check used by every route; the same as a yes or no for what a page may offer | Built |
+| errorMessage | Message from an API error body, for client hooks (`lib/api-error.ts`) | Built |
 | visibleMark | Builds the visible watermark text per user (`server/watermark.ts`) | Built |
 | redisRateLimiter, RATE_LIMITS | Fixed-window limiter (one Redis command a request) and per-route budgets | Built |
 | AppError, toResponse | Typed errors and the single error-to-response mapper | Built |
@@ -118,14 +127,16 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Drills, DrillPrivate | Drill authoring; private part never readable by the site | Built |
 | Services, SecurityAlerts | Industry Ready services; read-only alerts for Support | Built |
 | levelOfModule, relationId | Level of a module's course; id from a relationship value | Built |
-| content-import script | `pnpm content:import` (`scripts/content-import.ts`), format in `ContentImportSchema` | Built |
+| content-import script | `pnpm content:import <file> [check] [prune]` (`scripts/content-import.ts`): courses, modules, lessons and Drills with their private part; reports or prunes what a file no longer lists; writes with `SCRIPT_CONTEXT` so CMS hooks skip server-only work | Built |
+| content-convert script | `pnpm content:convert` (`scripts/content-convert.ts`, `scripts/course-html/`): course HTML to an import file, word for word, with notes on anything not kept exactly | Built |
 
 ## Shared package (`packages/shared`)
 
 | Name | Purpose | Status |
 | --- | --- | --- |
 | constants | Level labels, prices in paise, content and tool window lengths | Built |
-| schemas | Level, role, user id, entitlement, audit entry, lesson blocks, published lesson, course outline | Built |
+| schemas | Level, role, user id, entitlement, audit entry, lesson blocks (with `stateGraphProblems`), published lesson, course outline | Built |
+| inline-text | The lesson text format: `parseInlineText` for rendering, `escapeInlineText` and `inlineCode` for writing it | Built |
 | ERRORS, ErrorCode | Stable error codes with status and client message | Built |
 | ROUTES, API_ROUTES | Every page and API path | Built |
 | priceFor, quotePurchase | Pure pricing, including upgrade difference and downgrade refusal | Built |
