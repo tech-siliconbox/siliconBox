@@ -11,6 +11,7 @@ export const ROUTES = {
   course: (slug: string) => `/courses/${slug}`,
   lesson: (publicId: string) => `/learn/${publicId}`,
   lessonPreview: (cmsId: string) => `/preview/lessons/${cmsId}`,
+  drill: (publicId: string) => `/drills/${publicId}`,
   signIn: '/sign-in',
   signInTwoFactor: '/sign-in/two-factor',
   signUp: '/sign-up',

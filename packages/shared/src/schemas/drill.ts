@@ -1,3 +1,5 @@
+import { z } from 'zod';
+import { LessonBlockSchema, PublicIdSchema } from './lesson';
 import type { Level } from './level';
 
 // Drill settings the server attaches to every run. Learners never choose them (CLAUDE.md rule 6).
@@ -6,6 +8,7 @@ export const DRILL_MODES = ['bmc', 'prove', 'cover'] as const;
 export const DRILL_SOLVERS = ['boolector', 'yices', 'z3'] as const;
 /** PASS: the learner proves the design correct. FAIL: the learner's properties must find the bug. */
 export const DRILL_TARGETS = ['PASS', 'FAIL'] as const;
+export type DrillTarget = (typeof DRILL_TARGETS)[number];
 
 /**
  * Per-level caps on depth and solver time. Starting values, to tune from real run data
@@ -35,3 +38,21 @@ export function drillLimitProblem(
   }
   return null;
 }
+
+/**
+ * What a learner sees of a published Drill: brief, files and what counts as solved. Never the
+ * private part (solution, hidden properties, bug variants) and never the solver settings.
+ */
+export const PublishedDrillSchema = z.object({
+  publicId: PublicIdSchema,
+  title: z.string().min(1),
+  topic: z.string().nullish(),
+  target: z.enum(DRILL_TARGETS),
+  brief: z.array(LessonBlockSchema),
+  designCode: z
+    .string()
+    .nullish()
+    .transform((code) => code ?? ''),
+  starterCode: z.string(),
+});
+export type PublishedDrill = z.infer<typeof PublishedDrillSchema>;

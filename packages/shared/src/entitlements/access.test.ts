@@ -11,6 +11,7 @@ const ENDED = ['2026-06-01T00:00:00.000Z', '2026-09-01T00:00:00.000Z'] as const;
 const firstLesson: ProtectedResource = { kind: 'lesson', level: 'basic', isPreview: true };
 const basicLesson: ProtectedResource = { kind: 'lesson', level: 'basic', isPreview: false };
 const basicDrill: ProtectedResource = { kind: 'drill', level: 'basic' };
+const basicBrief: ProtectedResource = { kind: 'drillBrief', level: 'basic' };
 const advanceLesson: ProtectedResource = { kind: 'lesson', level: 'advance', isPreview: false };
 const advanceDrill: ProtectedResource = { kind: 'drill', level: 'advance' };
 const answer: ProtectedResource = { kind: 'answer' };
@@ -22,7 +23,7 @@ const allowed = (resource: ProtectedResource, viewer: Viewer) =>
 
 describe('access matrix', () => {
   it('row 11: no account sees nothing beyond the public outline', () => {
-    for (const resource of [firstLesson, basicLesson, basicDrill, answer, careerTool]) {
+    for (const resource of [firstLesson, basicLesson, basicDrill, basicBrief, answer, careerTool]) {
       expect(decideAccess(resource, null, NOW)).toEqual({
         allowed: false,
         reason: 'UNAUTHENTICATED',
@@ -38,6 +39,7 @@ describe('access matrix', () => {
       reason: 'NOT_ENTITLED',
     });
     expect(allowed(basicDrill, viewer)).toBe(false);
+    expect(allowed(basicBrief, viewer)).toBe(false);
     expect(allowed(answer, viewer)).toBe(false);
     expect(allowed(careerTool, viewer)).toBe(false);
   });
@@ -46,6 +48,8 @@ describe('access matrix', () => {
     const viewer = signedIn(contentHeld('basic', ...ACTIVE), toolHeld(...ENDED));
     expect(allowed(basicLesson, viewer)).toBe(true);
     expect(allowed(basicDrill, viewer)).toBe(false);
+    // The Drill can still be read, just not run.
+    expect(allowed(basicBrief, viewer)).toBe(true);
     expect(allowed(answer, viewer)).toBe(true);
     expect(allowed(careerTool, viewer)).toBe(true);
   });
@@ -54,6 +58,7 @@ describe('access matrix', () => {
     const viewer = signedIn(contentHeld('basic', ...ENDED), toolHeld(...ACTIVE));
     expect(allowed(basicLesson, viewer)).toBe(false);
     expect(allowed(basicDrill, viewer)).toBe(false);
+    expect(allowed(basicBrief, viewer)).toBe(false);
     expect(allowed(answer, viewer)).toBe(false);
     expect(allowed(careerTool, viewer)).toBe(false);
   });
@@ -64,6 +69,7 @@ describe('access matrix', () => {
     expect(allowed(basicDrill, viewer)).toBe(true);
     expect(allowed(advanceLesson, viewer)).toBe(false);
     expect(allowed(advanceDrill, viewer)).toBe(false);
+    expect(allowed({ kind: 'drillBrief', level: 'advance' }, viewer)).toBe(false);
     expect(allowed(answer, viewer)).toBe(true);
     expect(allowed(careerTool, viewer)).toBe(true);
   });
@@ -71,7 +77,7 @@ describe('access matrix', () => {
   it('row 16: every window ended locks everything but the first lesson', () => {
     const viewer = signedIn(contentHeld('basic', ...ENDED), toolHeld(...ENDED));
     expect(allowed(firstLesson, viewer)).toBe(true);
-    for (const resource of [basicLesson, basicDrill, answer, careerTool]) {
+    for (const resource of [basicLesson, basicDrill, basicBrief, answer, careerTool]) {
       expect(allowed(resource, viewer)).toBe(false);
     }
   });

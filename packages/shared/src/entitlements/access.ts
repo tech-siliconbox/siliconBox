@@ -8,7 +8,10 @@ export type Viewer = { entitlements: readonly Entitlement[] } | null;
 
 export type ProtectedResource =
   | { kind: 'lesson'; level: Level; isPreview: boolean }
+  /** Running a Drill on the formal tool. */
   | { kind: 'drill'; level: Level }
+  /** Reading a Drill's brief and files; the content window for its level is enough. */
+  | { kind: 'drillBrief'; level: Level }
   | { kind: 'answer' }
   | { kind: 'careerTool' };
 
@@ -37,6 +40,8 @@ function isGranted(
       return resource.isPreview || hasContent(entitlements, now, resource.level);
     case 'drill':
       return hasContent(entitlements, now, resource.level) && hasTool(entitlements, now);
+    case 'drillBrief':
+      return hasContent(entitlements, now, resource.level);
     case 'answer':
     case 'careerTool':
       return hasContent(entitlements, now);
