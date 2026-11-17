@@ -80,6 +80,9 @@ class ParsedSVA:
     assertions: list[SVAAssertion] = field(default_factory=list)
     raw_code: str = ""
     bind_statement: str = ""
+    # Helper logic the learner wrote around the SVA (wires, registers, always and assign
+    # blocks), kept as written so properties can use checker-side models of the design.
+    helper_code: str = ""
 
     def get_property(self, name: str) -> SVAProperty | None:
         """Find a property by name."""
@@ -149,6 +152,9 @@ def parse_sva(code: str) -> ParsedSVA:
 
     # 8. Extract bind statement
     _parse_bind(code, result)  # use original code (bind may be outside module)
+
+    # 9. Keep the helper logic: whatever in the module body is not SVA
+    _parse_helpers(stripped, result)
 
     logger.info(
         f"Parsed SVA: module={result.module_name}, "
@@ -396,6 +402,31 @@ def _parse_assertions(code: str, result: ParsedSVA):
                 property_name=prop_name,
             )
         )
+
+
+# Everything the parser reads as SVA; the rest of the module body is helper logic.
+_SVA_ITEMS = (
+    re.compile(r"\bsequence\b[\s\S]*?\bendsequence\b(?:\s*:\s*\w+)?"),
+    re.compile(r"\bproperty\b[\s\S]*?\bendproperty\b(?:\s*:\s*\w+)?"),
+    re.compile(r"(?:\w+\s*:\s*)?\b(?:assert|assume|cover)\s+property\s*\([^;]*\)\s*;"),
+    re.compile(r"\bdefault\s+clocking\b[\s\S]*?\bendclocking\b"),
+    re.compile(r"\bdefault\s+disable\s+iff\s*\([^;]*\)\s*;"),
+)
+_MODULE_BODY = re.compile(
+    r"\bmodule\s+\w+\s*(?:#\s*\([\s\S]*?\)\s*)?\([\s\S]*?\)\s*;([\s\S]*?)\bendmodule\b"
+)
+
+
+def _parse_helpers(code: str, result: ParsedSVA):
+    """Keep the module body minus its SVA items: the learner's helper declarations and logic."""
+    m = _MODULE_BODY.search(code)
+    if not m:
+        return
+    body = m.group(1)
+    for pattern in _SVA_ITEMS:
+        body = pattern.sub("", body)
+    lines = [line.rstrip() for line in body.splitlines() if line.strip()]
+    result.helper_code = "\n".join(lines)
 
 
 def _parse_bind(code: str, result: ParsedSVA):
