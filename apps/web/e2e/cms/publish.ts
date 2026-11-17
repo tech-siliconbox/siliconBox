@@ -57,6 +57,39 @@ export const EVERY_OTHER_BLOCK = [
     blockType: 'diagram',
     alt: 'Invented diagram',
     svg: '<svg viewBox="0 0 10 10" onload="alert(1)"><rect width="10" height="10"/></svg>',
+    caption: '**Figure 1.** Invented caption.',
+  },
+  {
+    blockType: 'list',
+    ordered: true,
+    items: [{ text: 'Invented question?', answer: 'Invented answer.' }],
+  },
+  {
+    blockType: 'table',
+    columns: [{ text: 'Invented column' }, { text: 'Other' }],
+    rows: [{ cells: [{ text: '`a`' }, { text: 'Invented cell' }] }],
+  },
+  {
+    blockType: 'reveal',
+    label: 'Show invented hints',
+    content: [{ blockType: 'paragraph', text: 'Invented hint.' }],
+  },
+  {
+    blockType: 'stateGraph',
+    simulationTitle: 'Invented simulation',
+    simulationText: 'Random tests from reset.',
+    formalTitle: 'Invented formal',
+    formalText: 'Every state, depth by depth.',
+    testLength: 3,
+    states: [
+      { label: 'S0', x: 40, y: 40, note: 'reset' },
+      { label: 'S1', x: 120, y: 40 },
+      { label: 'S2', x: 200, y: 40, hidesBug: true },
+    ],
+    transitions: [
+      { from: 'S0', to: 'S1', chance: 0.5 },
+      { from: 'S1', to: 'S2', chance: 0.5 },
+    ],
   },
 ];
 

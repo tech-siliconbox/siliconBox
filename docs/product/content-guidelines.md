@@ -5,7 +5,7 @@ The content is the author's own copyrighted material. Do not copy text, figures 
 ## Format
 
 - Text, code and diagrams only. No video.
-- Lessons are structured blocks (heading, paragraph, code, assertion snippet, callout, diagram).
+- Lessons are structured blocks (heading, paragraph, code, assertion snippet, callout, diagram, list, table, reveal, state graph). Course-specific material lives in the database, never in site code: interactive figures are blocks whose data the CMS holds.
 - Diagrams are SVG or diagram data rendered inline.
 - Call exercises **Drills**.
 

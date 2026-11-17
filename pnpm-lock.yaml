@@ -143,6 +143,18 @@ importers:
       '@types/sanitize-html':
         specifier: ^2.16.2
         version: 2.16.2
+      dom-serializer:
+        specifier: ^3.1.1
+        version: 3.1.1
+      domhandler:
+        specifier: ^6.0.1
+        version: 6.0.1
+      domutils:
+        specifier: ^4.0.2
+        version: 4.0.2
+      htmlparser2:
+        specifier: ^12.0.0
+        version: 12.0.0
       migrate-mongo:
         specifier: ^14.0.7
         version: 14.0.7(mongodb@7.7.0)

@@ -20,7 +20,9 @@
     "unused:check": "knip",
     "deps:check": "depcruise apps/web/src packages/shared/src",
     "naming:check": "scripts/check-naming.sh",
-    "content:import": "pnpm --filter @siliconbox/web content:import"
+    "content:import": "pnpm --filter @siliconbox/web content:import",
+    "content:convert": "pnpm --filter @siliconbox/web content:convert",
+    "drills:verify": "pnpm --filter @siliconbox/solver gate"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -28,6 +28,6 @@ A filmed screen or hand-typed copy can still carry the visible mark, but a cropp
 ## Implementation (2026-10-01)
 
 - Visible: `Watermarked` tiles `visibleMark` (last six characters of the user id, the first three letters of the email with its domain, and the date) as an SVG pattern at 7% opacity over every signed-in page.
-- Invisible: `markCode` derives a 32-bit code from the user id with a keyed hash; `embedMark` hides it as zero-width characters after the first word of every paragraph and callout. Code samples are left untouched so they still run when copied. `findMarks` reads codes back from pasted text.
+- Invisible: `markCode` derives a 32-bit code from the user id with a keyed hash; `embedMark` hides it as zero-width characters after the first word of every paragraph, callout and list item (including those inside reveals). Code samples are left untouched so they still run when copied. `findMarks` reads codes back from pasted text.
 - Trace table: `watermark_codes` maps codes to learners; each sign-in registers the learner's code.
 - Tests: unit tests for encoding and round trips; the lesson end-to-end test checks both marks on a paid view.
