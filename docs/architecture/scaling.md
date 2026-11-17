@@ -1,5 +1,7 @@
 # Scaling to 1,000 concurrent learners
 
+Today's free-tier stack and its limits: `hosting.md` (ADR 0022).
+
 Reading and running scale differently, so they are designed separately.
 
 ## Reading (cheap)

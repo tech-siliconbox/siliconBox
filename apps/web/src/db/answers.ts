@@ -1,9 +1,9 @@
 import 'server-only';
 import { type LessonBlock, LessonBlockSchema } from '@siliconbox/shared';
-import { type Db, MongoClient } from 'mongodb';
+import type { Db, MongoClient } from 'mongodb';
 import { z } from 'zod';
 import { getConfig } from '@/server/config';
-import { getDb } from './client';
+import { createMongoClient, getDb } from './client';
 import { COLLECTIONS } from './collections';
 
 // Paid answers live where the site's own database user cannot read them. This connection uses
@@ -12,9 +12,10 @@ import { COLLECTIONS } from './collections';
 const globalForAnswers = globalThis as typeof globalThis & { siliconboxAnswers?: MongoClient };
 
 function getAnswersDb(): Db {
-  globalForAnswers.siliconboxAnswers ??= new MongoClient(getConfig().MONGODB_URI_ANSWERS, {
-    appName: 'siliconbox-answers',
-  });
+  globalForAnswers.siliconboxAnswers ??= createMongoClient(
+    getConfig().MONGODB_URI_ANSWERS,
+    'siliconbox-answers',
+  );
   return globalForAnswers.siliconboxAnswers.db();
 }
 
