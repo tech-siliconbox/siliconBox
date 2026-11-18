@@ -11,6 +11,7 @@ export const COLLECTIONS = {
   auditLog: 'audit_log',
   securityAlerts: 'security-alerts',
   endedSessions: 'ended_sessions',
+  verifications: 'verifications',
   watermarkCodes: 'watermark_codes',
   courses: 'courses',
   modules: 'modules',

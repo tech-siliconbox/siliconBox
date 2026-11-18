@@ -26,6 +26,7 @@ export const ROUTES = {
 
 export const API_ROUTES = {
   me: '/api/v1/me',
+  dataExport: '/api/v1/me/export',
   progress: '/api/v1/progress',
   services: '/api/v1/services',
   resume: '/api/v1/resume',
@@ -40,6 +41,9 @@ export const SIGNED_OUT_ELSEWHERE = 'replaced';
 
 /** Query value the sign-in page reads after a password reset. */
 export const PASSWORD_CHANGED = 'password-changed';
+
+/** Query value the sign-in page reads after the learner deleted their account. */
+export const ACCOUNT_DELETED = 'account-deleted';
 
 /** Google sign-in error code for an email that already has a password account. */
 const GOOGLE_ACCOUNT_NOT_LINKED = 'account_not_linked';

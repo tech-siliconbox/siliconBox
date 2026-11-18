@@ -1,8 +1,11 @@
-import { ROUTES } from '@siliconbox/shared';
+import { readFile } from 'node:fs/promises';
+import type { Page } from '@playwright/test';
+import { API_ROUTES, ROUTES } from '@siliconbox/shared';
 import { createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
+import { withAdminDb } from './db';
 import { expect, failOnCspViolation, newLearner, signUp, submitSignIn, test } from './helpers';
 
-// The learner's own pages: Overview, Settings and Help. Invented course and FAQ text only.
+// The learner's own pages: Overview, Activity, Settings, Help and their data. Invented text only.
 const run = crypto.randomUUID().slice(0, 8);
 const COURSE = `e2e-member-course-${run}`;
 const LESSON = `e2e-member-lesson-${run}`;
@@ -110,4 +113,57 @@ test('Help shows the published questions and answers', async ({ page }) => {
   await page.goto(ROUTES.help);
   await page.getByText(FAQ).click();
   await expect(page.getByText('Invented answer for this test.')).toBeVisible();
+});
+
+/** Downloads the learner's data from Settings and reads the file. */
+async function downloadData(page: Page): Promise<Record<string, unknown>> {
+  await page.goto(ROUTES.settings);
+  const download = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Download your data' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^siliconbox-data-\d{4}-\d{2}-\d{2}\.json$/);
+  return JSON.parse(await readFile(await file.path(), 'utf8')) as Record<string, unknown>;
+}
+
+test('a learner downloads their data, then deletes the account', async ({ page, request }) => {
+  test.setTimeout(60_000);
+  expect((await request.get(API_ROUTES.dataExport)).status()).toBe(401);
+  failOnCspViolation(page);
+  const learner = newLearner();
+  await signUp(page, learner);
+  const { id } = (await (await page.request.get(API_ROUTES.me)).json()) as { id: string };
+  await page.goto(ROUTES.lesson(COURSE, LESSON));
+  await page.getByRole('button', { name: 'Mark as done' }).click();
+  await expect(page.getByRole('button', { name: '✓ Done' })).toBeVisible();
+
+  const data = await downloadData(page);
+  expect(data).toMatchObject({
+    account: { email: learner.email, signInMethods: ['password'] },
+    lessonsFinished: [{ lesson: LESSON_TITLE }],
+  });
+  // Nothing secret: no password, and no session token (only chosen session fields).
+  expect(JSON.stringify(data)).not.toContain(learner.password);
+  expect(JSON.stringify(data.devices)).not.toContain('token');
+
+  await page.getByLabel('Your password', { exact: true }).fill(learner.password);
+  await page.getByRole('button', { name: 'Delete my account' }).click();
+  await expect(page).toHaveURL('/sign-in?reason=account-deleted');
+  await expect(page.getByRole('status')).toContainText('Your account and its data were deleted');
+
+  // The account and its data are gone; the audit record of the deletion stays.
+  const left = await withAdminDb((db) =>
+    Promise.all([
+      db.collection('users').countDocuments({ email: learner.email }),
+      db.collection('progress').countDocuments({ userId: id }),
+      db.collection('watermark_codes').countDocuments({ userId: id }),
+      db.collection('audit_log').countDocuments({ subjectId: id, action: 'account_deleted' }),
+    ]),
+  );
+  expect(left).toEqual([0, 0, 0, 1]);
+  await submitSignIn(page, learner);
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Invalid email or password' }),
+  ).toBeVisible();
+  // The teardown finds test learners by email, so this one's audit entries are removed here.
+  await withAdminDb((db) => db.collection('audit_log').deleteMany({ subjectId: id }));
 });

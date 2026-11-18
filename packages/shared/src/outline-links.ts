@@ -1,4 +1,5 @@
-import { type CourseOutline, ROUTES } from '@siliconbox/shared';
+import { ROUTES } from './routes';
+import type { CourseOutline } from './schemas/lesson';
 
 type Link = { title: string; href: string };
 

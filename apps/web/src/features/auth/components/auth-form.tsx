@@ -11,6 +11,8 @@ type AuthFormProps = {
   next?: string | null;
   submitLabel: string;
   pendingLabel: string;
+  /** "danger" for what cannot be undone. */
+  submitVariant?: 'primary' | 'danger';
   submit: (form: FormData) => Promise<AuthResult>;
   children: ReactNode;
 };
@@ -20,6 +22,7 @@ export function AuthForm({
   next = ROUTES.dashboard,
   submitLabel,
   pendingLabel,
+  submitVariant = 'primary',
   submit,
   children,
 }: AuthFormProps) {
@@ -35,7 +38,7 @@ export function AuthForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {children}
       <FormError message={error} />
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" variant={submitVariant} disabled={pending}>
         {pending ? pendingLabel : submitLabel}
       </Button>
     </form>

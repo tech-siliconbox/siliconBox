@@ -1,4 +1,5 @@
 import {
+  API_ROUTES,
   ERRORS,
   type Entitlement,
   LEVELS,
@@ -12,10 +13,12 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 import { PageIntro } from '@/components/shared/page-intro';
+import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SiteLink } from '@/components/ui/site-link';
 import { findEntitlements } from '@/db/entitlements';
 import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
+import { DeleteAccountForm } from '@/features/auth/components/delete-account-form';
 import { NameForm } from '@/features/auth/components/name-form';
 import { VerifyEmailButton } from '@/features/auth/components/verify-email-button';
 import { windowText } from '@/features/dashboard/window-text';
@@ -83,6 +86,38 @@ function YourAccess({ entitlements, now }: { entitlements: Entitlement[]; now: D
   );
 }
 
+/** DPDP: download everything we hold, or delete the account (keeping only required records). */
+function YourData({ identity, withPassword }: { identity: Identity; withPassword: boolean }) {
+  return (
+    <>
+      <div className="flex flex-col gap-2 text-sm">
+        <p className="font-medium">Download your data</p>
+        <p className="text-muted-foreground">
+          Your account, sign-ins, access, finished lessons, Drill runs, resume and CV reports, as a
+          JSON file.
+        </p>
+        <a
+          href={API_ROUTES.dataExport}
+          download
+          className={buttonVariants({ variant: 'secondary', size: 'sm', className: 'self-start' })}
+        >
+          Download your data
+        </a>
+      </div>
+      <div className="flex flex-col gap-3 border-t border-border pt-5 text-sm">
+        <p className="font-medium">Delete your account</p>
+        <p className="text-muted-foreground">
+          This deletes your account, progress, Drill runs, resume and CV reports, and ends any
+          access you bought. It cannot be undone, so download your data first if you want a copy. We
+          keep only the records security and the law need: the audit log of sign-ins and access
+          changes, security alerts, access our team granted you, and receipts once payments start.
+        </p>
+        <DeleteAccountForm email={identity.email} withPassword={withPassword} />
+      </div>
+    </>
+  );
+}
+
 type SettingsPageProps = { searchParams: Promise<{ error?: string; changed?: string }> };
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
@@ -95,7 +130,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   return (
     <div className="flex flex-col gap-6">
       <PageIntro eyebrow="Settings" title="Your account">
-        Your name, how you sign in, and what you have access to.
+        Your name, how you sign in, what you have access to, and your data.
       </PageIntro>
       <Section title="Account">
         <NameForm name={identity.name} />
@@ -118,6 +153,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       </Section>
       <Section title="Your access">
         <YourAccess entitlements={entitlements} now={new Date()} />
+      </Section>
+      <Section title="Your data">
+        <YourData identity={identity} withPassword={withPassword} />
       </Section>
     </div>
   );

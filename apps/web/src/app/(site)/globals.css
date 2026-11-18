@@ -23,6 +23,7 @@
   --color-warning: var(--status-warn);
   --color-link-idle: var(--link-idle);
   --color-link-hover: var(--link-hover);
+  --color-danger: var(--fv-bad);
   --color-heat-0: var(--fv-heat-0);
   --color-heat-1: var(--fv-heat-1);
   --color-heat-2: var(--fv-heat-2);

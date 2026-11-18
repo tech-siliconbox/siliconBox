@@ -41,6 +41,10 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 - TTL on `runs` (180 days) and `run_cache` (30 days), expired `sessions` and `verifications`, and `ended_sessions` after 7 days. Run logs are kept in the run document (capped at 64 KB) until object storage exists.
 - Text index on public question text.
 
+## Deleting an account
+
+A learner deletes their account from Settings (DPDP). Better Auth deletes `users`, `sessions` and `accounts`; first, `deleteLearnerData` empties `entitlements`, `progress`, `runs`, `resumes`, `cv_screenings`, `watermark_codes`, `ended_sessions` and their pending `verifications`. Kept: `audit_log` (including the `account_deleted` entry), `security-alerts` and Payload's `access-grants` (the site cannot change them; they are security and admin records), and `orders` once payments exist (the law needs them). Kept records refer to the account by id; grants also name the email they were for.
+
 ## Integrity
 
 - Multi-document changes (order status plus entitlements) use a transaction.

@@ -5,6 +5,7 @@ export * from './cv-screening/rules';
 export * from './errors';
 export * from './inline-text';
 export * from './money';
+export * from './outline-links';
 export * from './routes';
 export * from './slug';
 export * from './schemas/alert';

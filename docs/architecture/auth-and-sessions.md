@@ -28,4 +28,4 @@ The session gives the watermark its identity. See `docs/security/watermarking.md
 
 ## Account
 
-Data export and delete (DPDP Act). Deletion removes personal data but keeps the audit and order records the law requires.
+Data export and delete (DPDP Act), both in Settings. The download is a JSON file of everything held about the learner (`GET /api/v1/me/export`). Deleting uses Better Auth's delete with the password, or for a Google-only account a sign-in within the last day; what goes and what stays is in `data-model.md`. Both are audit-logged (`data_export`, `account_deleted`).

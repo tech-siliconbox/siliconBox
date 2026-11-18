@@ -20,12 +20,13 @@ No route returns lesson, Drill, answer or question text; those reach the browser
 | Route | Access | Rate limit |
 | --- | --- | --- |
 | `GET /api/v1/me` | Signed in | `read` |
+| `GET /api/v1/me/export` | Signed in; the learner's own data as a JSON file, audit-logged (DPDP) | `dataExport` (5 an hour) |
 | `GET /api/v1/services` | Anyone | `read` |
 | `GET, PUT, DELETE /api/v1/resume`; `GET /api/v1/resume/pdf` | Signed in; service open and an active content entitlement (DELETE always allowed) | `read` / `write` |
 | `POST, GET, DELETE /api/v1/cv-screenings`; `DELETE /api/v1/cv-screenings/:id` | Same; uploads are multipart, PDF or .docx up to 5 MB | `cvScreen` (10 an hour) / `read` / `write` |
 | `POST /api/v1/progress` | Signed in; lesson must be published and readable by the learner | `write` |
 | `/cms-api/*` | Payload REST for the admin UI; every collection requires a signed-in admin (ADR 0018) | Payload's own; admin host behind Cloudflare Access later |
-| `GET, POST /api/auth/*` | Better Auth (sign-up, sign-in, Google, sign-out, session) | `read` / `authWrite` |
+| `GET, POST /api/auth/*` | Better Auth (sign-up, sign-in, Google, sign-out, session, change password, delete account) | `read` / `authWrite` |
 
 ## Routes
 

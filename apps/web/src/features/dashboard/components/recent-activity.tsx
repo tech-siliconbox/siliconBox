@@ -1,8 +1,7 @@
-import type { CourseOutline } from '@siliconbox/shared';
+import { type CourseOutline, outlineLinks } from '@siliconbox/shared';
 import { SiteLink } from '@/components/ui/site-link';
 import { formatTimeAgo } from '@/lib/format-date';
 import type { ActivityEvent } from '@/server/activity';
-import { outlineLinks } from '../outline-links';
 import { Panel } from './panel';
 
 const RUN_WORD = { true: 'Solved', false: 'Tried', null: 'Checking' } as const;

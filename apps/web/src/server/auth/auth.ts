@@ -4,7 +4,9 @@ import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { nextCookies } from 'better-auth/next-js';
 import { haveIBeenPwned } from 'better-auth/plugins';
+import { appendAudit } from '@/db/audit-log';
 import { getDb, getMongoClient } from '@/db/client';
+import { deleteLearnerData } from '@/db/learner-data';
 import { getConfig } from '@/server/config';
 import { type Email, sendEmail } from '@/server/email';
 import { AppError } from '@/server/errors';
@@ -83,6 +85,19 @@ function createAuth() {
       additionalFields: {
         // Admin roles are granted by an owner, never chosen at sign-up.
         role: { type: 'string', required: false, defaultValue: 'learner', input: false },
+      },
+      // DPDP: a learner deletes their account from Settings, with their password or, for a
+      // Google account, a sign-in within the last day. Our data goes first, then the account.
+      deleteUser: {
+        enabled: true,
+        beforeDelete: (user) => deleteLearnerData(user.id),
+        afterDelete: (user) =>
+          appendAudit({
+            action: 'account_deleted',
+            actorId: user.id,
+            subjectId: user.id,
+            createdAt: new Date(),
+          }),
       },
     },
     databaseHooks: {

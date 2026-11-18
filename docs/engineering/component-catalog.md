@@ -6,7 +6,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 
 | Name | Purpose | Status |
 | --- | --- | --- |
-| Button, `buttonVariants` | Actions; `primary`/`secondary`, `lg`/`md`/`sm`. Use `buttonVariants` to style a `Link` | Built |
+| Button, `buttonVariants` | Actions; `primary`/`secondary`/`danger` (what cannot be undone), `lg`/`md`/`sm`. Use `buttonVariants` to style a `Link` | Built |
 | Badge | Small mono label (`outline`, `muted`, `inverted`) | Built |
 | Card | Bordered surface, no shadow | Built |
 | Eyebrow, EYEBROW_CLASS | Mono uppercase label above headings; its classes for a heading or table cell | Built |
@@ -61,13 +61,14 @@ Check here before writing a component, hook or helper. Add a row when you create
 | auth: SignInForm, SignUpForm, GoogleButton | The auth actions (email and password, Google; ADR 0025) | Built |
 | auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset, Settings); a new password carries the length rule | Built |
 | auth: NameField, NameForm, ChangePasswordForm | The name input (sign-up, Settings); change the name; change the password, signing other devices out | Built |
+| auth: DeleteAccountForm | Deletes the account from Settings: the password, or for a Google account the email typed out and a sign-in within a day | Built |
 | auth: ForgotPasswordForm, ResetPasswordForm | Ask for a reset link (same answer for any email); set a new password from the link | Built |
 | auth: VerifyEmailButton | Sends the email verification link again from Settings (ADR 0028) | Built |
-| auth: AccountMenu | The header's avatar menu when signed in: name, email, Overview, Settings, Help, Sign out; closes on Escape or a click outside | Built |
+| auth: AccountMenu | The header's avatar menu when signed in: name, email, the member pages (`MEMBER_PAGES`), Sign out; closes on Escape or a click outside | Built |
 | dashboard: DashboardFrame, DashboardNav | The member area's page frame with its sidebar (Overview, Activity, Settings, Help; Help keeps it when signed in); a row of tabs on phones | Built |
 | dashboard: StatTiles, Panel, RecentActivity | A row of numbers; a bordered section with a heading row and optional count; the latest finished lessons and runs (Overview, Activity) | Built |
 | dashboard: ActivityGraph | A year of activity, a square a day in the heat colours, scrolling to this week on phones; no client code | Built |
-| dashboard: windowText, outlineLinks | An access window in words ("Open until 18 Feb 2027"); lesson and Drill ids to their titles and page links | Built |
+| dashboard: windowText | An access window in words ("Open until 18 Feb 2027") | Built |
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
 | courses: CourseIndexLayout, ModuleIndex | A lesson beside its course's modules (sticky sidebar on wide screens, fold-out list on phones): each module folds out to its parts (theory, lab, practice, project, the practice tool) with times; done marks, current module, locked modules; pure rules in `features/courses/course-progress.ts` | Built |
 | courses: CourseProgressBar, modulesDone, nextLesson | "N of M modules done" with a bar (module index, Overview); the next lesson a learner may open | Built |
@@ -119,6 +120,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | readOverview | The Overview's data: every course with the learner's access, and their activity (`server/overview.ts`) | Built |
 | hasPassword | Whether the signed-in account has a password (Google-only accounts do not) (`server/auth/auth.ts`) | Built |
 | findPublishedFaqs | The Help page's published questions, in order (`db/faqs.ts`) | Built |
+| buildDataExport | Everything held about a learner in plain fields, for the download in Settings; never tokens, Drill code or watermark codes (`server/data-export.ts`) | Built |
+| deleteLearnerData | Empties a learner's own collections when they delete the account; the audit log and security alerts stay (`db/learner-data.ts`) | Built |
+| findSignIns, findAllScreenings | A learner's sign-ins (when, country); all their CV reports (`db/audit-log.ts`, `db/cv-screenings.ts`) | Built |
 | recordProgress | Progress for a published lesson the learner may read (`server/progress.ts`) | Built |
 | optionalPageIdentity | The signed-in learner on a public page, or null | Built |
 | readLessonPreview | Latest lesson draft for a signed-in CMS admin (`server/preview.ts`) | Built |
@@ -176,6 +180,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | inline-text | The lesson text format: `parseInlineText` for rendering, `escapeInlineText` and `inlineCode` for writing it | Built |
 | ERRORS, ErrorCode | Stable error codes with status and client message | Built |
 | ROUTES, API_ROUTES | Every page and API path | Built |
+| outlineLinks | Lesson and Drill ids to their titles and page links, from course outlines (`outline-links.ts`) | Built |
 | priceFor, quotePurchase | Pure pricing, including upgrade difference and downgrade refusal | Built |
 | grantFor, highestActiveLevel | Pure grant rules | Built |
 | decideAccess | Pure access decision for lessons, Drills, answers and career tools | Built |
