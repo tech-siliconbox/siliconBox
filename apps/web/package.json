@@ -15,9 +15,9 @@
     "content:convert": "payload run scripts/content-convert.ts"
   },
   "dependencies": {
-    "@payloadcms/db-mongodb": "^3.90.2",
-    "@payloadcms/next": "^3.90.2",
-    "@payloadcms/ui": "^3.90.2",
+    "@payloadcms/db-mongodb": "^3.93.0",
+    "@payloadcms/next": "^3.93.0",
+    "@payloadcms/ui": "^3.93.0",
     "@react-pdf/renderer": "^4.9.0",
     "@siliconbox/shared": "workspace:*",
     "better-auth": "^1.7.7",
@@ -28,15 +28,15 @@
     "jose": "^6.2.12",
     "mammoth": "^1.13.0",
     "mongodb": "^7.7.0",
-    "next": "^16.3.8",
-    "payload": "^3.90.2",
+    "next": "^16.4.6",
+    "payload": "^3.93.0",
     "qrcode": "^1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "sanitize-html": "^2.18.0",
     "server-only": "^0.0.1",
     "unpdf": "^1.8.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

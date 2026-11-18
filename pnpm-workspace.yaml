@@ -4,5 +4,11 @@ packages:
 
 # Security fixes for transitive dependencies; remove each once the parent ships the patch.
 overrides:
-  # GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3 (via payload)
-  undici@>=7.0.0 <7.29.1: ^7.29.1
+  # GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3, GHSA-4w7w-5xrc-9h26, GHSA-2m5v-pch6-74hx and others (via payload)
+  undici@>=7.0.0 <7.30.1: ^7.30.1
+  # GHSA-pcrw-h46h-c93h and a later fix (via @payloadcms/db-mongodb, which pins 8.24.1)
+  mongoose@>=8.0.0 <8.24.7: ^8.24.7
+  # GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr (via @payloadcms/ui > monaco-editor)
+  dompurify@<3.4.17: ^3.4.17
+  # GHSA-587h-7wmj-h5pm (via better-auth > vitest)
+  vite@>=8.0.0 <8.3.3: ^8.3.3
