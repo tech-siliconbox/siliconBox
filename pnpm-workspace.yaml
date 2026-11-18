@@ -20,3 +20,12 @@ overrides:
 # through the API) and pulls in picomatch (GHSA-fc5q-39xc-vjpf, no fix yet).
 ignoredOptionalDependencies:
   - '@parcel/watcher'
+
+# Advisories accepted after review with the founder (2026-11-18). Revisit each when a fix ships.
+auditConfig:
+  ignoreGhsas:
+    # picomatch <= 4.0.7 ReDoS on crafted extglob patterns; no fixed release exists. The runtime
+    # path through Payload's sass is removed above. The only path left is better-auth's optional
+    # vitest peer, present only where dev dependencies are installed (not in a production
+    # install), and the site never matches globs against user input.
+    - GHSA-fc5q-39xc-vjpf
