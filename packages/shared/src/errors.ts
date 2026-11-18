@@ -21,6 +21,11 @@ export const ERRORS = {
     status: 415,
     message: 'Upload a PDF or Word (.docx) file of up to 5 MB.',
   },
+  PHOTO_NOT_SUPPORTED: {
+    status: 415,
+    message: 'Upload a JPEG, PNG or WebP image of up to 5 MB.',
+  },
+  HANDLE_TAKEN: { status: 409, message: 'That handle is taken. Try another.' },
   RATE_LIMITED: { status: 429, message: 'Too many requests. Please wait a moment and try again.' },
   RUN_QUOTA_REACHED: {
     status: 429,

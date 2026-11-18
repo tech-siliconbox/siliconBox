@@ -4,6 +4,7 @@ import { findSignIns } from '@/db/audit-log';
 import { findCourseOutlines } from '@/db/content';
 import { findAllScreenings } from '@/db/cv-screenings';
 import { findEntitlements } from '@/db/entitlements';
+import { findPhoto, findProfile } from '@/db/profiles';
 import { findCompletions } from '@/db/progress';
 import { findResume } from '@/db/resumes';
 import { findRunOutcomes } from '@/db/runs';
@@ -79,10 +80,18 @@ async function learningPart(userId: string) {
   };
 }
 
+/** The learner's handle, bio and links, and their photo as a data address. */
+async function profilePart(userId: string) {
+  const [profile, photo] = await Promise.all([findProfile(userId), findPhoto(userId)]);
+  const encoded = photo && `data:image/webp;base64,${Buffer.from(photo).toString('base64')}`;
+  return { ...profile, photo: encoded };
+}
+
 /** Everything we hold about a learner, in plain fields, for the download in Settings (DPDP). */
 export async function buildDataExport(identity: Identity, headers: Headers, now: Date) {
-  const [account, learning, resume, cvScreenings] = await Promise.all([
+  const [account, profile, learning, resume, cvScreenings] = await Promise.all([
     accountPart(identity, headers),
+    profilePart(identity.userId),
     learningPart(identity.userId),
     findResume(identity.userId),
     findAllScreenings(identity.userId),
@@ -91,6 +100,7 @@ export async function buildDataExport(identity: Identity, headers: Headers, now:
     exportedAt: now,
     notIncluded: NOT_INCLUDED,
     ...account,
+    profile,
     ...learning,
     resume,
     cvScreenings,

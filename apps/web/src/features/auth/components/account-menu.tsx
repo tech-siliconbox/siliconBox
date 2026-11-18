@@ -2,21 +2,13 @@
 
 import { ROUTES } from '@siliconbox/shared';
 import { useEffect, useRef, useState } from 'react';
+import { Avatar } from '@/components/shared/avatar';
 import { SiteLink } from '@/components/ui/site-link';
 import { authClient } from '@/lib/auth-client';
 import { MEMBER_PAGES } from '@/lib/member-pages';
 import { useAuthAction } from '../hooks/use-auth-action';
 
 const ITEM = 'block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-muted';
-
-/** Up to two initials from the name, or the email's first letter. */
-const initialsOf = (name: string, email: string) =>
-  (name.trim() || email)
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0))
-    .join('')
-    .toUpperCase();
 
 /** Closes the menu on a click outside it or on Escape. */
 function useDismiss(open: boolean, close: () => void) {
@@ -70,8 +62,10 @@ function MenuPanel({ name, email, onNavigate }: MenuPanelProps) {
   );
 }
 
+type AccountMenuProps = { name: string; email: string; photoUrl: string | null };
+
 /** The signed-in learner's menu in the header: who they are, their pages, and sign out. */
-export function AccountMenu({ name, email }: { name: string; email: string }) {
+export function AccountMenu({ name, email, photoUrl }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useDismiss(open, () => setOpen(false));
   return (
@@ -83,12 +77,7 @@ export function AccountMenu({ name, email }: { name: string; email: string }) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 rounded-full"
       >
-        <span
-          aria-hidden="true"
-          className="flex size-8 items-center justify-center rounded-full bg-foreground font-mono text-[11px] font-semibold text-background"
-        >
-          {initialsOf(name, email)}
-        </span>
+        <Avatar name={name} email={email} photoUrl={photoUrl} size="sm" />
         <span aria-hidden="true" className="text-muted-foreground">
           {open ? '▴' : '▾'}
         </span>

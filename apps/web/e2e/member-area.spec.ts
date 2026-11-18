@@ -101,6 +101,67 @@ test('Settings change the name and password and show what the learner may open',
   await expect(page).toHaveURL(ROUTES.dashboard);
 });
 
+// A 1×1 PNG: the server crops and re-encodes whatever it is given.
+const PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+/** Clicks a save button and waits for the API call it makes to finish. */
+async function saveVia(page: Page, button: string, path: string): Promise<void> {
+  await Promise.all([
+    page.waitForResponse((response) => response.url().endsWith(path) && response.ok()),
+    page.getByRole('button', { name: button }).click(),
+  ]);
+}
+
+test('a learner fills in their profile and photo; a handle belongs to one learner', async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(60_000);
+  failOnCspViolation(page);
+  await signUp(page, newLearner());
+  await page.goto(ROUTES.settings);
+  const handle = `e2e_${run}`;
+  await page.getByLabel('Handle').fill(handle);
+  await page.getByLabel('Bio').fill('Invented bio for this test.');
+  await page.getByLabel('GitHub').fill('https://gist.github.com/invented');
+  await page.getByRole('button', { name: 'Save profile' }).click();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Use your GitHub address' }),
+  ).toBeVisible();
+  await page.getByLabel('GitHub').fill('https://github.com/invented');
+  await saveVia(page, 'Save profile', API_ROUTES.profile);
+
+  await page
+    .getByLabel('Photo')
+    .setInputFiles({ name: 'me.png', mimeType: 'image/png', buffer: PNG });
+  await saveVia(page, 'Upload photo', API_ROUTES.profilePhoto);
+  await expect(page.getByRole('button', { name: 'Remove photo' })).toBeVisible();
+
+  // The Overview shows the profile; the menu shows the photo, served as a small WebP.
+  await page.goto(ROUTES.dashboard);
+  await expect(page.getByText(`@${handle}`)).toBeVisible();
+  await expect(page.getByText('Invented bio for this test.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
+    'href',
+    'https://github.com/invented',
+  );
+  const menuPhoto = page.getByRole('button', { name: 'Your account' }).locator('img');
+  const src = await menuPhoto.getAttribute('src');
+  expect(src).toMatch(/^\/api\/v1\/profile\/photo\?v=\d+$/);
+  expect((await page.request.get(src ?? '')).headers()['content-type']).toBe('image/webp');
+
+  // Another learner cannot take the handle.
+  const other = await (await browser.newContext()).newPage();
+  await signUp(other, newLearner());
+  await other.goto(ROUTES.settings);
+  await other.getByLabel('Handle').fill(handle);
+  await other.getByRole('button', { name: 'Save profile' }).click();
+  await expect(other.getByRole('alert').filter({ hasText: 'That handle is taken' })).toBeVisible();
+});
+
 test('Help shows the published questions and answers', async ({ page }) => {
   const faq = await createDoc(await signInAsAdmin('editor'), 'faqs', {
     question: FAQ,

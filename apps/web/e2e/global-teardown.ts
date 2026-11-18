@@ -27,6 +27,8 @@ async function removeTestLearners(db: Db): Promise<void> {
       'security-alerts',
       'resumes',
       'cv_screenings',
+      'profiles',
+      'avatars',
     ].map((name) => db.collection(name).deleteMany({ userId: { $in: idStrings } })),
     db.collection('audit_log').deleteMany({ subjectId: { $in: idStrings } }),
   ]);

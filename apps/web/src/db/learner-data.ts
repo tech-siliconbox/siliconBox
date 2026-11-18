@@ -13,6 +13,8 @@ const LEARNER_DATA = [
   'runs',
   'resumes',
   'cvScreenings',
+  'profiles',
+  'avatars',
   'watermarkCodes',
   'endedSessions',
 ] as const;

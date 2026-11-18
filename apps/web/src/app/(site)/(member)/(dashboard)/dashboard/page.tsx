@@ -13,6 +13,7 @@ import {
   readableModules,
 } from '@/features/courses/course-progress';
 import { Panel } from '@/features/dashboard/components/panel';
+import { ProfileCard } from '@/features/dashboard/components/profile-card';
 import { RecentActivity } from '@/features/dashboard/components/recent-activity';
 import { StatTiles } from '@/features/dashboard/components/stat-tiles';
 import { windowText } from '@/features/dashboard/window-text';
@@ -122,7 +123,7 @@ function firstSteps(course: Course['course'] | undefined, done: Done) {
 export default async function OverviewPage() {
   const identity = await requirePageIdentity();
   const now = new Date();
-  const { courses, events } = await readOverview(identity, now);
+  const { profile, courses, events } = await readOverview(identity, now);
   const done = doneLessonIds(events);
   const solved = solvedDrillIds(events);
   const outlines = courses.map(({ course }) => course);
@@ -152,6 +153,7 @@ export default async function OverviewPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
         <CourseList courses={courses} done={done} />
         <div className="flex flex-col gap-6">
+          <ProfileCard name={identity.name} email={identity.email} profile={profile} />
           <GettingStarted steps={steps} />
           <RecentActivity events={events} courses={outlines} now={now} limit={RECENT} />
         </div>

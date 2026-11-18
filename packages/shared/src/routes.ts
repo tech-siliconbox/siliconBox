@@ -27,6 +27,8 @@ export const ROUTES = {
 export const API_ROUTES = {
   me: '/api/v1/me',
   dataExport: '/api/v1/me/export',
+  profile: '/api/v1/profile',
+  profilePhoto: '/api/v1/profile/photo',
   progress: '/api/v1/progress',
   services: '/api/v1/services',
   resume: '/api/v1/resume',

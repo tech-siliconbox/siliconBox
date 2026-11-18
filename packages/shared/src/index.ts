@@ -17,6 +17,7 @@ export * from './schemas/faq';
 export * from './schemas/ids';
 export * from './schemas/lesson';
 export * from './schemas/level';
+export * from './schemas/profile';
 export * from './schemas/progress';
 export * from './schemas/question';
 export * from './schemas/resume';

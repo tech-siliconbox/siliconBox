@@ -3,22 +3,10 @@ import { deleteScreenings, listScreenings, saveScreening } from '@/db/cv-screeni
 import { withApiGate } from '@/server/api/with-api-gate';
 import { CAREER_SERVICES, assertCareerTool } from '@/server/career-services';
 import { MAX_CV_BYTES, extractCvText } from '@/server/cv-text';
-import { AppError } from '@/server/errors';
 import { RATE_LIMITS } from '@/server/rate-limit';
+import { readUpload } from '@/server/upload';
 
 const SCREENING = CAREER_SERVICES.cvScreening;
-// Multipart framing adds a little to the file itself.
-const MAX_REQUEST_BYTES = MAX_CV_BYTES + 64 * 1024;
-
-/** The uploaded file from a multipart body, size-checked before it is read. */
-async function readUpload(request: Request): Promise<File> {
-  if (Number(request.headers.get('content-length') ?? MAX_REQUEST_BYTES + 1) > MAX_REQUEST_BYTES) {
-    throw new AppError('FILE_NOT_SUPPORTED', 'request too large');
-  }
-  const file = (await request.formData().catch(() => null))?.get('file');
-  if (!(file instanceof File)) throw new AppError('FILE_NOT_SUPPORTED', 'no file field');
-  return file;
-}
 
 /**
  * Screens an uploaded CV (PDF or .docx). The file is read in memory and discarded; only the
@@ -28,7 +16,7 @@ export const POST = withApiGate(
   { access: { kind: 'signedIn' }, rateLimit: RATE_LIMITS.cvScreen, schemas: {} },
   async ({ identity, request }) => {
     await assertCareerTool(identity, SCREENING);
-    const file = await readUpload(request);
+    const file = await readUpload(request, MAX_CV_BYTES, 'FILE_NOT_SUPPORTED');
     const { text, pages } = await extractCvText(
       file.name,
       new Uint8Array(await file.arrayBuffer()),

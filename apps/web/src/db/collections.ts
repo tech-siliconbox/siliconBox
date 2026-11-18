@@ -27,4 +27,6 @@ export const COLLECTIONS = {
   faqs: 'faqs',
   resumes: 'resumes',
   cvScreenings: 'cv_screenings',
+  profiles: 'profiles',
+  avatars: 'avatars',
 } as const;

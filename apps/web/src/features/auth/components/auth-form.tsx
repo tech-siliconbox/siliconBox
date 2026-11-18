@@ -11,8 +11,8 @@ type AuthFormProps = {
   next?: string | null;
   submitLabel: string;
   pendingLabel: string;
-  /** "danger" for what cannot be undone. */
-  submitVariant?: 'primary' | 'danger';
+  /** "secondary" beside a main action; "danger" for what cannot be undone. */
+  submitVariant?: 'primary' | 'secondary' | 'danger';
   submit: (form: FormData) => Promise<AuthResult>;
   children: ReactNode;
 };

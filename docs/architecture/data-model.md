@@ -30,6 +30,8 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `faqs` | Help page questions and answers, order; written by Payload with drafts | Public (published only) |
 | `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
 | `resumes` | One saved Resume Builder resume per learner | Owner, with delete |
+| `profiles` | One per learner: handle (unique once set), bio, links | Owner, with delete |
+| `avatars` | One photo per learner: a 256 px WebP (no EXIF) and when it changed, until object storage exists | Owner, with delete |
 | `cv_screenings` | CV screening reports only (score, checks, keywords, file name); uploaded files are never stored | Owner, with delete |
 | `audit_log` | Append-only: sign-ins, purchases, admin edits, entitlement changes | Owner role |
 | `watermark_codes` | Invisible watermark code to learner, for tracing leaks; `{ code, userId }` unique | Server |
@@ -43,7 +45,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 
 ## Deleting an account
 
-A learner deletes their account from Settings (DPDP). Better Auth deletes `users`, `sessions` and `accounts`; first, `deleteLearnerData` empties `entitlements`, `progress`, `runs`, `resumes`, `cv_screenings`, `watermark_codes`, `ended_sessions` and their pending `verifications`. Kept: `audit_log` (including the `account_deleted` entry), `security-alerts` and Payload's `access-grants` (the site cannot change them; they are security and admin records), and `orders` once payments exist (the law needs them). Kept records refer to the account by id; grants also name the email they were for.
+A learner deletes their account from Settings (DPDP). Better Auth deletes `users`, `sessions` and `accounts`; first, `deleteLearnerData` empties `entitlements`, `progress`, `runs`, `resumes`, `cv_screenings`, `profiles`, `avatars`, `watermark_codes`, `ended_sessions` and their pending `verifications`. Kept: `audit_log` (including the `account_deleted` entry), `security-alerts` and Payload's `access-grants` (the site cannot change them; they are security and admin records), and `orders` once payments exist (the law needs them). Kept records refer to the account by id; grants also name the email they were for.
 
 ## Integrity
 

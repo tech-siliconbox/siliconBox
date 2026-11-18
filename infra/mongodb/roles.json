@@ -16,7 +16,9 @@
         "ended_sessions",
         "watermark_codes",
         "resumes",
-        "cv_screenings"
+        "cv_screenings",
+        "profiles",
+        "avatars"
       ],
       "insertOnly": ["security-alerts"],
       "findInsert": ["audit_log"],

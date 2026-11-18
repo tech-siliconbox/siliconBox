@@ -61,17 +61,20 @@ Check here before writing a component, hook or helper. Add a row when you create
 | auth: SignInForm, SignUpForm, GoogleButton | The auth actions (email and password, Google; ADR 0025) | Built |
 | auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset, Settings); a new password carries the length rule | Built |
 | auth: NameField, NameForm, ChangePasswordForm | The name input (sign-up, Settings); change the name; change the password, signing other devices out | Built |
+| auth: ProfileForm, PhotoForm | Handle, bio and links, checked in the browser with the server's `ProfileSchema`; upload or remove the photo | Built |
 | auth: DeleteAccountForm | Deletes the account from Settings: the password, or for a Google account the email typed out and a sign-in within a day | Built |
 | auth: ForgotPasswordForm, ResetPasswordForm | Ask for a reset link (same answer for any email); set a new password from the link | Built |
 | auth: VerifyEmailButton | Sends the email verification link again from Settings (ADR 0028) | Built |
 | auth: AccountMenu | The header's avatar menu when signed in: name, email, the member pages (`MEMBER_PAGES`), Sign out; closes on Escape or a click outside | Built |
 | dashboard: DashboardFrame, DashboardNav | The member area's page frame with its sidebar (Overview, Activity, Settings, Help; Help keeps it when signed in); a row of tabs on phones | Built |
 | dashboard: StatTiles, Panel, RecentActivity | A row of numbers; a bordered section with a heading row and optional count; the latest finished lessons and runs (Overview, Activity) | Built |
+| dashboard: ProfileCard | The Overview's profile at a glance: photo, name, handle, bio, links, Edit profile | Built |
 | dashboard: ActivityGraph | A year of activity, a square a day in the heat colours, scrolling to this week on phones; no client code | Built |
 | dashboard: windowText | An access window in words ("Open until 18 Feb 2027") | Built |
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
 | courses: CourseIndexLayout, ModuleIndex | A lesson beside its course's modules (sticky sidebar on wide screens, fold-out list on phones): each module folds out to its parts (theory, lab, practice, project, the practice tool) with times; done marks, current module, locked modules; pure rules in `features/courses/course-progress.ts` | Built |
 | courses: CourseProgressBar, modulesDone, nextLesson | "N of M modules done" with a bar (module index, Overview); the next lesson a learner may open | Built |
+| Avatar | The learner's photo, or their initials on a dark circle; `sm` (menu) and `lg` (Settings, Overview) (`components/shared/avatar.tsx`) | Built |
 | PageIntro | The top of a section page: label, heading, a sentence (Courses, Pricing, Questions, Industry Ready) | Built |
 | SiteLink | Every link within the site; never prefetches (golden rule, ADR 0027). Lint allows `next/link` only here (`components/ui/site-link.tsx`) | Built |
 | admin-tools: TraceForm, TraceResults | Watermark trace tool: paste leaked text, see the accounts it points to | Built |
@@ -120,6 +123,10 @@ Check here before writing a component, hook or helper. Add a row when you create
 | readOverview | The Overview's data: every course with the learner's access, and their activity (`server/overview.ts`) | Built |
 | hasPassword | Whether the signed-in account has a password (Google-only accounts do not) (`server/auth/auth.ts`) | Built |
 | findPublishedFaqs | The Help page's published questions, in order (`db/faqs.ts`) | Built |
+| readProfile, readPhotoUrl | A learner's profile with their photo's versioned address; the address alone for the header, once per request (`server/profile.ts`) | Built |
+| findProfile, saveProfile, findPhoto, findPhotoVersion, savePhoto, deletePhoto | Profiles (a taken handle is reported, not thrown) and photos as WebP bytes (`db/profiles.ts`) | Built |
+| toProfilePhoto | An upload checked by its bytes (JPEG, PNG, WebP), decoded with a pixel cap, turned upright and re-encoded as a 256 px WebP without EXIF (`server/profile-photo.ts`) | Built |
+| readUpload, startsWith | A multipart upload's file, size-checked before and after reading; a file signature check (`server/upload.ts`, `server/file-bytes.ts`) | Built |
 | buildDataExport | Everything held about a learner in plain fields, for the download in Settings; never tokens, Drill code or watermark codes (`server/data-export.ts`) | Built |
 | deleteLearnerData | Empties a learner's own collections when they delete the account; the audit log and security alerts stay (`db/learner-data.ts`) | Built |
 | findSignIns, findAllScreenings | A learner's sign-ins (when, country); all their CV reports (`db/audit-log.ts`, `db/cv-screenings.ts`) | Built |
@@ -140,7 +147,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | extractCvText | PDF or .docx text, type checked by file bytes (`server/cv-text.ts`) | Built |
 | renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
 | assertEntitled, isEntitled | The one entitlement check used by every route; the same as a yes or no for what a page may offer | Built |
-| errorMessage | Message from an API error body, for client hooks (`lib/api-error.ts`) | Built |
+| errorMessage, apiResult | Message from an API error body, for client hooks; an API call as a form result (`lib/api-error.ts`) | Built |
 | formatDate, formatMonth, formatTimeAgo | "18 Feb 2027", "Feb" and "3 hours ago", in India time (`lib/format-date.ts`) | Built |
 | countOf | A number with its noun, plural unless one: "1 day", "3 Drills" (`lib/count-of.ts`) | Built |
 | MEMBER_PAGES | The learner's own pages in order, for the avatar menu and the sidebar (`lib/member-pages.ts`) | Built |
@@ -188,6 +195,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | contentStatus, toolStatus | A level's (or the tool's) window for display: open until, ended, or never bought (`entitlements/status.ts`) | Built |
 | activityDay, dayDate, currentStreak, longestStreak, activityWeeks, SITE_TIME_ZONE | Activity days in India time, day streaks (a streak lasts until the day without activity ends) and the year graph's weeks (`activity.ts`) | Built |
 | FaqSchema | One Help question and its answer (`schemas/faq.ts`) | Built |
+| ProfileSchema, PROFILE_LINKS, emptyProfile, PhotoQuerySchema | Handle (3 to 30 of a-z, 0-9, _; a few reserved), bio up to 500, https links (LinkedIn and GitHub on their own sites); the links' labels; the photo address's version (`schemas/profile.ts`) | Built |
 | formatInr | Paise to "₹5,000" | Built |
 | DRILL_LIMITS, drillLimitProblem, TOP_MODULE_PATTERN | Per-level Drill caps and safe top-module names | Built |
 | RunInputSchema, RunResultSchema, RunViewSchema, isDrillSolved, DRILL_RUN_DAILY_QUOTA, dailyRunQuota | Drill run input, solver result, learner view, solved rule and daily quota by level (`schemas/run.ts`, `entitlements/run-quota.ts`) | Built |

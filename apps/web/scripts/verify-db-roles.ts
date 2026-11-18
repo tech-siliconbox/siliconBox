@@ -49,6 +49,16 @@ const CHECKS: Record<User, Check[]> = {
       run: (db) => db.collection('lessons').updateOne(NOTHING, { $set: { x: 1 } }),
     },
     {
+      what: 'save profiles and photos',
+      allowed: true,
+      run: (db) =>
+        Promise.all(
+          ['profiles', 'avatars'].map((name) =>
+            db.collection(name).updateOne(NOTHING, { $set: { x: 1 } }),
+          ),
+        ),
+    },
+    {
       what: 'record Drill runs and cached results',
       allowed: true,
       run: (db) => db.collection('run_cache').updateOne(NOTHING, { $set: { x: 1 } }),
