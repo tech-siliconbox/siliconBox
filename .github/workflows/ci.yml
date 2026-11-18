@@ -81,7 +81,7 @@ jobs:
           echo "::add-mask::$key"
           echo "SOLVER_SIGNING_KEY=$key" >> "$GITHUB_ENV"
           export SOLVER_SIGNING_KEY="$key"
-          python -m venv .venv && .venv/bin/pip install -q -U pip && .venv/bin/pip install -q -e .
+          python -m venv .venv && .venv/bin/pip install -q -U pip && .venv/bin/pip install -q -e . -c constraints.txt
           nohup .venv/bin/python -m app.worker > worker.log 2>&1 &
           nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 > api.log 2>&1 &
           for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8001/v1/health && break; sleep 1; done
@@ -116,7 +116,7 @@ jobs:
         with:
           version: '2026-10-01'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e . --group dev
+      - run: python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e . --group dev -c constraints.txt
       - run: .venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/vulture
       # The runner image, so the container tests (isolation and attacks) run instead of skipping.
       - run: docker build -t siliconbox-solver:ci .
