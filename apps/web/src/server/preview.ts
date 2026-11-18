@@ -1,8 +1,6 @@
 import 'server-only';
-import config from '@payload-config';
 import { type PublishedLesson, PublishedLessonSchema } from '@siliconbox/shared';
-import { headers } from 'next/headers';
-import { getPayload } from 'payload';
+import { cmsAdminSession } from './cms-admin';
 
 /**
  * The latest draft of a lesson, for a signed-in CMS admin only. Uses Payload's own session and
@@ -11,9 +9,9 @@ import { getPayload } from 'payload';
 export async function readLessonPreview(
   cmsId: string,
 ): Promise<{ lesson: PublishedLesson; adminEmail: string } | null> {
-  const payload = await getPayload({ config });
-  const { user } = await payload.auth({ headers: await headers() });
-  if (user?.collection !== 'admins') return null;
+  const session = await cmsAdminSession();
+  if (session === null) return null;
+  const { payload, user } = session;
   const draft = await payload
     .findByID({
       collection: 'lessons',

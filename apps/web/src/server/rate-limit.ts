@@ -20,6 +20,8 @@ export const RATE_LIMITS = {
   contentRead: { name: 'content-read', limit: 12, windowMs: 60_000 },
   // A daily cap per account; the number is a starting point to tune from real reading data.
   contentReadDaily: { name: 'content-read-daily', limit: 150, windowMs: 24 * 60 * 60 * 1000 },
+  // Admins tracing leaked text: a handful an hour is plenty, and it bounds lookups of learners.
+  watermarkTrace: { name: 'watermark-trace', limit: 20, windowMs: 60 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 /** Throws RATE_LIMITED, with Retry-After, once `key` has used up the policy's window. */
