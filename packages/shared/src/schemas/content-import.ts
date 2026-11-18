@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { DRILL_MODES, DRILL_SOLVERS, DRILL_TARGETS, TOP_MODULE_PATTERN } from './drill';
-import { LessonBlockSchema, SlugSchema } from './lesson';
+import { COURSE_HTML_MAX, LessonBlockSchema, SlugSchema } from './lesson';
 import { LevelSchema } from './level';
 
 // The JSON file `pnpm content:import` reads. Documents are matched by slug, so importing again
@@ -87,6 +87,7 @@ const ImportCourseSchema = z.strictObject({
   title,
   level: LevelSchema,
   summary: z.string().trim().max(600).optional(),
+  introduction: z.string().trim().max(COURSE_HTML_MAX).optional(),
   order,
   status: StatusSchema,
   modules: z.array(ImportModuleSchema).min(1),

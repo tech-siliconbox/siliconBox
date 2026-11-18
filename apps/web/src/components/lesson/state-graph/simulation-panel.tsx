@@ -5,13 +5,43 @@ import { StateGraphPanel } from './state-graph-panel';
 import { StateGraphSvg } from './state-graph-svg';
 import { SIMULATION_BATCH, useSimulation } from './use-simulation';
 
-/** Constrained-random tests from reset: one animated, or a batch at once. */
-export function SimulationPanel({ graph }: { graph: StateGraph }) {
-  const { coverage, busy, runOne, runBatch, reset } = useSimulation(graph);
+type Coverage = ReturnType<typeof useSimulation>['coverage'];
+
+/** The status line, worded as in the course's own figure. */
+function SimulationStatus({ graph, coverage }: { graph: StateGraph; coverage: Coverage }) {
   const bugs = bugStates(graph);
   const found = [...bugs].filter((state) => coverage.visited.has(state)).length;
   const hiding = bugs.size - found;
+  if (coverage.visited.size === 0) {
+    return (
+      <>
+        Press <b>Run 1 test</b> to apply one constrained-random test from reset.
+      </>
+    );
+  }
+  return (
+    <>
+      Tests run: <b>{coverage.tests}</b> | States visited:{' '}
+      <b>{`${coverage.visited.size} / ${graph.states.length}`}</b> | Bugs found:{' '}
+      <b>{`${found} / ${bugs.size}`}</b>
+      {hiding > 0 && coverage.tests > 0 && (
+        <span className="block font-semibold text-warning">
+          {hiding} bug(s) still hiding in states no test has reached.
+        </span>
+      )}
+      {hiding === 0 && (
+        <span className="block">
+          Lucky! {bugs.size === 2 ? 'Both bugs were' : 'All bugs were'} found. Press Reset and try
+          again to see how often that happens.
+        </span>
+      )}
+    </>
+  );
+}
 
+/** Constrained-random tests from reset: one animated, or a batch at once. */
+export function SimulationPanel({ graph }: { graph: StateGraph }) {
+  const { coverage, busy, runOne, runBatch, reset } = useSimulation(graph);
   return (
     <StateGraphPanel
       title={graph.simulationTitle}
@@ -37,22 +67,7 @@ export function SimulationPanel({ graph }: { graph: StateGraph }) {
           </Button>
         </>
       }
-      status={
-        coverage.visited.size === 0 ? (
-          'Press “Run 1 test” to apply one random test from reset.'
-        ) : (
-          <>
-            Tests run: <b>{coverage.tests}</b> · States visited:{' '}
-            <b>{`${coverage.visited.size} / ${graph.states.length}`}</b> · Bugs found:{' '}
-            <b>{`${found} / ${bugs.size}`}</b>
-            {hiding > 0 && (
-              <span className="block font-semibold text-warning">
-                {hiding} bug(s) still hiding in states no test has reached.
-              </span>
-            )}
-          </>
-        )
-      }
+      status={<SimulationStatus graph={graph} coverage={coverage} />}
     />
   );
 }

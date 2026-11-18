@@ -26,3 +26,5 @@ Each file records one hard-to-reverse decision. Add a new one with `/new-adr <ti
 | [0020](0020-solver-jobs-signed-calls-and-a-redis-queue.md) | Solver: signed calls, a Redis queue and one process per job |
 | [0021](0021-grade-drill-runs-against-hidden-designs.md) | Grade Drill runs against the hidden designs |
 | [0022](0022-free-tiers-until-launch.md) | Free tiers until launch, then scale by thresholds |
+| [0023](0023-copy-protection-on-the-website.md) | Copy protection for paid text on the website |
+| [0024](0024-course-pages-complete-in-the-site-design.md) | Course pages: one page per module, complete, in the site's design |

@@ -1,7 +1,8 @@
 import type { LessonBlock } from '@siliconbox/shared';
 import { type Element, isTag } from 'domhandler';
 import { findOne, textContent } from 'domutils';
-import { collapse } from './inline';
+
+const collapse = (text: string): string => text.replace(/\s+/g, ' ');
 
 // The simulation-vs-formal figure: its graph is read from the course script's data (never run)
 // and its titles from the HTML panels, so the lesson keeps the author's graph and words.

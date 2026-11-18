@@ -4,6 +4,19 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Changed (course pages, ADR 0024)
+- Each module of a course written in HTML is one page with all its content: text word for word, code, tables, colour-coded boxes (note blue, tip green, warning amber, danger red), learning objectives, labs, quizzes and diagrams, shown in the site's design (Geist, the site's lesson styles). The course home is the public course page. The course's own stylesheet is no longer stored or served.
+- The site's own callout block uses the same colour coding by tone.
+- Each lab is followed by its Drill: brief and editor with Run verification in the page.
+- Basic: three new Drills for Labs 5, 6 and 7 (property drills on a job unit, properties for a small peripheral, judging the assumptions on a FIFO), gate-verified and published; all 8 Basic Drills pass the publish gate.
+
+### Fixed (solver)
+- `sig[->N] ##K expr` after an implication is checked (it was skipped silently), counting from the cycle after the trigger for `|=>` and from the trigger cycle for `|->`.
+- A run whose properties use SVA the tool cannot check yet stops with the statement named, instead of passing without checking it.
+
+### Added (copy protection)
+- Paid text on lessons, Drill briefs and answers cannot be selected, copied, cut, dragged, right-clicked or printed, and blurs while the window is out of focus or after PrintScreen; code examples have a Copy button (ADR 0023).
+
 ### Added (watermark trace)
 - Watermark trace tool at `/admin-tools/trace` for Support and Owner: paste leaked text or a visible mark from a screenshot, see the learner accounts it came from. Rate-limited and audit-logged (`watermark_trace`); the text is never stored.
 

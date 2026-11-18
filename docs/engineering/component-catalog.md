@@ -31,10 +31,15 @@ Check here before writing a component, hook or helper. Add a row when you create
 | CompanyTag | Company name, with the logo once permission is confirmed | Built |
 | EmptyState | Standard empty display | Built |
 | ErrorState | Standard error display (used by the site's `error.tsx`) | Built |
+| ProtectedContent | Wraps paid views: no selecting, copying, right-click, dragging or printing of text; blurs while the window is out of focus; code examples stay copyable (ADR 0023) | Built |
 | PaidContentLocked | Why a lesson or answer is locked, with the way forward | Built |
 | SessionGuard | Re-checks the session every minute and on focus; sends the learner to sign-in with the reason | Built |
 | LessonBlockRenderer | Renders lesson blocks on the server from one renderer per block type (`components/lesson`); diagrams go through `sanitizeSvg` | Built |
 | Prose, TextBody | Inline lesson text (`code`, **bold**, *italic*), and multi-line text with paragraphs and "- " bullets (`components/lesson/prose.tsx`) | Built |
+| CopyCodeButton | Copy button on code examples, the one copyable part of paid content | Built |
+| LessonBody | A lesson's blocks inside `ProtectedContent`, with the site's heading unless the lesson is an author's page that has its own (`components/lesson/lesson-body.tsx`) | Built |
+| CourseHtml | An author's page markup (`html` block, course introduction): sanitised on every render, code examples with Copy, tables in a scroll frame; styled by `.course-html` in `app/(site)/lesson-content.css` (ADR 0024) | Built |
+| DrillEmbed | A Drill's brief and editor after its lab in a lesson; left out when unpublished or not open to the learner (`components/lesson/drill-embed.tsx`) | Built |
 | LessonList, LessonTable | List blocks (answers behind "Show answer") and table blocks (`components/lesson`) | Built |
 | StateGraphFigure | Interactive simulation-vs-formal figure for a `stateGraph` block; panels, SVG and hooks in `components/lesson/state-graph`, pure rules in `state-graph-engine.ts`. The graph and its text come from the lesson | Built |
 
@@ -81,9 +86,10 @@ Check here before writing a component, hook or helper. Add a row when you create
 | readDrill | One published Drill for one learner: paced, readable with content access, `canRun` with tool access too, brief watermarked (`server/drills.ts`) | Built |
 | markCode, embedMark, findMarks | Invisible per-learner watermark in text (`server/invisible-mark.ts`) | Built |
 | sanitizeSvg | Allow-listed inline SVG for diagrams | Built |
+| sanitizeCourseHtml, resolveCourseLinks, markCourseHtml | An author's page markup: allow-listed elements and attributes, `lesson:`/`course:` links to routes, the invisible watermark in its text (`server/course-html.ts`, ADR 0024) | Built |
 | enforceRateLimit | Throws RATE_LIMITED with Retry-After; used by the gate and by lesson reads | Built |
 | createMongoClient | Every database user's client, with the small pool free Atlas needs (`db/client.ts`) | Built |
-| findPublishedLesson, findPublishedDrill, findPublishedDrillForRun, findCourseOutlines | Published content reads, sharing one published-with-level query (`db/content.ts`, ADR 0018) | Built |
+| findPublishedLesson, findPublishedDrill, findPublishedDrillForRun, findCourseOutlines, findLessonPublicIds | Published content reads, sharing one published-with-level query; Drills by public id or slug; lesson public ids for links between course pages (`db/content.ts`, ADR 0018) | Built |
 | registerMarkCode | Watermark code to learner trace table (`db/watermark-codes.ts`) | Built |
 | buildAdminGrant, applyAdminGrant | Admin grant to entitlement plus audit entry (`server/grants.ts`) | Built |
 | replaceEntitlement | Replaces one window and audits it in one transaction (`db/entitlements.ts`) | Built |
@@ -132,7 +138,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Services, SecurityAlerts | Industry Ready services; read-only alerts for Support | Built |
 | levelOfModule, relationId | Level of a module's course; id from a relationship value | Built |
 | content-import script | `pnpm content:import <file> [check] [prune]` (`scripts/content-import.ts`): courses, modules, lessons and Drills with their private part; reports or prunes what a file no longer lists; writes with `SCRIPT_CONTEXT` so CMS hooks skip server-only work | Built |
-| content-convert script | `pnpm content:convert` (`scripts/content-convert.ts`, `scripts/course-html/`): course HTML to an import file, word for word, with notes on anything not kept exactly | Built |
+| content-convert script | `pnpm content:convert` (`scripts/content-convert.ts`, `scripts/course-html/`): course HTML to an import file, one page per module with its markup word for word, diagram colours written onto the SVG, Drills after their labs; notes on anything changed (ADR 0024) | Built |
 
 ## Shared package (`packages/shared`)
 

@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 /* The design tokens have one home; the app imports them (into the base layer, so utilities win). */
 @import '../../../../../docs/design/formal-tokens-light.css' layer(base);
+@import './lesson-content.css';
 
 @theme inline {
   --font-sans: var(--font-geist), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;

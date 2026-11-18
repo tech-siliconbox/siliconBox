@@ -68,8 +68,22 @@ function Transition({
   );
 }
 
+/** The node's look: idle, hiding a bug, visited, or a bug just exposed. */
+function nodeClasses(state: State, seen: boolean) {
+  const hit = seen && Boolean(state.hidesBug);
+  return {
+    hit,
+    circle: cn(
+      'fill-background stroke-muted-foreground [stroke-width:1.6]',
+      state.hidesBug && 'stroke-destructive [stroke-dasharray:3_2]',
+      seen && 'fill-info-light stroke-info [stroke-dasharray:none]',
+      hit && 'fill-destructive/25 stroke-destructive [stroke-width:2.4]',
+    ),
+  };
+}
+
 function StateNode({ state, seen }: { state: State; seen: boolean }) {
-  const hit = seen && state.hidesBug;
+  const { hit, circle } = nodeClasses(state, seen);
   const label = (dy: number, className: string, text: string) => (
     <text x={state.x} y={state.y + dy} textAnchor="middle" className={className}>
       {text}
@@ -77,17 +91,7 @@ function StateNode({ state, seen }: { state: State; seen: boolean }) {
   );
   return (
     <g>
-      <circle
-        cx={state.x}
-        cy={state.y}
-        r={RADIUS}
-        className={cn(
-          'fill-background stroke-muted-foreground [stroke-width:1.6]',
-          state.hidesBug && 'stroke-destructive [stroke-dasharray:3_2]',
-          seen && 'fill-info-light stroke-info [stroke-dasharray:none]',
-          hit && 'fill-destructive/25 stroke-destructive [stroke-width:2.4]',
-        )}
-      />
+      <circle cx={state.x} cy={state.y} r={RADIUS} className={circle} />
       {label(4, 'fill-foreground text-[11px] font-semibold', state.label)}
       {state.hidesBug &&
         label(

@@ -1,0 +1,213 @@
+/* Lesson content styles that plain utilities cannot carry. In the components layer, so
+   utilities on site parts inside still win.
+
+   Callouts: colour-coded by tone (note blue, tip green, warning amber, danger red), shared by
+   the site's callout block (`.callout-box`) and an author's `.callout`.
+
+   An author's page (ADR 0024, `.course-html`) in the site's design: the type, spacing and parts
+   of the site's own lesson blocks (lesson-block-renderer.tsx, lesson-table.tsx, ui/button.tsx,
+   ui/badge.tsx). Scoped, so the practice tool and figures between the author's markup keep
+   their own look. */
+@layer components {
+  :is(.callout-box, .course-html .callout, .course-html .objectives, .course-html .lab) {
+    --tone: hsl(var(--info));
+    --tone-ink: color-mix(in oklab, hsl(var(--info)) 70%, black);
+    --tone-wash: hsl(var(--info-light));
+  }
+  :is(.callout-box[data-tone='tip'], .course-html .callout.tip) {
+    --tone: hsl(var(--success));
+    --tone-ink: var(--fv-ok);
+    --tone-wash: var(--fv-ok-bg);
+  }
+  :is(.callout-box[data-tone='warning'], .course-html .callout.warn) {
+    --tone: hsl(var(--warning));
+    --tone-ink: var(--fv-warn);
+    --tone-wash: var(--fv-warn-bg);
+  }
+  :is(.callout-box[data-tone='danger'], .course-html .callout.danger) {
+    --tone: hsl(var(--destructive));
+    --tone-ink: var(--fv-bad);
+    --tone-wash: var(--fv-bad-bg);
+  }
+  :is(.callout-box, .course-html .callout) {
+    @apply mb-5 rounded border border-l-4 p-4 text-[14px] text-foreground;
+    border-color: color-mix(in oklab, var(--tone) 30%, transparent);
+    border-left-color: var(--tone);
+    background: var(--tone-wash);
+  }
+  :is(.callout-box .callout-title, .course-html .callout .title, .course-html .objectives h3) {
+    @apply mb-2 mt-0 block font-mono text-[11px] font-semibold uppercase tracking-widest;
+    color: var(--tone-ink);
+  }
+
+  .course-html {
+    @apply text-base leading-relaxed text-muted-foreground;
+  }
+
+  /* Page head, as the site's lesson header: eyebrow, title, lead, reading time. */
+  .course-html .module-tag {
+    @apply block font-mono text-[11px] uppercase tracking-widest;
+  }
+  .course-html h1 {
+    @apply mb-3 mt-3 text-4xl font-bold leading-tight tracking-tight text-foreground;
+  }
+  .course-html .lead {
+    @apply mb-3 text-lg;
+  }
+  .course-html .meta {
+    @apply mb-8 font-mono text-[11px] uppercase tracking-widest;
+  }
+
+  /* Text. */
+  .course-html h2 {
+    @apply mb-3 mt-10 text-2xl font-bold text-foreground;
+  }
+  .course-html h3 {
+    @apply mb-3 mt-8 text-base font-semibold text-foreground;
+  }
+  .course-html h4 {
+    @apply mb-2 mt-6 text-[15px] font-semibold text-foreground;
+  }
+  .course-html p {
+    @apply mb-4;
+  }
+  .course-html :is(ul, ol) {
+    @apply mb-4 flex flex-col gap-2 pl-6;
+  }
+  .course-html ul {
+    @apply list-disc;
+  }
+  .course-html ol {
+    @apply list-decimal;
+  }
+  .course-html li > :is(ul, ol) {
+    @apply mb-0 mt-2;
+  }
+  .course-html li > ul {
+    list-style-type: circle;
+  }
+  .course-html :is(strong, b) {
+    @apply font-semibold text-foreground;
+  }
+  .course-html a {
+    @apply text-foreground underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground;
+  }
+  .course-html code {
+    @apply bg-muted px-1 font-mono text-[12px] text-foreground;
+  }
+
+  /* Code examples, with the file name above them; comments in the muted colour. */
+  .course-html pre {
+    @apply mb-4 overflow-x-auto whitespace-pre rounded-sm border border-border bg-muted/40 p-4 font-mono text-[12px] leading-relaxed text-foreground;
+  }
+  .course-html pre code {
+    @apply bg-transparent p-0;
+  }
+  .course-html pre .c {
+    @apply text-muted-foreground;
+  }
+  .course-html .filename {
+    @apply rounded-t-sm border border-b-0 border-border px-4 py-1.5 font-mono text-[11px] text-muted-foreground;
+  }
+  .course-html .filename + .code-frame pre {
+    @apply rounded-t-none;
+  }
+
+  /* Waveforms and flow charts drawn in text. */
+  .course-html .wave {
+    @apply mb-4 overflow-x-auto rounded border border-border p-4;
+  }
+  .course-html .wave pre {
+    @apply m-0 rounded-none border-0 bg-transparent p-0;
+  }
+
+  /* Tables, as the site's lesson table. */
+  .course-html .table-frame {
+    @apply mb-5 overflow-x-auto rounded border border-border;
+  }
+  .course-html table {
+    @apply w-full border-collapse text-[14px];
+  }
+  .course-html :is(th, td) {
+    @apply border-b border-border px-3 py-2 text-left align-top;
+  }
+  .course-html th {
+    @apply bg-muted font-semibold text-foreground;
+  }
+  .course-html tr:last-child > td {
+    @apply border-b-0;
+  }
+
+  /* Boxes keep the author's colour coding (tones above). */
+  .course-html .objectives {
+    @apply mb-8 rounded border p-5;
+    border-color: color-mix(in oklab, var(--tone) 25%, transparent);
+    background: color-mix(in oklab, var(--tone-wash) 50%, hsl(var(--background)));
+  }
+  .course-html :is(.callout, .objectives) > :last-child {
+    @apply mb-0;
+  }
+  .course-html .lab {
+    @apply my-8 rounded-card border-2 border-dashed px-5 pb-1;
+    border-color: color-mix(in oklab, var(--tone) 55%, transparent);
+  }
+  .course-html .lab h2 {
+    @apply mt-5;
+  }
+
+  /* Reveals (answers, solutions), as the site's reveal block. */
+  .course-html details {
+    @apply mb-5 rounded border border-border p-4;
+  }
+  .course-html summary {
+    @apply cursor-pointer select-none text-[13px] font-semibold text-foreground underline-offset-4 hover:underline;
+  }
+  .course-html details[open] > summary {
+    @apply mb-3;
+  }
+  .course-html details > :last-child {
+    @apply mb-0;
+  }
+
+  /* Diagrams keep their own colours and fit the column. */
+  .course-html figure {
+    @apply mb-5 overflow-x-auto rounded border border-border p-4;
+  }
+  .course-html figure svg {
+    @apply mx-auto block h-auto w-full max-w-full;
+  }
+  .course-html figcaption {
+    @apply mt-2 text-[13px];
+  }
+
+  /* Previous / next, as the site's buttons. */
+  .course-html .nav-bar {
+    @apply mt-12 flex flex-wrap justify-between gap-3;
+  }
+  .course-html .nav-bar a {
+    @apply inline-flex min-h-10 items-center rounded-button border border-border bg-background px-5 py-2 text-sm font-medium text-foreground no-underline transition-colors hover:border-foreground;
+  }
+  .course-html .nav-bar a.next {
+    @apply border-foreground bg-foreground text-background hover:opacity-90;
+  }
+
+  /* The course home's module list, as the site's outline cards and badges. */
+  .course-html .module-list {
+    @apply mb-6 list-none gap-3 pl-0;
+  }
+  .course-html .module-list li {
+    @apply rounded-card border border-border px-5 py-4 transition-colors hover:border-muted-foreground;
+  }
+  .course-html .module-list .num {
+    @apply mr-3 inline-block min-w-5 font-mono text-[12px];
+  }
+  .course-html .module-list a {
+    @apply no-underline hover:underline;
+  }
+  .course-html .module-list .desc {
+    @apply mt-1 block text-[14px];
+  }
+  .course-html .pill {
+    @apply ml-2 inline-flex items-center rounded bg-muted px-2 py-0.5 align-middle font-mono text-[10px] uppercase tracking-widest text-muted-foreground;
+  }
+}

@@ -174,6 +174,10 @@ export interface Course {
   slug: string;
   level: 'basic' | 'intermediate' | 'advance';
   summary?: string | null;
+  /**
+   * Optional: the course home page in your own markup (shown publicly instead of the plain outline). Links to lessons are written lesson:<slug>.
+   */
+  introduction?: string | null;
   order: number;
   publicId?: string | null;
   updatedAt: string;
@@ -302,6 +306,24 @@ export interface Lesson {
         id?: string | null;
         blockName?: string | null;
         blockType: 'table';
+      }
+    | {
+        /**
+         * Your page markup, shown complete in the site design (ADR 0024). Sanitised on every read; scripts and inline styles are removed. Link to a lesson with href="lesson:<slug>".
+         */
+        html: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'html';
+      }
+    | {
+        /**
+         * Slug of a published Drill, shown here with the tool.
+         */
+        drill: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'drillEmbed';
       }
     | {
         /**
@@ -556,6 +578,24 @@ export interface Drill {
         id?: string | null;
         blockName?: string | null;
         blockType: 'table';
+      }
+    | {
+        /**
+         * Your page markup, shown complete in the site design (ADR 0024). Sanitised on every read; scripts and inline styles are removed. Link to a lesson with href="lesson:<slug>".
+         */
+        html: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'html';
+      }
+    | {
+        /**
+         * Slug of a published Drill, shown here with the tool.
+         */
+        drill: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'drillEmbed';
       }
     | {
         /**
@@ -871,6 +911,24 @@ export interface Answer {
         id?: string | null;
         blockName?: string | null;
         blockType: 'table';
+      }
+    | {
+        /**
+         * Your page markup, shown complete in the site design (ADR 0024). Sanitised on every read; scripts and inline styles are removed. Link to a lesson with href="lesson:<slug>".
+         */
+        html: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'html';
+      }
+    | {
+        /**
+         * Slug of a published Drill, shown here with the tool.
+         */
+        drill: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'drillEmbed';
       }
     | {
         /**
@@ -1220,6 +1278,7 @@ export interface CoursesSelect<T extends boolean = true> {
   slug?: T;
   level?: T;
   summary?: T;
+  introduction?: T;
   order?: T;
   publicId?: T;
   updatedAt?: T;
@@ -1338,6 +1397,20 @@ export interface LessonsSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              id?: T;
+              blockName?: T;
+            };
+        html?:
+          | T
+          | {
+              html?: T;
+              id?: T;
+              blockName?: T;
+            };
+        drillEmbed?:
+          | T
+          | {
+              drill?: T;
               id?: T;
               blockName?: T;
             };
@@ -1579,6 +1652,20 @@ export interface DrillsSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              id?: T;
+              blockName?: T;
+            };
+        html?:
+          | T
+          | {
+              html?: T;
+              id?: T;
+              blockName?: T;
+            };
+        drillEmbed?:
+          | T
+          | {
+              drill?: T;
               id?: T;
               blockName?: T;
             };
@@ -1862,6 +1949,20 @@ export interface AnswersSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              id?: T;
+              blockName?: T;
+            };
+        html?:
+          | T
+          | {
+              html?: T;
+              id?: T;
+              blockName?: T;
+            };
+        drillEmbed?:
+          | T
+          | {
+              drill?: T;
               id?: T;
               blockName?: T;
             };

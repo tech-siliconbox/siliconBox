@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { LessonBlockRenderer } from '@/components/lesson/lesson-block-renderer';
+import { LessonBody } from '@/components/lesson/lesson-body';
 import { Watermarked } from '@/components/shared/watermarked';
-import { Eyebrow } from '@/components/ui/eyebrow';
 import { readLessonPreview } from '@/server/preview';
 
 export const metadata: Metadata = {
@@ -29,13 +28,7 @@ export default async function LessonPreviewPage({ params }: PreviewPageProps) {
       </p>
       <Watermarked mark={mark}>
         <article className="mx-auto max-w-2xl px-6 pb-20 pt-16">
-          <header className="mb-8 flex flex-col gap-3">
-            <Eyebrow>{lesson.preview ? 'Free preview' : 'Lesson'}</Eyebrow>
-            <h1 className="text-4xl font-bold leading-tight tracking-tight">{lesson.title}</h1>
-          </header>
-          {lesson.blocks.map((block, index) => (
-            <LessonBlockRenderer key={index} block={block} />
-          ))}
+          <LessonBody lesson={lesson} />
         </article>
       </Watermarked>
     </>

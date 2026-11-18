@@ -161,10 +161,29 @@ const RevealBlock = z.object({
   content: z.array(RevealContentBlockSchema).min(1).max(50),
 });
 
+/**
+ * An author's own page markup, kept complete and shown in the site's design (ADR 0024).
+ * Sanitised to an allow-list on every read; links to other lessons are written `lesson:<slug>`
+ * and the course home `course:<slug>`, resolved on the server.
+ */
+export const COURSE_HTML_MAX = 400_000;
+const HtmlBlock = z.object({
+  blockType: z.literal('html'),
+  html: z.string().trim().min(1).max(COURSE_HTML_MAX),
+});
+
+/** A Drill shown inside a lesson (for example after a lab), with the tool to practise on it. */
+const DrillEmbedBlock = z.object({
+  blockType: z.literal('drillEmbed'),
+  drill: SlugSchema,
+});
+
 export const LessonBlockSchema = z.discriminatedUnion('blockType', [
   ...CONTENT_BLOCKS,
   StateGraphBlock,
   RevealBlock,
+  HtmlBlock,
+  DrillEmbedBlock,
 ]);
 export type LessonBlock = z.infer<typeof LessonBlockSchema>;
 export type LessonBlockType = LessonBlock['blockType'];
@@ -201,6 +220,8 @@ export const CourseOutlineSchema = z.object({
   title: z.string().min(1),
   level: LevelSchema,
   summary: z.string().nullish(),
+  // The course home page in the author's markup, shown instead of the plain outline (public).
+  introduction: z.string().max(COURSE_HTML_MAX).nullish(),
   modules: z.array(OutlineModuleSchema),
 });
 export type CourseOutline = z.infer<typeof CourseOutlineSchema>;

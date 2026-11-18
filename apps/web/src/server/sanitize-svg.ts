@@ -4,7 +4,8 @@ import sanitizeHtml from 'sanitize-html';
 // Diagrams are author-supplied SVG rendered inline. Keep drawing elements and geometry only:
 // no scripts, event handlers, links, external images, foreign HTML or inline styles.
 
-const ELEMENTS = [
+/** Drawing elements a diagram may use; also allowed in course page markup. */
+export const SVG_ELEMENTS = [
   'svg',
   'g',
   'defs',
@@ -28,7 +29,8 @@ const ELEMENTS = [
   'mask',
 ];
 
-const ATTRIBUTES = [
+/** Geometry and presentation attributes for those elements. */
+export const SVG_ATTRIBUTES = [
   'id',
   'class',
   'viewBox',
@@ -89,8 +91,8 @@ const ATTRIBUTES = [
 /** Allow-listed SVG markup, safe to render inline. */
 export function sanitizeSvg(svg: string): string {
   return sanitizeHtml(svg, {
-    allowedTags: ELEMENTS,
-    allowedAttributes: { '*': ATTRIBUTES },
+    allowedTags: SVG_ELEMENTS,
+    allowedAttributes: { '*': SVG_ATTRIBUTES },
     allowedSchemes: [],
     parser: { lowerCaseTags: false, lowerCaseAttributeNames: false },
   });
