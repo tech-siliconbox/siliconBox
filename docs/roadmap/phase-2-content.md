@@ -6,7 +6,7 @@ Goal: editors can publish content and learners can read it safely.
 
 - [x] Payload CMS inside `apps/web` with roles Author, Editor, Support, Owner
 - [x] Collections and Zod schemas: courses, modules, lessons, lesson_versions, drills, drill_private, questions, answers, companies, services
-- [x] Block editor: heading, paragraph, code, assertion snippet, callout, diagram (SVG)
+- [x] Block editor: heading, paragraph, code, assertion snippet, callout, diagram (SVG), list (with answers), table, reveal, state graph
 - [ ] Draft, preview as learner, schedule, publish, rollback
 - [x] Content importer (`pnpm content:import`): JSON, matched by slug, through Payload (Markdown can be added if authors want it)
 - [x] Question bank: public list with company logo and name; private answers; text index search (logos shown once each company's permission is on file; names only until then, as `docs/legal/trademark-and-logos.md` requires)
@@ -47,6 +47,8 @@ Goal: editors can publish content and learners can read it safely.
 - Career tools (2026-10-02): **Resume Builder** at `/industry-ready/resume-builder`: structured editor (contact, summary, skills, experience, projects, education, certifications) with live preview, two single-column ATS-friendly templates, server-rendered text PDF, save and delete. **CV screening** at `/industry-ready/cv-screening`: drag-and-drop PDF or .docx (5 MB), checked by file content not name; rule-based report (ATS readability, contact, sections, length, impact, formal verification keywords) with scores and specific fixes; only the report is stored, never the file, and reports can be deleted. Both require an open service and an active content entitlement; a locked service refuses every call. Migration 5 opened both services.
 
 - Answers (2026-10-02): `/questions/[id]` and `GET /api/v1/questions/:id/answer` for learners with an active content entitlement: paced like lessons, watermarked, read through the answers-only database user after the entitlement check (ADR 0019).
+
+- Real Basic course (2026-11-18): the founder's HTML course (`~/Desktop/SB/course/basic`, outside the repo) converted word for word by `pnpm content:convert` and imported over the demo slugs: 11 modules (10 plus the SVA cheat sheet), 93 lessons, one per section. New blocks for it: list with answers, table, reveal, state graph (the simulation-vs-formal demo, now data in the lesson), heading level 4, danger callouts, code file names and diagram captions. The founder chose: split by section, rebuild the demo as a database-driven block, first lesson free for signed-in learners. Intermediate and Advance still show demo content.
 
 ## Gate
 

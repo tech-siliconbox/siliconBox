@@ -25,6 +25,7 @@ app/store.py        Redis job records and queue
 app/worker.py       takes jobs and hands them to a runner
 app/runners.py      LocalRunner (process group, time limit, no secrets); ContainerRunner next
 app/job_runner.py   sandbox entry: job JSON on stdin, result JSON on stdout
+app/gate.py         Drill publish gate (command line, for authors and CI)
 app/pipeline.py     lower SVA, check each statement on its own, build the result
 app/workspace.py    the only place work folders are named, made and removed
 app/process.py      run a tool as a process group; kill the group on timeout
@@ -47,6 +48,11 @@ message, log.
 ## Writing Drill properties for this engine
 
 The open-source flow lowers SVA to plain Verilog. Declare the properties module's ports with
-their widths (`input logic [3:0] count`), or multi-bit signals are read as 1 bit. A `cover`
-must name a `property`; an inline expression is not lowered. `include and file system tasks
-are refused.
+their widths (`input logic [3:0] count`), or multi-bit signals are read as 1 bit. Ports bind to
+the design by name, so only the design's ports are visible. Helper logic in the properties
+module (wires, registers, `always` blocks) is kept as written, so a checker can model internal
+behaviour from the ports. A `cover` must name a `property`; an inline expression is not
+lowered. `include and file system tasks are refused.
+
+Publish gate: `python -m app.gate <content import file.json>` (`pnpm drills:verify`) runs every
+Drill's reference solution, reference design, bug variants and starter on the real solver.

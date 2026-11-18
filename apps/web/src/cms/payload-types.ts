@@ -211,13 +211,16 @@ export interface Lesson {
   durationMinutes?: number | null;
   blocks: (
     | {
-        level: '2' | '3';
+        level: '2' | '3' | '4';
         text: string;
         id?: string | null;
         blockName?: string | null;
         blockType: 'heading';
       }
     | {
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
         text: string;
         id?: string | null;
         blockName?: string | null;
@@ -226,6 +229,7 @@ export interface Lesson {
     | {
         language: 'systemverilog' | 'sby' | 'text';
         code: string;
+        filename?: string | null;
         id?: string | null;
         blockName?: string | null;
         blockType: 'code';
@@ -238,7 +242,11 @@ export interface Lesson {
         blockType: 'assertion';
       }
     | {
-        tone: 'note' | 'tip' | 'warning';
+        tone: 'note' | 'tip' | 'warning' | 'danger';
+        title?: string | null;
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
         text: string;
         id?: string | null;
         blockName?: string | null;
@@ -247,9 +255,190 @@ export interface Lesson {
     | {
         svg: string;
         alt: string;
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
+        caption?: string | null;
         id?: string | null;
         blockName?: string | null;
         blockType: 'diagram';
+      }
+    | {
+        ordered?: boolean | null;
+        /**
+         * Optional first number, for a numbered list that continues.
+         */
+        start?: number | null;
+        items: {
+          /**
+           * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+           */
+          text: string;
+          /**
+           * Optional. Shown behind a "Show answer" button.
+           */
+          answer?: string | null;
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'list';
+      }
+    | {
+        columns: {
+          text?: string | null;
+          id?: string | null;
+        }[];
+        rows: {
+          cells: {
+            /**
+             * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+             */
+            text?: string | null;
+            id?: string | null;
+          }[];
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'table';
+      }
+    | {
+        /**
+         * Button text, for example "Show hints".
+         */
+        label: string;
+        content: (
+          | {
+              level: '2' | '3' | '4';
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'heading';
+            }
+          | {
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'paragraph';
+            }
+          | {
+              language: 'systemverilog' | 'sby' | 'text';
+              code: string;
+              filename?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'code';
+            }
+          | {
+              code: string;
+              caption?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'assertion';
+            }
+          | {
+              tone: 'note' | 'tip' | 'warning' | 'danger';
+              title?: string | null;
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'callout';
+            }
+          | {
+              svg: string;
+              alt: string;
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              caption?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'diagram';
+            }
+          | {
+              ordered?: boolean | null;
+              /**
+               * Optional first number, for a numbered list that continues.
+               */
+              start?: number | null;
+              items: {
+                /**
+                 * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+                 */
+                text: string;
+                /**
+                 * Optional. Shown behind a "Show answer" button.
+                 */
+                answer?: string | null;
+                id?: string | null;
+              }[];
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'list';
+            }
+          | {
+              columns: {
+                text?: string | null;
+                id?: string | null;
+              }[];
+              rows: {
+                cells: {
+                  /**
+                   * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+                   */
+                  text?: string | null;
+                  id?: string | null;
+                }[];
+                id?: string | null;
+              }[];
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'table';
+            }
+        )[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'reveal';
+      }
+    | {
+        simulationTitle: string;
+        simulationText: string;
+        formalTitle: string;
+        formalText: string;
+        /**
+         * Cycles per random test.
+         */
+        testLength: number;
+        /**
+         * The first state is the reset state.
+         */
+        states: {
+          label: string;
+          x: number;
+          y: number;
+          note?: string | null;
+          hidesBug?: boolean | null;
+          id?: string | null;
+        }[];
+        /**
+         * Chance (0 to 1) that a random test takes this step; what is left returns to reset.
+         */
+        transitions: {
+          from: string;
+          to: string;
+          chance: number;
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'stateGraph';
       }
   )[];
   publicId?: string | null;
@@ -276,13 +465,16 @@ export interface Drill {
   topModule: string;
   brief: (
     | {
-        level: '2' | '3';
+        level: '2' | '3' | '4';
         text: string;
         id?: string | null;
         blockName?: string | null;
         blockType: 'heading';
       }
     | {
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
         text: string;
         id?: string | null;
         blockName?: string | null;
@@ -291,6 +483,7 @@ export interface Drill {
     | {
         language: 'systemverilog' | 'sby' | 'text';
         code: string;
+        filename?: string | null;
         id?: string | null;
         blockName?: string | null;
         blockType: 'code';
@@ -303,7 +496,11 @@ export interface Drill {
         blockType: 'assertion';
       }
     | {
-        tone: 'note' | 'tip' | 'warning';
+        tone: 'note' | 'tip' | 'warning' | 'danger';
+        title?: string | null;
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
         text: string;
         id?: string | null;
         blockName?: string | null;
@@ -312,9 +509,190 @@ export interface Drill {
     | {
         svg: string;
         alt: string;
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
+        caption?: string | null;
         id?: string | null;
         blockName?: string | null;
         blockType: 'diagram';
+      }
+    | {
+        ordered?: boolean | null;
+        /**
+         * Optional first number, for a numbered list that continues.
+         */
+        start?: number | null;
+        items: {
+          /**
+           * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+           */
+          text: string;
+          /**
+           * Optional. Shown behind a "Show answer" button.
+           */
+          answer?: string | null;
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'list';
+      }
+    | {
+        columns: {
+          text?: string | null;
+          id?: string | null;
+        }[];
+        rows: {
+          cells: {
+            /**
+             * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+             */
+            text?: string | null;
+            id?: string | null;
+          }[];
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'table';
+      }
+    | {
+        /**
+         * Button text, for example "Show hints".
+         */
+        label: string;
+        content: (
+          | {
+              level: '2' | '3' | '4';
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'heading';
+            }
+          | {
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'paragraph';
+            }
+          | {
+              language: 'systemverilog' | 'sby' | 'text';
+              code: string;
+              filename?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'code';
+            }
+          | {
+              code: string;
+              caption?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'assertion';
+            }
+          | {
+              tone: 'note' | 'tip' | 'warning' | 'danger';
+              title?: string | null;
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'callout';
+            }
+          | {
+              svg: string;
+              alt: string;
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              caption?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'diagram';
+            }
+          | {
+              ordered?: boolean | null;
+              /**
+               * Optional first number, for a numbered list that continues.
+               */
+              start?: number | null;
+              items: {
+                /**
+                 * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+                 */
+                text: string;
+                /**
+                 * Optional. Shown behind a "Show answer" button.
+                 */
+                answer?: string | null;
+                id?: string | null;
+              }[];
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'list';
+            }
+          | {
+              columns: {
+                text?: string | null;
+                id?: string | null;
+              }[];
+              rows: {
+                cells: {
+                  /**
+                   * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+                   */
+                  text?: string | null;
+                  id?: string | null;
+                }[];
+                id?: string | null;
+              }[];
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'table';
+            }
+        )[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'reveal';
+      }
+    | {
+        simulationTitle: string;
+        simulationText: string;
+        formalTitle: string;
+        formalText: string;
+        /**
+         * Cycles per random test.
+         */
+        testLength: number;
+        /**
+         * The first state is the reset state.
+         */
+        states: {
+          label: string;
+          x: number;
+          y: number;
+          note?: string | null;
+          hidesBug?: boolean | null;
+          id?: string | null;
+        }[];
+        /**
+         * Chance (0 to 1) that a random test takes this step; what is left returns to reset.
+         */
+        transitions: {
+          from: string;
+          to: string;
+          chance: number;
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'stateGraph';
       }
   )[];
   /**
@@ -338,6 +716,10 @@ export interface DrillPrivate {
   id: string;
   drill: string | Drill;
   referenceSolution: string;
+  /**
+   * The correct design, when learners are shown a buggy one: the reference solution must PASS on it.
+   */
+  referenceDesign?: string | null;
   hiddenProperties?: string | null;
   /**
    * Each seeded bug must FAIL on the real solver.
@@ -398,13 +780,16 @@ export interface Answer {
   question: string | Question;
   blocks: (
     | {
-        level: '2' | '3';
+        level: '2' | '3' | '4';
         text: string;
         id?: string | null;
         blockName?: string | null;
         blockType: 'heading';
       }
     | {
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
         text: string;
         id?: string | null;
         blockName?: string | null;
@@ -413,6 +798,7 @@ export interface Answer {
     | {
         language: 'systemverilog' | 'sby' | 'text';
         code: string;
+        filename?: string | null;
         id?: string | null;
         blockName?: string | null;
         blockType: 'code';
@@ -425,7 +811,11 @@ export interface Answer {
         blockType: 'assertion';
       }
     | {
-        tone: 'note' | 'tip' | 'warning';
+        tone: 'note' | 'tip' | 'warning' | 'danger';
+        title?: string | null;
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
         text: string;
         id?: string | null;
         blockName?: string | null;
@@ -434,9 +824,190 @@ export interface Answer {
     | {
         svg: string;
         alt: string;
+        /**
+         * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+         */
+        caption?: string | null;
         id?: string | null;
         blockName?: string | null;
         blockType: 'diagram';
+      }
+    | {
+        ordered?: boolean | null;
+        /**
+         * Optional first number, for a numbered list that continues.
+         */
+        start?: number | null;
+        items: {
+          /**
+           * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+           */
+          text: string;
+          /**
+           * Optional. Shown behind a "Show answer" button.
+           */
+          answer?: string | null;
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'list';
+      }
+    | {
+        columns: {
+          text?: string | null;
+          id?: string | null;
+        }[];
+        rows: {
+          cells: {
+            /**
+             * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+             */
+            text?: string | null;
+            id?: string | null;
+          }[];
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'table';
+      }
+    | {
+        /**
+         * Button text, for example "Show hints".
+         */
+        label: string;
+        content: (
+          | {
+              level: '2' | '3' | '4';
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'heading';
+            }
+          | {
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'paragraph';
+            }
+          | {
+              language: 'systemverilog' | 'sby' | 'text';
+              code: string;
+              filename?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'code';
+            }
+          | {
+              code: string;
+              caption?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'assertion';
+            }
+          | {
+              tone: 'note' | 'tip' | 'warning' | 'danger';
+              title?: string | null;
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'callout';
+            }
+          | {
+              svg: string;
+              alt: string;
+              /**
+               * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+               */
+              caption?: string | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'diagram';
+            }
+          | {
+              ordered?: boolean | null;
+              /**
+               * Optional first number, for a numbered list that continues.
+               */
+              start?: number | null;
+              items: {
+                /**
+                 * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+                 */
+                text: string;
+                /**
+                 * Optional. Shown behind a "Show answer" button.
+                 */
+                answer?: string | null;
+                id?: string | null;
+              }[];
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'list';
+            }
+          | {
+              columns: {
+                text?: string | null;
+                id?: string | null;
+              }[];
+              rows: {
+                cells: {
+                  /**
+                   * Use `code`, **bold** and *italic*. A blank line starts a paragraph; "- " starts a bullet.
+                   */
+                  text?: string | null;
+                  id?: string | null;
+                }[];
+                id?: string | null;
+              }[];
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'table';
+            }
+        )[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'reveal';
+      }
+    | {
+        simulationTitle: string;
+        simulationText: string;
+        formalTitle: string;
+        formalText: string;
+        /**
+         * Cycles per random test.
+         */
+        testLength: number;
+        /**
+         * The first state is the reset state.
+         */
+        states: {
+          label: string;
+          x: number;
+          y: number;
+          note?: string | null;
+          hidesBug?: boolean | null;
+          id?: string | null;
+        }[];
+        /**
+         * Chance (0 to 1) that a random test takes this step; what is left returns to reset.
+         */
+        transitions: {
+          from: string;
+          to: string;
+          chance: number;
+          id?: string | null;
+        }[];
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'stateGraph';
       }
   )[];
   updatedAt: string;
@@ -702,6 +1273,7 @@ export interface LessonsSelect<T extends boolean = true> {
           | {
               language?: T;
               code?: T;
+              filename?: T;
               id?: T;
               blockName?: T;
             };
@@ -717,6 +1289,7 @@ export interface LessonsSelect<T extends boolean = true> {
           | T
           | {
               tone?: T;
+              title?: T;
               text?: T;
               id?: T;
               blockName?: T;
@@ -726,6 +1299,173 @@ export interface LessonsSelect<T extends boolean = true> {
           | {
               svg?: T;
               alt?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        list?:
+          | T
+          | {
+              ordered?: T;
+              start?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        table?:
+          | T
+          | {
+              columns?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              rows?:
+                | T
+                | {
+                    cells?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        reveal?:
+          | T
+          | {
+              label?: T;
+              content?:
+                | T
+                | {
+                    heading?:
+                      | T
+                      | {
+                          level?: T;
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    paragraph?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    code?:
+                      | T
+                      | {
+                          language?: T;
+                          code?: T;
+                          filename?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    assertion?:
+                      | T
+                      | {
+                          code?: T;
+                          caption?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    callout?:
+                      | T
+                      | {
+                          tone?: T;
+                          title?: T;
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    diagram?:
+                      | T
+                      | {
+                          svg?: T;
+                          alt?: T;
+                          caption?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    list?:
+                      | T
+                      | {
+                          ordered?: T;
+                          start?: T;
+                          items?:
+                            | T
+                            | {
+                                text?: T;
+                                answer?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                    table?:
+                      | T
+                      | {
+                          columns?:
+                            | T
+                            | {
+                                text?: T;
+                                id?: T;
+                              };
+                          rows?:
+                            | T
+                            | {
+                                cells?:
+                                  | T
+                                  | {
+                                      text?: T;
+                                      id?: T;
+                                    };
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stateGraph?:
+          | T
+          | {
+              simulationTitle?: T;
+              simulationText?: T;
+              formalTitle?: T;
+              formalText?: T;
+              testLength?: T;
+              states?:
+                | T
+                | {
+                    label?: T;
+                    x?: T;
+                    y?: T;
+                    note?: T;
+                    hidesBug?: T;
+                    id?: T;
+                  };
+              transitions?:
+                | T
+                | {
+                    from?: T;
+                    to?: T;
+                    chance?: T;
+                    id?: T;
+                  };
               id?: T;
               blockName?: T;
             };
@@ -774,6 +1514,7 @@ export interface DrillsSelect<T extends boolean = true> {
           | {
               language?: T;
               code?: T;
+              filename?: T;
               id?: T;
               blockName?: T;
             };
@@ -789,6 +1530,7 @@ export interface DrillsSelect<T extends boolean = true> {
           | T
           | {
               tone?: T;
+              title?: T;
               text?: T;
               id?: T;
               blockName?: T;
@@ -798,6 +1540,173 @@ export interface DrillsSelect<T extends boolean = true> {
           | {
               svg?: T;
               alt?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        list?:
+          | T
+          | {
+              ordered?: T;
+              start?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        table?:
+          | T
+          | {
+              columns?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              rows?:
+                | T
+                | {
+                    cells?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        reveal?:
+          | T
+          | {
+              label?: T;
+              content?:
+                | T
+                | {
+                    heading?:
+                      | T
+                      | {
+                          level?: T;
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    paragraph?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    code?:
+                      | T
+                      | {
+                          language?: T;
+                          code?: T;
+                          filename?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    assertion?:
+                      | T
+                      | {
+                          code?: T;
+                          caption?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    callout?:
+                      | T
+                      | {
+                          tone?: T;
+                          title?: T;
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    diagram?:
+                      | T
+                      | {
+                          svg?: T;
+                          alt?: T;
+                          caption?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    list?:
+                      | T
+                      | {
+                          ordered?: T;
+                          start?: T;
+                          items?:
+                            | T
+                            | {
+                                text?: T;
+                                answer?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                    table?:
+                      | T
+                      | {
+                          columns?:
+                            | T
+                            | {
+                                text?: T;
+                                id?: T;
+                              };
+                          rows?:
+                            | T
+                            | {
+                                cells?:
+                                  | T
+                                  | {
+                                      text?: T;
+                                      id?: T;
+                                    };
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stateGraph?:
+          | T
+          | {
+              simulationTitle?: T;
+              simulationText?: T;
+              formalTitle?: T;
+              formalText?: T;
+              testLength?: T;
+              states?:
+                | T
+                | {
+                    label?: T;
+                    x?: T;
+                    y?: T;
+                    note?: T;
+                    hidesBug?: T;
+                    id?: T;
+                  };
+              transitions?:
+                | T
+                | {
+                    from?: T;
+                    to?: T;
+                    chance?: T;
+                    id?: T;
+                  };
               id?: T;
               blockName?: T;
             };
@@ -816,6 +1725,7 @@ export interface DrillsSelect<T extends boolean = true> {
 export interface DrillPrivateSelect<T extends boolean = true> {
   drill?: T;
   referenceSolution?: T;
+  referenceDesign?: T;
   hiddenProperties?: T;
   bugVariants?:
     | T
@@ -887,6 +1797,7 @@ export interface AnswersSelect<T extends boolean = true> {
           | {
               language?: T;
               code?: T;
+              filename?: T;
               id?: T;
               blockName?: T;
             };
@@ -902,6 +1813,7 @@ export interface AnswersSelect<T extends boolean = true> {
           | T
           | {
               tone?: T;
+              title?: T;
               text?: T;
               id?: T;
               blockName?: T;
@@ -911,6 +1823,173 @@ export interface AnswersSelect<T extends boolean = true> {
           | {
               svg?: T;
               alt?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        list?:
+          | T
+          | {
+              ordered?: T;
+              start?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        table?:
+          | T
+          | {
+              columns?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              rows?:
+                | T
+                | {
+                    cells?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        reveal?:
+          | T
+          | {
+              label?: T;
+              content?:
+                | T
+                | {
+                    heading?:
+                      | T
+                      | {
+                          level?: T;
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    paragraph?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    code?:
+                      | T
+                      | {
+                          language?: T;
+                          code?: T;
+                          filename?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    assertion?:
+                      | T
+                      | {
+                          code?: T;
+                          caption?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    callout?:
+                      | T
+                      | {
+                          tone?: T;
+                          title?: T;
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    diagram?:
+                      | T
+                      | {
+                          svg?: T;
+                          alt?: T;
+                          caption?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    list?:
+                      | T
+                      | {
+                          ordered?: T;
+                          start?: T;
+                          items?:
+                            | T
+                            | {
+                                text?: T;
+                                answer?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                    table?:
+                      | T
+                      | {
+                          columns?:
+                            | T
+                            | {
+                                text?: T;
+                                id?: T;
+                              };
+                          rows?:
+                            | T
+                            | {
+                                cells?:
+                                  | T
+                                  | {
+                                      text?: T;
+                                      id?: T;
+                                    };
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stateGraph?:
+          | T
+          | {
+              simulationTitle?: T;
+              simulationText?: T;
+              formalTitle?: T;
+              formalText?: T;
+              testLength?: T;
+              states?:
+                | T
+                | {
+                    label?: T;
+                    x?: T;
+                    y?: T;
+                    note?: T;
+                    hidesBug?: T;
+                    id?: T;
+                  };
+              transitions?:
+                | T
+                | {
+                    from?: T;
+                    to?: T;
+                    chance?: T;
+                    id?: T;
+                  };
               id?: T;
               blockName?: T;
             };

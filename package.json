@@ -20,11 +20,13 @@
     "unused:check": "knip",
     "deps:check": "depcruise apps/web/src packages/shared/src",
     "naming:check": "scripts/check-naming.sh",
-    "content:import": "pnpm --filter @siliconbox/web content:import"
+    "content:import": "pnpm --filter @siliconbox/web content:import",
+    "content:convert": "pnpm --filter @siliconbox/web content:convert",
+    "drills:verify": "pnpm --filter @siliconbox/solver gate"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@next/eslint-plugin-next": "^16.3.8",
+    "@next/eslint-plugin-next": "^16.4.6",
     "dependency-cruiser": "^18.5.0",
     "eslint": "^10.11.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -35,6 +37,7 @@
     "prettier": "^3.9.9",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.0",
+    "vite": "8.3.3",
     "vitest": "^5.0.3"
   }
 }

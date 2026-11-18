@@ -28,7 +28,7 @@ Run by `pnpm test:entitlements`. Dates are relative to purchase date `d`; "m" is
 | 15 | Level not held (another level is active) | no for that level | no for that level | no for that level | yes, while any content entitlement is active |
 | 16 | Window ended | locked; outline public | no | no | no |
 
-A Drill run needs both an active content entitlement for that Drill's level and an active tool entitlement.
+A Drill run needs both an active content entitlement for that Drill's level and an active tool entitlement. Reading a Drill (brief and files) needs only the content entitlement for its level, so row 13 can read Drills but not run them.
 
 ## Integrity
 

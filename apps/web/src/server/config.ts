@@ -13,6 +13,8 @@ export const ConfigSchema = z
     MONGODB_URI_APP: z.string().startsWith('mongodb'),
     // Read-only access to paid answers, used only after the entitlement check.
     MONGODB_URI_ANSWERS: z.string().startsWith('mongodb'),
+    // Read-only access to Drills' private parts, used only to grade runs (ADR 0021).
+    MONGODB_URI_GRADER: z.string().startsWith('mongodb'),
     REDIS_URL: z.string().startsWith('redis'),
     // The private solver service and the key that signs every call to it (solver ADR 0020).
     SOLVER_URL: z.url(),

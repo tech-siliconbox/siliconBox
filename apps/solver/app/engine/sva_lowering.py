@@ -85,6 +85,12 @@ class SVALoweringEngine:
         lines.append(");")
         lines.append("")
 
+        # The learner's helper logic, as written, before anything that may read it
+        if parsed.helper_code:
+            lines.append("    // Helper logic from the properties module")
+            lines.append(parsed.helper_code)
+            lines.append("")
+
         # Past-value registers for system functions ($rose, $fell, $stable, $changed)
         past_signals = self._collect_past_signals(parsed)
         if past_signals:

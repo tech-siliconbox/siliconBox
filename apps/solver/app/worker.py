@@ -15,7 +15,9 @@ from app.runners import ContainerRunner, LocalRunner, Runner
 from app.store import JobStore
 
 logger = logging.getLogger("solver.worker")
-WAIT_SECONDS = 30
+# How long one blocking wait on the queue lasts. A job is taken the moment it is queued, so a
+# long wait costs no latency; it only cuts idle Redis commands (free tiers count every one).
+WAIT_SECONDS = 120
 # Pause before trying again while Redis is unreachable.
 RETRY_SECONDS = 5
 

@@ -1,14 +1,8 @@
 'use client';
 
-import { API_ROUTES, type CvScreening, CvScreeningSchema, ERRORS } from '@siliconbox/shared';
+import { API_ROUTES, type CvScreening, CvScreeningSchema } from '@siliconbox/shared';
 import { useState } from 'react';
-
-async function errorMessage(response: Response | null): Promise<string> {
-  const body = (await response?.json().catch(() => null)) as {
-    error?: { message?: string };
-  } | null;
-  return body?.error?.message ?? ERRORS.INTERNAL.message;
-}
+import { errorMessage } from '@/lib/api-error';
 
 /** Screening a file, the report on show, and the learner's saved reports with delete. */
 export function useCvScreenings(initial: CvScreening[]) {

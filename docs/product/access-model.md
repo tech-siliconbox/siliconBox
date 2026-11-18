@@ -26,7 +26,8 @@ Currency is INR. No GST for now (business not registered); the tax rate is a set
 
 - **Tool access** is its own 3-month window. Every purchase, including an upgrade, starts a new one from the purchase date.
 - **Window ends:** lessons, Drills and answers for that level lock. The public outline stays. The learner can buy again at full price.
-- **Free for everyone:** question bank (questions with company logo and name), public course outlines, the first lesson.
+- **Free for everyone:** question bank (questions with company logo and name), public course outlines.
+- **Free with an account:** the first lesson of each course (course overview and the first section), for any signed-in learner (decided 2026-11-18).
 - **Free for buyers only:** question answers, Resume Builder and CV screening, while the learner holds an active content entitlement. Basic is the minimum.
 - **Industry Ready:** own tab. Only Resume Builder and CV screening are open; every other service is locked until built.
 - **One device at a time.** A second sign-in ends the first session. All content is watermarked.

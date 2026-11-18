@@ -4,5 +4,28 @@ packages:
 
 # Security fixes for transitive dependencies; remove each once the parent ships the patch.
 overrides:
-  # GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3 (via payload)
-  undici@>=7.0.0 <7.29.1: ^7.29.1
+  # GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3, GHSA-4w7w-5xrc-9h26, GHSA-2m5v-pch6-74hx and others (via payload)
+  undici@>=7.0.0 <7.30.1: ^7.30.1
+  # GHSA-pcrw-h46h-c93h and a later fix (via @payloadcms/db-mongodb, which pins 8.24.1)
+  mongoose@>=8.0.0 <8.24.7: ^8.24.7
+  # GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr (via @payloadcms/ui > monaco-editor)
+  dompurify@<3.4.17: ^3.4.17
+  # GHSA-587h-7wmj-h5pm (via better-auth > vitest)
+  vite@>=8.0.0 <8.3.3: ^8.3.3
+  # GHSA-fc5q-39xc-vjpf: picomatch <= 4.0.7 has no fix. Payload pins sass 1.77.4, whose
+  # chokidar 3 pulls in picomatch; current sass 1.x uses chokidar 5, which does not.
+  sass@1.77.4: ^1.108.2
+
+# sass's optional file watcher serves only `sass --watch` on the command line (the site compiles
+# through the API) and pulls in picomatch (GHSA-fc5q-39xc-vjpf, no fix yet).
+ignoredOptionalDependencies:
+  - '@parcel/watcher'
+
+# Advisories accepted after review with the founder (2026-11-18). Revisit each when a fix ships.
+auditConfig:
+  ignoreGhsas:
+    # picomatch <= 4.0.7 ReDoS on crafted extglob patterns; no fixed release exists. The runtime
+    # path through Payload's sass is removed above. The only path left is better-auth's optional
+    # vitest peer, present only where dev dependencies are installed (not in a production
+    # install), and the site never matches globs against user input.
+    - GHSA-fc5q-39xc-vjpf

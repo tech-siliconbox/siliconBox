@@ -2,6 +2,7 @@ export * from './constants';
 export * from './cv-screening/report';
 export * from './cv-screening/rules';
 export * from './errors';
+export * from './inline-text';
 export * from './money';
 export * from './routes';
 export * from './schemas/alert';

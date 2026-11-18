@@ -12,6 +12,12 @@ const lesson: PublishedLesson = {
     { blockType: 'paragraph', text: 'Invented paragraph text.' },
     { blockType: 'code', language: 'systemverilog', code: 'module m; endmodule' },
     { blockType: 'callout', tone: 'tip', text: 'Invented tip.' },
+    { blockType: 'list', items: [{ text: 'Invented item.', answer: 'Invented answer.' }] },
+    {
+      blockType: 'reveal',
+      label: 'Show hints',
+      content: [{ blockType: 'paragraph', text: 'Invented hint.' }],
+    },
   ],
 };
 
@@ -22,5 +28,12 @@ describe('markLesson', () => {
     expect(callout?.blockType === 'callout' && findMarks(callout.text)).toEqual([42]);
     expect(heading).toEqual(lesson.blocks[0]);
     expect(code).toEqual(lesson.blocks[2]);
+  });
+
+  it('marks list items and the prose inside reveals', () => {
+    const [, , , , list, reveal] = markLesson(lesson, 7).blocks;
+    expect(list?.blockType === 'list' && findMarks(list.items[0]?.text ?? '')).toEqual([7]);
+    const hint = reveal?.blockType === 'reveal' ? reveal.content[0] : undefined;
+    expect(hint?.blockType === 'paragraph' && findMarks(hint.text)).toEqual([7]);
   });
 });

@@ -4,7 +4,42 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Security
+- Next.js 16.4.6 (critical: unauthenticated remote code execution), Payload 3.93, zod 4.6.7; patched undici, mongoose, dompurify and vite through overrides; sass moved to the current 1.x line and its optional file watcher skipped, which removes picomatch (GHSA-fc5q-39xc-vjpf, no fix released) from the runtime.
+
+### Removed
+- The nightly backup workflow, which had never run (no storage or secrets): backups are off while the database holds only development data (ADR 0022).
+
 ### Added
+- Runs are graded against the Drill's hidden designs (ADR 0021): a prove-it Drill needs the checker to catch every seeded bug, a find-the-bug Drill needs it to hold on the correct design. The learner sees counts ("caught 3 of 4 seeded bugs"), never the designs. A fourth database user, `siliconbox_grader`, reads only `drill_privates`.
+- Free-tier hosting plan (ADR 0022, `docs/architecture/hosting.md`): Vercel Hobby in Mumbai, Atlas M0, Upstash free, Oracle Cloud free Arm VM for the solver, Cloudflare free; paid plans at the first sale.
+
+### Changed
+- Every MongoDB client keeps at most 10 pooled connections (Atlas M0 allows 500 in all). The solver worker waits on the queue in 120-second blocks, cutting idle Redis commands four times.
+- Drill publish gate: `pnpm drills:verify <file>` runs every Drill's reference solution on the real solver (target on its design, PASS on the reference design, FAIL on every bug variant, starter not already solved). Tested in CI on an invented fixture Drill.
+- Drills in the content import file, with their private part; `prune` removes lessons or Drills a file no longer lists (reported otherwise).
+- Five Basic Drills from Labs 4, 8 and 9 (mod-3 counter, FIFO bug hunt, FIFO flags and data order, starving arbiter, transaction FSM), gate-verified and imported as drafts.
+- ADR 0021 (proposed): grade runs against the hidden designs.
+
+### Changed
+- Converted modules end with one review lesson ("Summary · Exercises · Quick quiz"), each section keeping its heading: Basic now has 81 lessons.
+- Solver: helper logic in a properties module (wires, registers, always blocks) is kept; it used to be dropped, so properties reading a helper register read a free signal.
+
+### Fixed
+- `pnpm db:verify-roles` and the end-to-end cleanup used `drill_private`, but Payload stores that collection as `drill_privates`: the role check proved nothing (access was in fact refused) and test runs left 18 orphaned private parts, now removed.
+- Drill workspace at `/drills/:id`: the brief beside an editor (design read-only, properties editable and kept in the browser), Run with polling and queue position, results per property, and counterexample and cover traces as waveforms. Drills appear on the course outline.
+- Reading a Drill needs the content window for its level; running it also needs the tool window. The page says so instead of failing.
+- The real Basic course (11 modules, 93 lessons) converted word for word from the founder's HTML and imported over the demo slugs on the dev database.
+- `pnpm content:convert <folder> <level> <out.json>`: course HTML pages to an import file; one lesson per section, diagrams keep their colours, and every place where something could not be kept exactly is listed.
+- Lesson blocks: `list` (with answers behind "Show answer" and a start number), `table`, `reveal` (show/hide hints and solutions), `stateGraph` (an interactive simulation-vs-formal figure whose states, transitions and text live in the lesson, checked in the CMS), heading level 4, `danger` callouts with titles, code file names and diagram captions.
+- Lesson text format: `code`, **bold** and *italic* inline, paragraphs and bullets in multi-line fields (`packages/shared/src/inline-text.ts`).
+
+### Fixed
+- `pnpm content:import` failed once the lesson-cache hook existed: the hook loaded server-only code in the command-line script. Scripts now pass `SCRIPT_CONTEXT` and the hook skips.
+
+### Changed
+- First lesson of each course is free for signed-in learners (founder's decision; access model updated to match the test matrix).
+- The invisible watermark now also marks list items and the prose inside reveals.
 - Drill runs on the site: `POST /api/v1/drills/:id/runs` (content and tool access for the Drill's level, daily quota by highest level, idempotent `requestId`, only the learner's code accepted) and `GET /api/v1/runs/:id` (owner only); identical code answered from `run_cache`; migration 6 (`runs` indexes and 180-day TTL, `run_cache` with 30-day TTL); the site's database role can write `run_cache`.
 - Solver image (`apps/solver/Dockerfile`, OSS CAD Suite 2026-10-01, non-root) and `ContainerRunner`: a fresh container per job with no network, read-only root, CPU, memory and process caps, no capabilities and no secrets. Container attack tests run in CI; the end-to-end suite runs real Drill runs against the solver.
 - Solver (phase 3): the SVA engine from `formal-verify-backend` in `apps/solver`, hardened. Signed, scoped, short-lived service tokens; `POST /v1/jobs` and `GET /v1/jobs/{id}` with UUIDv4 ids owned by the learner; Redis queue and worker; each job in its own process group with a hard time limit and no secrets; `.sby` files only from a checked template; UUID work folders removed only after a path check; file-reading code refused; no server paths in results. 13 hardening findings fixed with regression tests (ADR 0020). CI installs OSS CAD Suite and runs the real-solver tests.

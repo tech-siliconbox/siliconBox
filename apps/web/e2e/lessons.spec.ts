@@ -151,8 +151,7 @@ test('a learner reads the preview, is refused the paid lesson, then reads it onc
   await expect(page.locator('[data-watermark] text')).toContainText('lea…@example.test');
   await expect(page.getByText(DRAFT)).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Invented heading' })).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Invented diagram' })).toBeVisible();
-  expect(await page.content()).not.toContain('onload');
+  await expectEveryBlockRenders(page);
 
   // Progress: mark done here, see it on the outline.
   await page.getByRole('button', { name: 'Mark as done' }).click();
@@ -168,6 +167,23 @@ test('a learner reads the preview, is refused the paid lesson, then reads it onc
   expect(api.headers()['cache-control']).toBe('private, no-store');
   expect(JSON.stringify(await api.json())).toMatch(INVISIBLE_MARK);
 });
+
+/** The lesson fixture holds every block type (EVERY_OTHER_BLOCK); each must render and work. */
+async function expectEveryBlockRenders(page: Page): Promise<void> {
+  await expect(page.getByRole('img', { name: 'Invented diagram' })).toBeVisible();
+  expect(await page.content()).not.toContain('onload');
+  await expect(page.getByText('Invented caption.')).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Invented column' })).toBeVisible();
+  await page.getByText('Show answer').click();
+  await expect(page.getByText('answer.')).toBeVisible();
+  await page.getByText('Show invented hints').click();
+  await expect(page.getByText('hint.')).toBeVisible();
+  // The state graph comes from the lesson; the site only animates it.
+  await page.getByRole('button', { name: 'Run formal' }).click();
+  await expect(page.getByText(/Shortest counterexample \(2 cycles\): S0 → S1 → S2/)).toBeVisible();
+  await page.getByRole('button', { name: 'Run 1000 tests' }).click();
+  await expect(page.getByText('Tests run: 1000')).toBeVisible();
+}
 
 async function expectNoPaidTextInScripts(page: Page): Promise<void> {
   const sources = await page

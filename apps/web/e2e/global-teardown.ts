@@ -37,8 +37,9 @@ async function removeTestContent(db: Db): Promise<void> {
     .collection('drills')
     .find({ slug: TEST_SLUG }, { projection: { _id: 1 } })
     .toArray();
+  // Payload stores the `drill_private` collection as `drill_privates`.
   await db
-    .collection('drill_private')
+    .collection('drill_privates')
     .deleteMany({ drill: { $in: drills.map((drill) => drill._id) } });
   for (const name of ['drills', 'lessons', 'modules', 'courses']) {
     const docs = await db

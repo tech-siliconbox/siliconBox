@@ -1,11 +1,11 @@
 import 'server-only';
-import { createHash } from 'node:crypto';
 import {
   PublicIdSchema,
   type RunInput,
   type RunView,
   dailyRunQuota,
-  isDrillSolved,
+  drillSolved,
+  meetsTarget,
 } from '@siliconbox/shared';
 import { type DrillForRun, findPublishedDrillForRun } from '@/db/content';
 import { findEntitlements } from '@/db/entitlements';
@@ -17,24 +17,29 @@ import {
   finishRun,
   insertRun,
   saveCachedResult,
+  saveGrading,
   updateRunState,
 } from '@/db/runs';
 import type { Identity } from './auth/authenticate';
+import { jobHash, solverJob } from './drill-jobs';
 import { assertEntitled } from './entitlements';
 import { AppError } from './errors';
+import { advanceGrading, gradingView, startGrading } from './grading';
 import { redisRateLimiter } from './rate-limit';
-import { type SolverJob, readJob, submitJob } from './solver-client';
+import { readJob, submitJob } from './solver-client';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function toView(run: RunRecord): RunView {
+  const grading = gradingView(run.grading);
   return {
     id: run.publicId,
     drillId: run.drillId,
     state: run.state,
     position: run.position,
     result: run.result,
-    solved: run.result === null ? null : isDrillSolved(run.target, run.result.status),
+    grading,
+    solved: drillSolved(run.target, run.result?.status ?? null, grading),
     createdAt: run.createdAt.toISOString(),
   };
 }
@@ -44,26 +49,6 @@ async function requireDrill(drillId: string): Promise<DrillForRun> {
   const drill = id.success ? await findPublishedDrillForRun(id.data) : null;
   if (drill === null) throw new AppError('NOT_FOUND', `no published drill ${drillId}`);
   return drill;
-}
-
-/** The learner's code against the Drill's own design and settings (CLAUDE.md rule 6). */
-function solverJob(drill: DrillForRun, properties: string): SolverJob {
-  return {
-    design: drill.designCode,
-    properties,
-    settings: {
-      mode: drill.mode,
-      solver: drill.solver,
-      depth: drill.depth,
-      timeoutSeconds: drill.timeoutSeconds,
-      topModule: drill.designCode.trim() === '' ? null : drill.topModule,
-    },
-  };
-}
-
-/** Same code, same Drill design and settings: same answer. */
-function jobHash(job: SolverJob): string {
-  return createHash('sha256').update(JSON.stringify(job)).digest('hex');
 }
 
 /** Runs per day follow the learner's highest active level; refused once used up. */
@@ -82,8 +67,39 @@ function newRun(identity: Identity, drill: DrillForRun, input: RunInput, hash: s
     requestId: input.requestId,
     target: drill.target,
     hash,
+    properties: input.properties,
+    grading: null,
     createdAt: new Date(),
   };
+}
+
+/**
+ * Moves a finished run on to grading (ADR 0021): once the visible design gives the target, the
+ * hidden designs are queued; afterwards their answers are collected as they arrive.
+ */
+async function settleGrading(run: RunRecord, drill?: DrillForRun): Promise<RunRecord> {
+  if (run.result === null || !meetsTarget(run.target, run.result.status)) return run;
+  const grading =
+    run.grading === null
+      ? await startGrading(run.userId, drill ?? (await requireDrill(run.drillId)), run.properties)
+      : await advanceGrading(run.userId, run.grading);
+  if (JSON.stringify(grading) !== JSON.stringify(run.grading)) {
+    await saveGrading(run.publicId, grading);
+  }
+  return { ...run, grading };
+}
+
+/** Takes the visible job's answer from the solver once it is done, and stores it for good. */
+async function settleVisible(run: RunRecord): Promise<RunRecord> {
+  if (run.state === 'done' || run.jobId === null) return run;
+  const job = await readJob(run.userId, run.jobId);
+  if (job.state === 'done' && job.result !== null) {
+    await finishRun(run.publicId, job.result);
+    await saveCachedResult(run.hash, job.result);
+    return { ...run, state: 'done', position: null, result: job.result };
+  }
+  await updateRunState(run.publicId, job.state, job.position);
+  return { ...run, state: job.state, position: job.position };
 }
 
 /**
@@ -102,20 +118,19 @@ export async function startRun(
   if (retried !== null) return toView(retried);
 
   const job = solverJob(drill, input.properties);
-  const hash = jobHash(job);
-  const base = newRun(identity, drill, input, hash);
-  const cached = await findCachedResult(hash);
+  const base = newRun(identity, drill, input, jobHash(job));
+  const cached = await findCachedResult(base.hash);
   if (cached !== null) {
-    const run = {
+    const run: RunRecord = {
       ...base,
       jobId: null,
       state: 'done',
       position: null,
       result: cached,
       cached: true,
-    } as const;
-    await insertRun(run, input.properties);
-    return toView(run);
+    };
+    await insertRun(run);
+    return toView(await settleGrading(run, drill));
   }
 
   await spendDailyRun(identity, now);
@@ -128,23 +143,14 @@ export async function startRun(
     result: null,
     cached: false,
   };
-  await insertRun(run, input.properties);
+  await insertRun(run);
   return toView(run);
 }
 
-/** The learner's own run; refreshed from the solver until it finishes, then stored for good. */
+/** The learner's own run, moved on from the solver and grading until both are finished. */
 export async function readRun(identity: Identity, runId: string): Promise<RunView> {
   const id = PublicIdSchema.safeParse(runId);
   const run = id.success ? await findRun(identity.userId, id.data) : null;
   if (run === null) throw new AppError('NOT_FOUND', `no run ${runId} for ${identity.userId}`);
-  if (run.state === 'done' || run.jobId === null) return toView(run);
-
-  const job = await readJob(identity.userId, run.jobId);
-  if (job.state === 'done' && job.result !== null) {
-    await finishRun(run.publicId, job.result);
-    await saveCachedResult(run.hash, job.result);
-    return toView({ ...run, state: 'done', position: null, result: job.result });
-  }
-  await updateRunState(run.publicId, job.state, job.position);
-  return toView({ ...run, state: job.state, position: job.position });
+  return toView(await settleGrading(await settleVisible(run)));
 }

@@ -34,7 +34,7 @@ checklists: `docs/roadmap/`.
 | Access rules | Prices, upgrades, content and tool windows as pure, tested rules (entitlement matrix rows 1 to 16) |
 | Accounts | Sign-up and sign-in (breached passwords refused), Google when configured, two-factor with backup codes, one device at a time with a "signed in elsewhere" message, sign-ins audited |
 | Protection | Every API route through one gate (origin, session, rate limit, validation, entitlement), nonce CSP, security headers, visible and invisible watermarks |
-| Content | Payload CMS at `/admin` with Author, Editor, Support and Owner roles, drafts and versions; courses, modules and lessons with six block types; JSON importer; 3 demo courses with 10 modules each (original demo text, to be replaced by the real content) |
+| Content | Payload CMS at `/admin` with Author, Editor, Support and Owner roles, drafts and versions; courses, modules and lessons with ten block types (including tables, answers, reveals and an interactive state graph); HTML converter and JSON importer; the real Basic course imported; 3 demo courses with 10 modules each (original demo text, to be replaced by the real content) |
 | Support | Grant, extend or shorten a learner's access in the admin, with a reason, audited |
 | Learning | Public course outlines; lesson page and API that serve published lessons only to entitled learners, paced (per minute and per day) and watermarked; progress marks |
 | Question bank | Public, searchable list with company tags and years; answers for learners with active access |

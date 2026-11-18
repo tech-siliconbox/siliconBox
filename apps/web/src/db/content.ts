@@ -8,6 +8,8 @@ import {
   type Level,
   LevelSchema,
   PublicIdSchema,
+  type PublishedDrill,
+  PublishedDrillSchema,
   type PublishedLesson,
   PublishedLessonSchema,
   TOP_MODULE_PATTERN,
@@ -48,23 +50,30 @@ function withModuleAndCourse(moduleField: string): Document[] {
   ];
 }
 
-export async function findPublishedLesson(
+/** A published document by public id, with the level of the course it belongs to. */
+async function findPublishedWithLevel(
+  collection: string,
   publicId: string,
-): Promise<{ lesson: PublishedLesson; level: Level } | null> {
+): Promise<{ document: Document; level: Level } | null> {
   const [found] = await getDb()
-    .collection(COLLECTIONS.lessons)
+    .collection(collection)
     .aggregate([
       { $match: { publicId, _status: PUBLISHED } },
       { $limit: 1 },
       ...withModuleAndCourse('module'),
-      { $project: { _id: 0, lesson: '$$ROOT', level: '$course.level' } },
+      { $project: { _id: 0, document: '$$ROOT', level: '$course.level' } },
     ])
     .toArray();
-  if (found === undefined) return null;
-  return {
-    lesson: PublishedLessonSchema.parse(found.lesson),
-    level: LevelSchema.parse(found.level),
-  };
+  return found === undefined
+    ? null
+    : { document: found.document as Document, level: LevelSchema.parse(found.level) };
+}
+
+export async function findPublishedLesson(
+  publicId: string,
+): Promise<{ lesson: PublishedLesson; level: Level } | null> {
+  const found = await findPublishedWithLevel(COLLECTIONS.lessons, publicId);
+  return found && { lesson: PublishedLessonSchema.parse(found.document), level: found.level };
 }
 
 const DrillForRunSchema = z.object({
@@ -80,24 +89,30 @@ const DrillForRunSchema = z.object({
   timeoutSeconds: z.number().int().positive(),
   topModule: z.string().regex(TOP_MODULE_PATTERN),
 });
-export type DrillForRun = z.infer<typeof DrillForRunSchema> & { level: Level };
+/** `cmsId` links the Drill to its private part, which only grading may read (ADR 0021). */
+export type DrillForRun = z.infer<typeof DrillForRunSchema> & { level: Level; cmsId: unknown };
+
+/** A published Drill as the learner sees it, with its level. Never its private part. */
+export async function findPublishedDrill(
+  publicId: string,
+): Promise<{ drill: PublishedDrill; level: Level } | null> {
+  const found = await findPublishedWithLevel(COLLECTIONS.drills, publicId);
+  return found && { drill: PublishedDrillSchema.parse(found.document), level: found.level };
+}
 
 /** A published Drill's design and solver settings, for starting a run. Never its private part. */
 export async function findPublishedDrillForRun(publicId: string): Promise<DrillForRun | null> {
-  const [found] = await getDb()
-    .collection(COLLECTIONS.drills)
-    .aggregate([
-      { $match: { publicId, _status: PUBLISHED } },
-      { $limit: 1 },
-      ...withModuleAndCourse('module'),
-      { $project: { _id: 0, drill: '$$ROOT', level: '$course.level' } },
-    ])
-    .toArray();
-  if (found === undefined) return null;
-  return { ...DrillForRunSchema.parse(found.drill), level: LevelSchema.parse(found.level) };
+  const found = await findPublishedWithLevel(COLLECTIONS.drills, publicId);
+  return (
+    found && {
+      ...DrillForRunSchema.parse(found.document),
+      level: found.level,
+      cmsId: found.document._id,
+    }
+  );
 }
 
-/** Published courses with module and lesson titles only. Never lesson text. */
+/** Published courses with module, lesson and Drill titles only. Never lesson or Drill text. */
 export async function findCourseOutlines(slug?: string): Promise<CourseOutline[]> {
   const documents = await getDb()
     .collection(COLLECTIONS.courses)
@@ -125,7 +140,20 @@ export async function findCourseOutlines(slug?: string): Promise<CourseOutline[]
                 ],
               },
             },
-            { $project: { _id: 0, title: 1, summary: 1, lessons: 1 } },
+            {
+              $lookup: {
+                from: COLLECTIONS.drills,
+                localField: '_id',
+                foreignField: 'module',
+                as: 'drills',
+                pipeline: [
+                  { $match: { _status: PUBLISHED } },
+                  { $sort: { order: 1 } },
+                  { $project: { _id: 0, publicId: 1, title: 1 } },
+                ],
+              },
+            },
+            { $project: { _id: 0, title: 1, summary: 1, lessons: 1, drills: 1 } },
           ],
         },
       },

@@ -4,7 +4,8 @@ import { contentAccess } from '../access';
 /**
  * The private half of a Drill. Never sent to learners: the learner-facing database user cannot
  * read this collection, and only the solver's runner will use it (phase 3).
- * Publish gate (phase 3): the reference solution must PASS and every variant must FAIL.
+ * Publish gate (`pnpm drills:verify`): the reference solution gives the Drill's target on its
+ * design, PASSes on the reference design and FAILs on every bug variant.
  */
 export const DrillPrivate: CollectionConfig = {
   slug: 'drill_private',
@@ -18,6 +19,15 @@ export const DrillPrivate: CollectionConfig = {
       type: 'code',
       required: true,
       admin: { language: 'systemverilog' },
+    },
+    {
+      name: 'referenceDesign',
+      type: 'code',
+      admin: {
+        language: 'systemverilog',
+        description:
+          'The correct design, when learners are shown a buggy one: the reference solution must PASS on it.',
+      },
     },
     { name: 'hiddenProperties', type: 'code', admin: { language: 'systemverilog' } },
     {

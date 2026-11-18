@@ -1,5 +1,5 @@
 {
-  "comment": "Least-privilege roles for the SiliconBox database. Read by create-app-role.js (mongosh) and atlas-roles.mjs (Atlas). Deliberately absent from siliconboxApp: answers and drill_private (hidden material), the migration collections, and update/remove on audit_log (append-only).",
+  "comment": "Least-privilege roles for the SiliconBox database. Read by create-app-role.js (mongosh) and atlas-roles.mjs (Atlas). Deliberately absent from siliconboxApp: answers and drill_privates (hidden material; Payload stores the drill_private collection under that plural name), the migration collections, and update/remove on audit_log (append-only). siliconboxGrader reads drill_privates only, to grade Drill runs (ADR 0021).",
   "database": "siliconbox",
   "roles": {
     "siliconboxApp": {
@@ -25,6 +25,9 @@
     },
     "siliconboxAnswersReader": {
       "readOnly": ["answers"]
+    },
+    "siliconboxGrader": {
+      "readOnly": ["drill_privates"]
     }
   }
 }

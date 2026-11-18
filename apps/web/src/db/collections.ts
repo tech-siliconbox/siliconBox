@@ -16,6 +16,8 @@ export const COLLECTIONS = {
   modules: 'modules',
   lessons: 'lessons',
   drills: 'drills',
+  // Payload stores the `drill_private` collection under this plural name.
+  drillPrivate: 'drill_privates',
   runs: 'runs',
   runCache: 'run_cache',
   questions: 'questions',

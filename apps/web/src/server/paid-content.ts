@@ -25,9 +25,22 @@ export function learnerMarkCode(userId: string): number {
 
 /** Hides the learner's code in every passage of prose; code samples stay untouched. */
 export function markBlocks(blocks: LessonBlock[], code: number): LessonBlock[] {
-  return blocks.map((block) =>
-    block.blockType === 'paragraph' || block.blockType === 'callout'
-      ? { ...block, text: embedMark(block.text, code) }
-      : block,
-  );
+  return blocks.map((block) => markBlock(block, code));
+}
+
+function markBlock<Block extends LessonBlock>(block: Block, code: number): Block {
+  switch (block.blockType) {
+    case 'paragraph':
+    case 'callout':
+      return { ...block, text: embedMark(block.text, code) };
+    case 'list':
+      return {
+        ...block,
+        items: block.items.map((item) => ({ ...item, text: embedMark(item.text, code) })),
+      };
+    case 'reveal':
+      return { ...block, content: block.content.map((inner) => markBlock(inner, code)) };
+    default:
+      return block;
+  }
 }
