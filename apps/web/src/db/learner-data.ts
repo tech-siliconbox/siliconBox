@@ -15,6 +15,9 @@ const LEARNER_DATA = [
   'cvScreenings',
   'profiles',
   'avatars',
+  'assessmentAttempts',
+  'capstoneSubmissions',
+  'capstoneFiles',
   'watermarkCodes',
   'endedSessions',
 ] as const;

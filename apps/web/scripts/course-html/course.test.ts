@@ -101,3 +101,85 @@ describe('convertCourse: one page per module, all content kept', () => {
     );
   });
 });
+
+// An invented last module: a capstone rubric and a two-question assessment with its key.
+const FINAL = page(
+  'Module 2: Invented Finale',
+  `<h1>Invented Finale</h1>
+  <h2>2.1 Capstone project</h2><p>Build an invented thing.</p>
+  <h2>2.2 Grading rubric (100 points)</h2>
+  <table><thead><tr><th>Criterion</th><th>Points</th><th>What earns full marks</th></tr></thead>
+  <tbody><tr><td>Plan</td><td>40</td><td>Every <code>req</code> covered</td></tr>
+  <tr><td>Report</td><td>60</td><td>Clear</td></tr></tbody></table>
+  <p>A score of <strong>70 or more</strong> is required to pass the capstone.</p>
+  <h2>2.3 Assessment: 2 questions</h2>
+  <p>Choose the best answer. The answer key is at the end. Passing score: <strong>1 of 2</strong>.</p>
+  <h3>Invented topic</h3>
+  <ol><li>Which is <em>invented</em>?<ul><li>A) This</li><li>B) That</li></ul></li>
+  <li>Second?<ul><li>A) Yes</li><li>B) No</li></ul></li></ol>
+  <h3>Answer key</h3>
+  <details><summary>Show</summary><table><thead><tr><th>Q</th><th>Answer</th><th>Why</th></tr></thead>
+  <tbody><tr><td>1</td><td>B</td><td>Because <code>that</code>.</td></tr><tr><td>2</td><td>A</td><td>Yes.</td></tr></tbody></table></details>
+  <h2>2.4 What next</h2><p>Invented ending.</p>`,
+);
+
+describe('convertCourse: graded course work (ADR 0029)', () => {
+  const converted = convertCourse(
+    {
+      pages: [
+        { file: 'index.html', html: INDEX },
+        { file: '01-a.html', html: MODULE },
+        { file: '02-b.html', html: FINAL },
+      ],
+      stylesheet: CSS,
+      stateGraphScript: null,
+    },
+    { slug: 'basic', level: 'basic', order: 1, drillsByModule: new Map() },
+  );
+  const finale = converted.content.courses[0]?.modules[1];
+  const blocks = finale?.lessons[0]?.blocks ?? [];
+  const html = blocks.map((block) => (block.blockType === 'html' ? block.html : '')).join('');
+
+  it('takes the questions and the key out of the page into a graded assessment', () => {
+    expect(finale?.assessment).toMatchObject({
+      slug: 'basic-module-02-assessment',
+      title: 'Assessment: 2 questions',
+      passMark: 1,
+      status: 'published',
+      key: [
+        { correct: 'B', why: 'Because <code>that</code>.' },
+        { correct: 'A', why: 'Yes.' },
+      ],
+    });
+    expect(finale?.assessment?.questions[0]).toEqual({
+      topic: 'Invented topic',
+      html: 'Which is <em>invented</em>?',
+      options: [{ html: 'This' }, { html: 'That' }],
+    });
+    expect(html).not.toContain('Answer key');
+    expect(html).not.toContain('Which is');
+    expect(html).toContain('2.3 Assessment: 2 questions');
+    expect(html).toContain('Invented ending.');
+  });
+
+  it('makes the rubric the capstone and puts both blocks where they stood', () => {
+    expect(finale?.capstone).toMatchObject({
+      slug: 'basic-module-02-capstone',
+      title: 'Capstone project',
+      passMark: 70,
+      rubric: [
+        { criterion: 'Plan', points: 40, fullMarks: 'Every <code>req</code> covered' },
+        { criterion: 'Report', points: 60, fullMarks: 'Clear' },
+      ],
+    });
+    expect(blocks.map((block) => block.blockType)).toEqual([
+      'html',
+      'capstoneEmbed',
+      'html',
+      'assessmentEmbed',
+      'html',
+    ]);
+    expect(html).toContain('A score of <strong>70 or more</strong>');
+    expect(converted.notes.some((note) => note.includes('graded assessment'))).toBe(true);
+  });
+});

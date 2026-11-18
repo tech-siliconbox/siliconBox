@@ -6,7 +6,7 @@ import { Avatar } from '@/components/shared/avatar';
 import { SiteLink } from '@/components/ui/site-link';
 import { authClient } from '@/lib/auth-client';
 import { MEMBER_PAGES } from '@/lib/member-pages';
-import { useAuthAction } from '../hooks/use-auth-action';
+import { useFormAction } from '@/hooks/use-form-action';
 
 const ITEM = 'block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-muted';
 
@@ -34,7 +34,7 @@ function useDismiss(open: boolean, close: () => void) {
 type MenuPanelProps = { name: string; email: string; onNavigate: () => void };
 
 function MenuPanel({ name, email, onNavigate }: MenuPanelProps) {
-  const { pending, run } = useAuthAction(ROUTES.home);
+  const { pending, run } = useFormAction(ROUTES.home);
   return (
     <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-card border border-border bg-background">
       <div className="border-b border-border px-4 py-3">

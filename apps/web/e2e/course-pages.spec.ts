@@ -77,8 +77,6 @@ async function publishCoursePage(editor: APIRequestContext): Promise<void> {
 test('a module page is whole, in the site design, with its Drill after the lab', async ({
   page,
 }) => {
-  // Publishes a course, a Drill and a lesson, then signs a learner up: more than the default.
-  test.setTimeout(60_000);
   await publishCoursePage(await signInAsAdmin('editor'));
   failOnCspViolation(page);
 

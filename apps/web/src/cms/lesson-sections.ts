@@ -9,7 +9,9 @@ import { parseHtml, renderHtml } from '../lib/html-document';
 // holds, with hands-on parts weighted up because they are done, not read. Hidden answers
 // do not count. The shares are rounded and always add up to the lesson's time.
 
-const WEIGHT = { word: 1, codeLine: 4, figure: 150 } as const;
+// An assessment's questions live in their own document; weigh it like a short practice set
+// (30 questions come to about an hour in an eight-hour module).
+const WEIGHT = { word: 1, codeLine: 4, figure: 150, assessment: 400 } as const;
 const KIND_FACTOR: Record<SectionKind, number> = { theory: 1, practice: 3, lab: 6, project: 12 };
 const ROUNDING_MINUTES = { long: 5, short: 1 } as const;
 const LONG_LESSON_MINUTES = 60;
@@ -95,6 +97,9 @@ export function deriveSections<B extends Block>(
   const anchored = blocks.map((block) => {
     if (block.blockType === 'drillEmbed' && walk.current) walk.current.hasDrill = true;
     if (block.blockType === 'stateGraph' && walk.current) walk.current.weight += WEIGHT.figure;
+    if (block.blockType === 'assessmentEmbed' && walk.current) {
+      walk.current.weight += WEIGHT.assessment;
+    }
     if (block.blockType !== 'html' || typeof block.html !== 'string') return block;
     const document = parseHtml(block.html);
     weigh(document.children, walk, false);

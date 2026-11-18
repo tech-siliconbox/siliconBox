@@ -22,6 +22,8 @@ No route returns lesson, Drill, answer or question text; those reach the browser
 | `GET /api/v1/me` | Signed in | `read` |
 | `PUT /api/v1/profile` | Signed in; handle, bio and links (`ProfileSchema`); a taken handle is 409 | `write` |
 | `GET, PUT, DELETE /api/v1/profile/photo` | Signed in; the learner's own photo only. PUT takes a JPEG, PNG or WebP up to 5 MB, checked by its bytes and re-encoded | `read` / `photoUpload` (10 an hour) / `write` |
+| `POST /api/v1/assessments/:id/attempts` | Signed in; content access to the assessment's level; an answer for every question; at most 3 attempts. Returns the score only (ADR 0029) | `write` |
+| `PUT /api/v1/capstones/:id/submission` | Signed in; content access to the capstone's level; one .zip up to 10 MB, checked by its bytes; refused once passed | `capstoneUpload` (10 an hour) |
 | `GET /api/v1/me/export` | Signed in; the learner's own data as a JSON file, audit-logged (DPDP) | `dataExport` (5 an hour) |
 | `GET /api/v1/services` | Anyone | `read` |
 | `GET, PUT, DELETE /api/v1/resume`; `GET /api/v1/resume/pdf` | Signed in; service open and an active content entitlement (DELETE always allowed) | `read` / `write` |

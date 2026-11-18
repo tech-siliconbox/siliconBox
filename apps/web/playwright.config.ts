@@ -8,6 +8,9 @@ export default defineConfig({
   globalTeardown: './e2e/global-teardown.ts',
   fullyParallel: false,
   forbidOnly: process.env.CI !== undefined,
+  // Many tests create CMS admins (each a `payload run` process) and sign learners up; with
+  // several workers sharing the machine that takes longer than Playwright's 30 s default.
+  timeout: 60_000,
   use: { baseURL: BASE_URL, trace: 'retain-on-failure' },
   webServer: {
     command: `pnpm start --port ${new URL(BASE_URL).port || '3000'}`,

@@ -13,6 +13,8 @@ export const AuditActionSchema = z.enum([
   // A learner downloaded their data, or deleted their account (DPDP).
   'data_export',
   'account_deleted',
+  // An expert graded a learner's capstone project (ADR 0029).
+  'capstone_graded',
 ]);
 export type AuditAction = z.infer<typeof AuditActionSchema>;
 

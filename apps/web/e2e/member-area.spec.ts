@@ -15,7 +15,6 @@ const FAQ = `Invented FAQ e2e-${run}: how do Drills work?`;
 test.describe.configure({ mode: 'serial' });
 
 test('a finished lesson shows on the Overview and on Activity', async ({ page }) => {
-  test.setTimeout(60_000);
   const editor = await signInAsAdmin('editor');
   const course = await createDoc(editor, 'courses', {
     title: `Invented member course ${run}`,
@@ -72,7 +71,6 @@ test('a finished lesson shows on the Overview and on Activity', async ({ page })
 test('Settings change the name and password and show what the learner may open', async ({
   page,
 }) => {
-  test.setTimeout(60_000);
   failOnCspViolation(page);
   const learner = newLearner();
   await signUp(page, learner);
@@ -119,7 +117,6 @@ test('a learner fills in their profile and photo; a handle belongs to one learne
   page,
   browser,
 }) => {
-  test.setTimeout(60_000);
   failOnCspViolation(page);
   await signUp(page, newLearner());
   await page.goto(ROUTES.settings);
@@ -187,7 +184,6 @@ async function downloadData(page: Page): Promise<Record<string, unknown>> {
 }
 
 test('a learner downloads their data, then deletes the account', async ({ page, request }) => {
-  test.setTimeout(60_000);
   expect((await request.get(API_ROUTES.dataExport)).status()).toBe(401);
   failOnCspViolation(page);
   const learner = newLearner();

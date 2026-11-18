@@ -8,7 +8,7 @@ import {
   type RevealContentBlock,
   SLUG_PATTERN,
 } from '@siliconbox/shared';
-import type { Block } from 'payload';
+import type { Block, Field } from 'payload';
 
 // Editor forms for the block types in packages/shared/src/schemas/lesson.ts. No video block.
 // Text fields use the lesson text format: `code`, **bold**, *italic*; in multi-line fields a
@@ -165,6 +165,16 @@ const label = (name: string) => ({ name, type: 'text', required: true, maxLength
 const coordinate = (name: string) =>
   ({ name, type: 'number', required: true, min: 0, max: STATE_GRAPH_LIMITS.canvas }) as const;
 
+/** The slug of another published document shown inside the page. */
+const slugReference = (name: string, description: string): Field => ({
+  name,
+  type: 'text',
+  required: true,
+  validate: (value: unknown) =>
+    typeof value === 'string' && SLUG_PATTERN.test(value) ? true : 'Use a slug.',
+  admin: { description },
+});
+
 export const LESSON_BLOCKS: LessonBlockConfig[] = [
   ...CONTENT_BLOCKS,
   {
@@ -186,16 +196,19 @@ export const LESSON_BLOCKS: LessonBlockConfig[] = [
   {
     slug: 'drillEmbed',
     labels: { singular: 'Drill (practice in the tool)', plural: 'Drills' },
+    fields: [slugReference('drill', 'Slug of a published Drill, shown here with the tool.')],
+  },
+  {
+    slug: 'assessmentEmbed',
+    labels: { singular: 'Assessment (graded)', plural: 'Assessments' },
     fields: [
-      {
-        name: 'drill',
-        type: 'text',
-        required: true,
-        validate: (value: unknown) =>
-          typeof value === 'string' && SLUG_PATTERN.test(value) ? true : 'Use the Drill slug.',
-        admin: { description: 'Slug of a published Drill, shown here with the tool.' },
-      },
+      slugReference('assessment', 'Slug of a published assessment, answered and graded here.'),
     ],
+  },
+  {
+    slug: 'capstoneEmbed',
+    labels: { singular: 'Capstone (rubric and upload)', plural: 'Capstones' },
+    fields: [slugReference('capstone', 'Slug of a published capstone: its rubric and upload.')],
   },
   {
     slug: 'reveal',

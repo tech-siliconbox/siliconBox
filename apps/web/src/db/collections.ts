@@ -28,5 +28,12 @@ export const COLLECTIONS = {
   resumes: 'resumes',
   cvScreenings: 'cv_screenings',
   profiles: 'profiles',
+  assessments: 'assessments',
+  // Read only through the grader connection (db/grading.ts).
+  assessmentKeys: 'assessment_keys',
+  assessmentAttempts: 'assessment_attempts',
+  capstones: 'capstones',
+  capstoneSubmissions: 'capstone_submissions',
+  capstoneFiles: 'capstone_files',
   avatars: 'avatars',
 } as const;

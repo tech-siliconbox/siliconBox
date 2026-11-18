@@ -4,7 +4,7 @@ import { ACCOUNT_DELETED, ROUTES } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { authClient } from '@/lib/auth-client';
 import { formValue } from '../form-value';
-import { AuthForm } from './auth-form';
+import { ActionForm } from '@/components/shared/action-form';
 import { PasswordField } from './password-field';
 
 const SIGN_IN_AGAIN = 'For your safety, sign in again, then delete your account within a day.';
@@ -29,7 +29,7 @@ export function DeleteAccountForm({ email, withPassword }: DeleteAccountFormProp
       : result;
   }
   return (
-    <AuthForm
+    <ActionForm
       next={`${ROUTES.signIn}?reason=${ACCOUNT_DELETED}`}
       submitLabel="Delete my account"
       pendingLabel="Deleting…"
@@ -41,6 +41,6 @@ export function DeleteAccountForm({ email, withPassword }: DeleteAccountFormProp
       ) : (
         <TextField label={`Type ${email} to confirm`} name="confirm" autoComplete="off" required />
       )}
-    </AuthForm>
+    </ActionForm>
   );
 }

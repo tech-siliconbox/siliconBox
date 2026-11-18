@@ -3,8 +3,8 @@
 import { ROUTES } from '@siliconbox/shared';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
-import { useAuthAction } from '../hooks/use-auth-action';
-import { FormError } from './form-error';
+import { useFormAction } from '@/hooks/use-form-action';
+import { FormError } from '@/components/ui/form-error';
 
 /** Google's "G" mark, in its own colours as Google's sign-in branding guidelines require. */
 function GoogleLogo() {
@@ -32,7 +32,7 @@ function GoogleLogo() {
 
 /** Sign in or sign up with Google: the standard white button with Google's mark. */
 export function GoogleButton() {
-  const { pending, error, run } = useAuthAction(null);
+  const { pending, error, run } = useFormAction(null);
   const signIn = () =>
     run(() =>
       authClient.signIn.social({

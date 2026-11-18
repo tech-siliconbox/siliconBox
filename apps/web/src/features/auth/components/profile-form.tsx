@@ -10,9 +10,9 @@ import {
 } from '@siliconbox/shared';
 import { TextAreaField } from '@/components/ui/text-area-field';
 import { TextField } from '@/components/ui/text-field';
-import { apiResult } from '@/lib/api-error';
+import { sendToApi } from '@/lib/api-error';
 import { formValue } from '../form-value';
-import { AuthForm } from './auth-form';
+import { ActionForm } from '@/components/shared/action-form';
 
 const optional = (value: string) => value.trim() || null;
 
@@ -30,18 +30,17 @@ function profileFrom(form: FormData) {
 async function saveProfile(form: FormData) {
   const parsed = profileFrom(form);
   if (!parsed.success) return { error: { message: parsed.error.issues[0]?.message } };
-  const response = await fetch(API_ROUTES.profile, {
+  return sendToApi(API_ROUTES.profile, {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(parsed.data),
-  }).catch(() => null);
-  return apiResult(response);
+  });
 }
 
 /** The handle, bio and links others will see. */
 export function ProfileForm({ profile }: { profile: Profile }) {
   return (
-    <AuthForm
+    <ActionForm
       next={ROUTES.settings}
       submitLabel="Save profile"
       pendingLabel="Saving…"
@@ -72,6 +71,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           placeholder={example}
         />
       ))}
-    </AuthForm>
+    </ActionForm>
   );
 }

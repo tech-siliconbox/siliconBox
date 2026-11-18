@@ -3,30 +3,30 @@
 import { ROUTES } from '@siliconbox/shared';
 import type { ReactNode, SubmitEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { type AuthResult, useAuthAction } from '../hooks/use-auth-action';
-import { FormError } from './form-error';
+import { type FormResult, useFormAction } from '@/hooks/use-form-action';
+import { FormError } from '@/components/ui/form-error';
 
-type AuthFormProps = {
+type ActionFormProps = {
   /** Where to go on success; null stays on the page. Defaults to the dashboard. */
   next?: string | null;
   submitLabel: string;
   pendingLabel: string;
   /** "secondary" beside a main action; "danger" for what cannot be undone. */
   submitVariant?: 'primary' | 'secondary' | 'danger';
-  submit: (form: FormData) => Promise<AuthResult>;
+  submit: (form: FormData) => Promise<FormResult>;
   children: ReactNode;
 };
 
-/** Fields, error and submit button shared by every auth form. */
-export function AuthForm({
+/** A form whose submit calls an action (auth or our API): fields, its error and the button. */
+export function ActionForm({
   next = ROUTES.dashboard,
   submitLabel,
   pendingLabel,
   submitVariant = 'primary',
   submit,
   children,
-}: AuthFormProps) {
-  const { pending, error, run } = useAuthAction(next);
+}: ActionFormProps) {
+  const { pending, error, run } = useFormAction(next);
 
   function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();

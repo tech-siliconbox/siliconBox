@@ -20,7 +20,11 @@ shows the markup in its own design (`apps/web/src/app/(site)/lesson-content.css`
 colour coding of boxes. The course stylesheet is read only for diagram colours, which are
 written onto the SVG. The simulation-vs-formal figure becomes a `stateGraph` block read from
 `assets/sim-vs-formal.js` (never run). With a drills import file, each module's Drills follow
-its lab as `drillEmbed` blocks, so learners practise on the page. Every change (scripts and
+its lab as `drillEmbed` blocks, so learners practise on the page. A section headed "Assessment"
+(questions in a numbered list with `A)` to `D)` options, a "Passing score: N of M" line and an
+answer-key table) becomes the module's graded `assessment`, its key kept out of the page; a
+rubric table (Criterion, Points, What earns full marks) becomes its `capstone` (ADR 0029). Each
+is replaced in the page by its block. Every change (scripts and
 inline styles removed) is printed at the end of the run. Then import the file as below.
 
 The Basic course was converted and imported on 2026-11-18 from `~/Desktop/SB/course/basic`
@@ -59,7 +63,12 @@ be tried; the real course content replaces them by re-using the same slugs.
   "Show hints" and the blocks it hides) and `stateGraph` (an interactive simulation-vs-formal
   figure: panel titles and texts, `testLength`, `states` and `transitions`), `html` (an author's
   page markup, ADR 0024: sanitised on every render, links written `lesson:<slug>`) and
-  `drillEmbed` (a Drill slug: the Drill's brief and editor in the page). No video.
+  `drillEmbed` (a Drill slug: the Drill's brief and editor in the page), `assessmentEmbed` and
+  `capstoneEmbed` (graded course work by slug, ADR 0029). No video.
+- A module may hold an `assessment` (`slug`, `title`, `passMark`, `questions` with `topic`,
+  `html` and `options`, and a `key` with each question's `correct` letter and optional `why`)
+  and a `capstone` (`slug`, `title`, `passMark`, `rubric` of `criterion`, `points` and
+  `fullMarks`). The key is written to `assessment_keys`, which the site cannot read.
 - Text format: `` `code` `` (a longer fence such as ``` `` `define `` ``` holds a backtick),
   `**bold**`, `*italic*`, `\` escapes. In callouts, list items, answers and table cells a blank
   line starts a paragraph and lines beginning with `- ` are bullets

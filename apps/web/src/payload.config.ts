@@ -8,6 +8,9 @@ import { Answers } from './cms/collections/answers';
 import { Companies } from './cms/collections/companies';
 import { Courses } from './cms/collections/courses';
 import { DrillPrivate } from './cms/collections/drill-private';
+import { AssessmentKeys } from './cms/collections/assessment-keys';
+import { Assessments } from './cms/collections/assessments';
+import { Capstones } from './cms/collections/capstones';
 import { Faqs } from './cms/collections/faqs';
 import { Drills } from './cms/collections/drills';
 import { Lessons } from './cms/collections/lessons';
@@ -44,6 +47,9 @@ export default buildConfig({
     Lessons,
     Drills,
     DrillPrivate,
+    Assessments,
+    AssessmentKeys,
+    Capstones,
     Companies,
     Questions,
     Answers,

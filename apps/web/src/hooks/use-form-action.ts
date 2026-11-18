@@ -3,25 +3,25 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-/** An auth call's outcome. */
-export type AuthResult = { error: { message?: string | undefined } | null };
+/** A form action's outcome: no error, or the message to show. */
+export type FormResult = { error: { message?: string | undefined } | null };
 
 const FALLBACK_ERROR = 'Something went wrong. Please try again.';
 
 /**
- * Pending and error state for one auth call, then navigation to `next` on success.
+ * Pending and error state for one form action, then navigation to `next` on success.
  * Pass null to stay on the page (or when the auth library navigates by itself).
  * `run` resolves to whether the call succeeded.
  */
-export function useAuthAction(next: string | null) {
+export function useFormAction(next: string | null) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function run(action: () => Promise<AuthResult>): Promise<boolean> {
+  async function run(action: () => Promise<FormResult>): Promise<boolean> {
     setPending(true);
     setError(null);
-    const result: AuthResult = await action().catch(() => ({ error: { message: FALLBACK_ERROR } }));
+    const result: FormResult = await action().catch(() => ({ error: { message: FALLBACK_ERROR } }));
     setPending(false);
     if (result.error !== null) {
       setError(result.error.message ?? FALLBACK_ERROR);

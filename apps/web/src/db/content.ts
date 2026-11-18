@@ -10,6 +10,10 @@ import {
   PublicIdSchema,
   type PublishedDrill,
   PublishedDrillSchema,
+  type PublishedAssessment,
+  PublishedAssessmentSchema,
+  type PublishedCapstone,
+  PublishedCapstoneSchema,
   type PublishedLesson,
   PublishedLessonSchema,
   TOP_MODULE_PATTERN,
@@ -212,4 +216,87 @@ export async function findCourseOutlines(slug?: string): Promise<CourseOutline[]
     ])
     .toArray();
   return documents.map((document) => CourseOutlineSchema.parse(document));
+}
+
+/** A published assessment or capstone with its course, and the CMS id its private part refers to. */
+export type CourseWorkInCourse<T> = { work: T; cmsId: unknown; level: Level; courseSlug: string };
+
+async function findCourseWork<T>(
+  collection: string,
+  schema: z.ZodType<T>,
+  match: { publicId: string } | { slug: string },
+): Promise<CourseWorkInCourse<T> | null> {
+  const found = await findPublishedWithLevel(collection, match);
+  return (
+    found && {
+      work: schema.parse(found.document),
+      cmsId: found.document._id,
+      level: found.level,
+      courseSlug: found.courseSlug,
+    }
+  );
+}
+
+/** A published assessment (ADR 0029) by slug (its block) or public id (its API). */
+export const findPublishedAssessment = (match: { publicId: string } | { slug: string }) =>
+  findCourseWork<PublishedAssessment>(COLLECTIONS.assessments, PublishedAssessmentSchema, match);
+
+/** A published capstone (ADR 0029) by slug (its block) or public id (its API). */
+export const findPublishedCapstone = (match: { publicId: string } | { slug: string }) =>
+  findCourseWork<PublishedCapstone>(COLLECTIONS.capstones, PublishedCapstoneSchema, match);
+
+const CourseWorkRowSchema = z.object({
+  publicId: PublicIdSchema,
+  slug: z.string(),
+  title: z.string(),
+  passMark: z.number(),
+  /** Questions in an assessment; rubric points in a capstone. */
+  total: z.number(),
+  courseTitle: z.string(),
+  courseSlug: z.string(),
+  lessonSlug: z.string().nullish(),
+});
+export type CourseWorkRow = z.infer<typeof CourseWorkRowSchema>;
+
+/**
+ * Every published assessment or capstone, with its course and the module page that shows it,
+ * in course order: for the Performance page.
+ */
+export async function findCourseWorkList(
+  collection: 'assessments' | 'capstones',
+): Promise<CourseWorkRow[]> {
+  const rows = await getDb()
+    .collection(COLLECTIONS[collection])
+    .aggregate([
+      { $match: { _status: PUBLISHED } },
+      ...withModuleAndCourse('module'),
+      {
+        $lookup: {
+          from: COLLECTIONS.lessons,
+          localField: 'module._id',
+          foreignField: 'module',
+          as: 'lessons',
+          pipeline: [{ $match: { _status: PUBLISHED } }, { $sort: { order: 1 } }, { $limit: 1 }],
+        },
+      },
+      { $sort: { 'course.order': 1 } },
+      {
+        $project: {
+          _id: 0,
+          publicId: 1,
+          slug: 1,
+          title: 1,
+          passMark: 1,
+          total:
+            collection === 'assessments'
+              ? { $size: { $ifNull: ['$questions', []] } }
+              : { $sum: '$rubric.points' },
+          courseTitle: '$course.title',
+          courseSlug: '$course.slug',
+          lessonSlug: { $first: '$lessons.slug' },
+        },
+      },
+    ])
+    .toArray();
+  return rows.map((row) => CourseWorkRowSchema.parse(row));
 }

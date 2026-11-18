@@ -1,4 +1,5 @@
 import 'server-only';
+import { type KeyAnswer, KeyAnswerSchema } from '@siliconbox/shared';
 import type { Db, MongoClient } from 'mongodb';
 import { z } from 'zod';
 import { getConfig } from '@/server/config';
@@ -33,4 +34,17 @@ export async function findHiddenDesigns(drillCmsId: unknown): Promise<HiddenDesi
       { projection: { _id: 0, referenceDesign: 1, 'bugVariants.code': 1 } },
     );
   return found === null ? null : HiddenDesignsSchema.parse(found);
+}
+
+const AssessmentKeyRecordSchema = z.object({ answers: z.array(KeyAnswerSchema) });
+
+/** An assessment's hidden answer key (ADR 0029), or null when it has none yet. */
+export async function findAssessmentKey(assessmentCmsId: unknown): Promise<KeyAnswer[] | null> {
+  const found = await getGraderDb()
+    .collection(COLLECTIONS.assessmentKeys)
+    .findOne(
+      { assessment: assessmentCmsId },
+      { projection: { _id: 0, 'answers.correct': 1, 'answers.why': 1 } },
+    );
+  return found === null ? null : AssessmentKeyRecordSchema.parse(found).answers;
 }

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { TextField } from '@/components/ui/text-field';
 import { authClient } from '@/lib/auth-client';
 import { formValue } from '../form-value';
-import { AuthForm } from './auth-form';
+import { ActionForm } from '@/components/shared/action-form';
 
 /** Asks for a reset link. The answer is the same whether or not the account exists. */
 export function ForgotPasswordForm() {
@@ -19,7 +19,7 @@ export function ForgotPasswordForm() {
     );
   }
   return (
-    <AuthForm
+    <ActionForm
       next={null}
       submitLabel="Send reset link"
       pendingLabel="Sending…"
@@ -41,6 +41,6 @@ export function ForgotPasswordForm() {
         placeholder="you@example.com"
         required
       />
-    </AuthForm>
+    </ActionForm>
   );
 }

@@ -73,6 +73,9 @@ export interface Config {
     lessons: Lesson;
     drills: Drill;
     drill_private: DrillPrivate;
+    assessments: Assessment;
+    assessment_keys: AssessmentKey;
+    capstones: Capstone;
     companies: Company;
     questions: Question;
     answers: Answer;
@@ -93,6 +96,9 @@ export interface Config {
     lessons: LessonsSelect<false> | LessonsSelect<true>;
     drills: DrillsSelect<false> | DrillsSelect<true>;
     drill_private: DrillPrivateSelect<false> | DrillPrivateSelect<true>;
+    assessments: AssessmentsSelect<false> | AssessmentsSelect<true>;
+    assessment_keys: AssessmentKeysSelect<false> | AssessmentKeysSelect<true>;
+    capstones: CapstonesSelect<false> | CapstonesSelect<true>;
     companies: CompaniesSelect<false> | CompaniesSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     answers: AnswersSelect<false> | AnswersSelect<true>;
@@ -326,6 +332,24 @@ export interface Lesson {
         id?: string | null;
         blockName?: string | null;
         blockType: 'drillEmbed';
+      }
+    | {
+        /**
+         * Slug of a published assessment, answered and graded here.
+         */
+        assessment: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'assessmentEmbed';
+      }
+    | {
+        /**
+         * Slug of a published capstone: its rubric and upload.
+         */
+        capstone: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'capstoneEmbed';
       }
     | {
         /**
@@ -614,6 +638,24 @@ export interface Drill {
       }
     | {
         /**
+         * Slug of a published assessment, answered and graded here.
+         */
+        assessment: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'assessmentEmbed';
+      }
+    | {
+        /**
+         * Slug of a published capstone: its rubric and upload.
+         */
+        capstone: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'capstoneEmbed';
+      }
+    | {
+        /**
          * Button text, for example "Show hints".
          */
         label: string;
@@ -790,6 +832,78 @@ export interface DrillPrivate {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assessments".
+ */
+export interface Assessment {
+  id: string;
+  title: string;
+  slug: string;
+  module: string | Module;
+  /**
+   * Correct answers needed to pass.
+   */
+  passMark: number;
+  questions: {
+    topic?: string | null;
+    html: string;
+    /**
+     * In order: the first is A.
+     */
+    options: {
+      html: string;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  publicId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assessment_keys".
+ */
+export interface AssessmentKey {
+  id: string;
+  assessment: string | Assessment;
+  /**
+   * One line per question, in the same order.
+   */
+  answers: {
+    correct: 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+    why?: string | null;
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "capstones".
+ */
+export interface Capstone {
+  id: string;
+  title: string;
+  slug: string;
+  module: string | Module;
+  /**
+   * Points needed to pass.
+   */
+  passMark: number;
+  rubric: {
+    criterion: string;
+    points: number;
+    fullMarks?: string | null;
+    id?: string | null;
+  }[];
+  publicId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "companies".
  */
 export interface Company {
@@ -948,6 +1062,24 @@ export interface Answer {
         id?: string | null;
         blockName?: string | null;
         blockType: 'drillEmbed';
+      }
+    | {
+        /**
+         * Slug of a published assessment, answered and graded here.
+         */
+        assessment: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'assessmentEmbed';
+      }
+    | {
+        /**
+         * Slug of a published capstone: its rubric and upload.
+         */
+        capstone: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'capstoneEmbed';
       }
     | {
         /**
@@ -1215,6 +1347,18 @@ export interface PayloadLockedDocument {
         value: string | DrillPrivate;
       } | null)
     | ({
+        relationTo: 'assessments';
+        value: string | Assessment;
+      } | null)
+    | ({
+        relationTo: 'assessment_keys';
+        value: string | AssessmentKey;
+      } | null)
+    | ({
+        relationTo: 'capstones';
+        value: string | Capstone;
+      } | null)
+    | ({
         relationTo: 'companies';
         value: string | Company;
       } | null)
@@ -1450,6 +1594,20 @@ export interface LessonsSelect<T extends boolean = true> {
           | T
           | {
               drill?: T;
+              id?: T;
+              blockName?: T;
+            };
+        assessmentEmbed?:
+          | T
+          | {
+              assessment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        capstoneEmbed?:
+          | T
+          | {
+              capstone?: T;
               id?: T;
               blockName?: T;
             };
@@ -1718,6 +1876,20 @@ export interface DrillsSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        assessmentEmbed?:
+          | T
+          | {
+              assessment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        capstoneEmbed?:
+          | T
+          | {
+              capstone?: T;
+              id?: T;
+              blockName?: T;
+            };
         reveal?:
           | T
           | {
@@ -1876,6 +2048,71 @@ export interface DrillPrivateSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assessments_select".
+ */
+export interface AssessmentsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  module?: T;
+  passMark?: T;
+  questions?:
+    | T
+    | {
+        topic?: T;
+        html?: T;
+        options?:
+          | T
+          | {
+              html?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  publicId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assessment_keys_select".
+ */
+export interface AssessmentKeysSelect<T extends boolean = true> {
+  assessment?: T;
+  answers?:
+    | T
+    | {
+        correct?: T;
+        why?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "capstones_select".
+ */
+export interface CapstonesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  module?: T;
+  passMark?: T;
+  rubric?:
+    | T
+    | {
+        criterion?: T;
+        points?: T;
+        fullMarks?: T;
+        id?: T;
+      };
+  publicId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "companies_select".
  */
 export interface CompaniesSelect<T extends boolean = true> {
@@ -2013,6 +2250,20 @@ export interface AnswersSelect<T extends boolean = true> {
           | T
           | {
               drill?: T;
+              id?: T;
+              blockName?: T;
+            };
+        assessmentEmbed?:
+          | T
+          | {
+              assessment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        capstoneEmbed?:
+          | T
+          | {
+              capstone?: T;
               id?: T;
               blockName?: T;
             };

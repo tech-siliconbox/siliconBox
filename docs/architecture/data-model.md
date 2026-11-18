@@ -32,6 +32,11 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `resumes` | One saved Resume Builder resume per learner | Owner, with delete |
 | `profiles` | One per learner: handle (unique once set), bio, links | Owner, with delete |
 | `avatars` | One photo per learner: a 256 px WebP (no EXIF) and when it changed, until object storage exists | Owner, with delete |
+| `assessments`, `capstones` | Graded course work (ADR 0029): questions and options; rubric and pass mark. Written by Payload with drafts | Server reads published only |
+| `assessment_keys` | Each assessment's answer key and explanations | The grader database user only |
+| `assessment_attempts` | One per learner and assessment: every attempt (answers, score, when), at most 3 | Owner |
+| `capstone_submissions` | Uploads: file name and size, when, status (`submitted`, `graded`), the expert's scores, feedback and who graded; one waiting per learner and capstone | Owner; experts grade |
+| `capstone_files` | Each submission's .zip, apart from the list, until object storage exists | Owner; experts download |
 | `cv_screenings` | CV screening reports only (score, checks, keywords, file name); uploaded files are never stored | Owner, with delete |
 | `audit_log` | Append-only: sign-ins, purchases, admin edits, entitlement changes | Owner role |
 | `watermark_codes` | Invisible watermark code to learner, for tracing leaks; `{ code, userId }` unique | Server |
@@ -45,7 +50,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 
 ## Deleting an account
 
-A learner deletes their account from Settings (DPDP). Better Auth deletes `users`, `sessions` and `accounts`; first, `deleteLearnerData` empties `entitlements`, `progress`, `runs`, `resumes`, `cv_screenings`, `profiles`, `avatars`, `watermark_codes`, `ended_sessions` and their pending `verifications`. Kept: `audit_log` (including the `account_deleted` entry), `security-alerts` and Payload's `access-grants` (the site cannot change them; they are security and admin records), and `orders` once payments exist (the law needs them). Kept records refer to the account by id; grants also name the email they were for.
+A learner deletes their account from Settings (DPDP). Better Auth deletes `users`, `sessions` and `accounts`; first, `deleteLearnerData` empties `entitlements`, `progress`, `runs`, `resumes`, `cv_screenings`, `profiles`, `avatars`, `assessment_attempts`, `capstone_submissions`, `capstone_files`, `watermark_codes`, `ended_sessions` and their pending `verifications`. Kept: `audit_log` (including the `account_deleted` entry), `security-alerts` and Payload's `access-grants` (the site cannot change them; they are security and admin records), and `orders` once payments exist (the law needs them). Kept records refer to the account by id; grants also name the email they were for.
 
 ## Integrity
 

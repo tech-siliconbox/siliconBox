@@ -4,12 +4,12 @@ import { ROUTES } from '@siliconbox/shared';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
-import { useAuthAction } from '../hooks/use-auth-action';
-import { FormError } from './form-error';
+import { useFormAction } from '@/hooks/use-form-action';
+import { FormError } from '@/components/ui/form-error';
 
 /** Sends (again) the link that confirms the learner's email address. */
 export function VerifyEmailButton({ email }: { email: string }) {
-  const { pending, error, run } = useAuthAction(null);
+  const { pending, error, run } = useFormAction(null);
   const [sent, setSent] = useState(false);
   const send = async () => {
     setSent(

@@ -1,8 +1,7 @@
 import { ROUTES } from '@siliconbox/shared';
-import type { APIRequestContext, Browser } from '@playwright/test';
-import { createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
+import type { APIRequestContext } from '@playwright/test';
+import { adminPage, createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
 import { withAdminDb } from './db';
-import { BASE_URL } from './base-url';
 import { expect, newLearner, signUp, test } from './helpers';
 
 // A leak traced back: a learner reads a paid lesson, their copy is pasted into the admin tool.
@@ -35,13 +34,6 @@ async function publishTraceLesson(editor: APIRequestContext): Promise<string> {
   });
   expect(lesson.status).toBe(201);
   return ROUTES.lesson(`e2e-trace-course-${run}`, `e2e-trace-lesson-${run}`);
-}
-
-/** A browser page signed in as the CMS admin behind `client`. */
-async function adminPage(browser: Browser, client: APIRequestContext) {
-  const context = await browser.newContext({ baseURL: BASE_URL });
-  await context.addCookies((await client.storageState()).cookies);
-  return context.newPage();
 }
 
 test('Support traces a copied passage and a visible mark to the learner; others cannot', async ({

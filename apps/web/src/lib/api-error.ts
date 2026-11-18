@@ -8,10 +8,12 @@ export async function errorMessage(response: Response | null): Promise<string> {
   return body?.error?.message ?? ERRORS.INTERNAL.message;
 }
 
-/** A call to our API as a form result: no error when it succeeded, else the API's message. */
-export async function apiResult(
-  response: Response | null,
+/** Calls our API from a form: no error when it succeeded, else the API's own message. */
+export async function sendToApi(
+  url: string,
+  init: RequestInit,
 ): Promise<{ error: { message: string } | null }> {
+  const response = await fetch(url, init).catch(() => null);
   return response?.ok === true
     ? { error: null }
     : { error: { message: await errorMessage(response) } };

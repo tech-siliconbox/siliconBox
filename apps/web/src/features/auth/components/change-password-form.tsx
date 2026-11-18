@@ -3,13 +3,13 @@
 import { PASSWORD_CHANGED, ROUTES } from '@siliconbox/shared';
 import { authClient } from '@/lib/auth-client';
 import { formValue } from '../form-value';
-import { AuthForm } from './auth-form';
+import { ActionForm } from '@/components/shared/action-form';
 import { PasswordField } from './password-field';
 
 /** Changes the password; every other device is signed out. */
 export function ChangePasswordForm() {
   return (
-    <AuthForm
+    <ActionForm
       next={`${ROUTES.settings}?changed=${PASSWORD_CHANGED}`}
       submitLabel="Change password"
       pendingLabel="Changing…"
@@ -27,6 +27,6 @@ export function ChangePasswordForm() {
         autoComplete="current-password"
       />
       <PasswordField name="newPassword" label="New password" autoComplete="new-password" />
-    </AuthForm>
+    </ActionForm>
   );
 }

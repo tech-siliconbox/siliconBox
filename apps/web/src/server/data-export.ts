@@ -1,7 +1,9 @@
 import 'server-only';
-import { outlineLinks } from '@siliconbox/shared';
+import { OPTION_LETTERS, outlineLinks } from '@siliconbox/shared';
+import { findAllAttempts } from '@/db/assessment-attempts';
+import { findAllSubmissions } from '@/db/capstone-submissions';
 import { findSignIns } from '@/db/audit-log';
-import { findCourseOutlines } from '@/db/content';
+import { findCourseOutlines, findCourseWorkList } from '@/db/content';
 import { findAllScreenings } from '@/db/cv-screenings';
 import { findEntitlements } from '@/db/entitlements';
 import { findPhoto, findProfile } from '@/db/profiles';
@@ -19,7 +21,8 @@ const SIGN_IN_METHODS: Readonly<Record<string, string>> = {
 
 const NOT_INCLUDED =
   'Not included: your Drill code, which starts from our copyrighted starter files; watermark ' +
-  'codes and security alerts, which protect your account and our content.';
+  'codes and security alerts, which protect your account and our content; your capstone files, ' +
+  'which you uploaded and keep.';
 
 /** Who the learner is, how they sign in, the device signed in now, and past sign-ins. */
 async function accountPart(identity: Identity, headers: Headers) {
@@ -80,6 +83,41 @@ async function learningPart(userId: string) {
   };
 }
 
+/** The learner's assessment attempts and capstone submissions with their grades and feedback. */
+async function courseWorkPart(userId: string) {
+  const [assessments, capstones, attempts, submissions] = await Promise.all([
+    findCourseWorkList('assessments'),
+    findCourseWorkList('capstones'),
+    findAllAttempts(userId),
+    findAllSubmissions(userId),
+  ]);
+  const titles = new Map([...assessments, ...capstones].map((work) => [work.publicId, work.title]));
+  return {
+    assessmentAttempts: attempts.map((record) => ({
+      assessment: titles.get(record.assessmentId) ?? record.assessmentId,
+      attempts: record.attempts.map(({ score, at, answers }) => ({
+        score,
+        at,
+        answers: answers.map((choice) => OPTION_LETTERS[choice]),
+      })),
+    })),
+    // The grade without who gave it: their address is our staff's, not the learner's.
+    capstoneSubmissions: submissions.map(({ capstoneId, fileName, size, submittedAt, grade }) => ({
+      capstone: titles.get(capstoneId) ?? capstoneId,
+      fileName,
+      size,
+      submittedAt,
+      grade: grade && {
+        scores: grade.scores,
+        total: grade.total,
+        passed: grade.passed,
+        feedback: grade.feedback,
+        gradedAt: grade.gradedAt,
+      },
+    })),
+  };
+}
+
 /** The learner's handle, bio and links, and their photo as a data address. */
 async function profilePart(userId: string) {
   const [profile, photo] = await Promise.all([findProfile(userId), findPhoto(userId)]);
@@ -89,10 +127,11 @@ async function profilePart(userId: string) {
 
 /** Everything we hold about a learner, in plain fields, for the download in Settings (DPDP). */
 export async function buildDataExport(identity: Identity, headers: Headers, now: Date) {
-  const [account, profile, learning, resume, cvScreenings] = await Promise.all([
+  const [account, profile, learning, courseWork, resume, cvScreenings] = await Promise.all([
     accountPart(identity, headers),
     profilePart(identity.userId),
     learningPart(identity.userId),
+    courseWorkPart(identity.userId),
     findResume(identity.userId),
     findAllScreenings(identity.userId),
   ]);
@@ -102,6 +141,7 @@ export async function buildDataExport(identity: Identity, headers: Headers, now:
     ...account,
     profile,
     ...learning,
+    ...courseWork,
     resume,
     cvScreenings,
   };

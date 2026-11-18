@@ -4,6 +4,14 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (graded course work, ADR 0029)
+
+- Assessments: a course's multiple-choice assessment is answered in its module page and scored on the server against a hidden key (`assessment_keys`, read only by the grader database user). At most 3 attempts, no waiting; the review with right answers and explanations appears only once the learner passed or used every attempt. The Basic course's 30-question assessment (pass 24) was converted; its answer key is no longer printed in the page.
+- Capstone projects: learners upload one .zip (up to 10 MB, checked by its bytes) from the module page; our experts (Editors and the Owner) download it at `/admin-tools/capstones`, score each rubric criterion and write feedback (audit-logged). Learners see scores and feedback in the page; a failing grade lets them send a new version.
+- Performance (`/performance`): each course's assessment and capstone results; a course passes when both pass. In the avatar menu and the sidebar.
+- The course converter turns an assessment section and a rubric table into graded course work; the importer writes assessments, keys and capstones. New collections and indexes (migration `20261010000000-course-work`); re-apply the database roles.
+- Shared: account forms' `ActionForm`, `useFormAction` and `FormError` moved out of the auth feature for every feature's forms.
+
 ### Added (member area)
 
 - An avatar menu in the header for signed-in learners (name, email, Overview, Settings, Help, Sign out), on member and public pages alike. It replaces the Account link and the separate sign-out button.
