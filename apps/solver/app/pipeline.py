@@ -70,9 +70,17 @@ def run_pipeline(spec: JobSpec, work_dir: Path, sby: SbyTool) -> JobResult:
         return error_result("File access (`include, $readmem, $fopen and similar) is not allowed.")
     try:
         parsed = parse_sva(spec.properties)
-        lowered = SVALoweringEngine().lower(parsed)
+        engine = SVALoweringEngine()
+        lowered = engine.lower(parsed)
     except Exception:  # noqa: BLE001  Any parser failure is the learner's syntax, reported plainly.
         return error_result("Your properties could not be read. Check the SVA syntax.")
+    if engine.skipped:
+        # Never run with a statement left out: a PASS would claim a property that was not checked.
+        names = ", ".join(f"{label} ({body})" for label, _kind, body in engine.skipped)
+        return error_result(
+            f"These properties use SVA the tool cannot check yet: {names}. "
+            "Rewrite them (helper logic in the properties module works) and run again."
+        )
     checks = [Check(label, kind) for label, kind in CHECK_LINE.findall(lowered)]
     if not checks:
         return error_result("No assert or cover statements were found in your properties.")
