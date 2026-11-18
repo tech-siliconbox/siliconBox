@@ -4,6 +4,12 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Security
+- Next.js 16.4.6 (critical: unauthenticated remote code execution), Payload 3.93, zod 4.6.7; patched undici, mongoose, dompurify and vite through overrides; sass moved to the current 1.x line and its optional file watcher skipped, which removes picomatch (GHSA-fc5q-39xc-vjpf, no fix released) from the runtime.
+
+### Removed
+- The nightly backup workflow, which had never run (no storage or secrets): backups are off while the database holds only development data (ADR 0022).
+
 ### Added
 - Runs are graded against the Drill's hidden designs (ADR 0021): a prove-it Drill needs the checker to catch every seeded bug, a find-the-bug Drill needs it to hold on the correct design. The learner sees counts ("caught 3 of 4 seeded bugs"), never the designs. A fourth database user, `siliconbox_grader`, reads only `drill_privates`.
 - Free-tier hosting plan (ADR 0022, `docs/architecture/hosting.md`): Vercel Hobby in Mumbai, Atlas M0, Upstash free, Oracle Cloud free Arm VM for the solver, Cloudflare free; paid plans at the first sale.

@@ -32,7 +32,7 @@ Phase 3 (in progress): the solver, run API and container runner are done; the Dr
 - [x] How the server reads `answers`: a separate answers-only database user (ADR 0019, 2026-10-02)
 - [ ] If Redis is down, should any routes stay open (code refuses every gated call for now)
 - [ ] Approve ADR 0017 (nonce CSP means public pages are not cached at the edge)
-- [x] Backup storage: encrypted GitHub Actions artifacts, 30 days (ADR 0022)
+- [x] Backups: none while the database holds only development data; turn on before real learners' data (ADR 0022)
 - [x] Hosting until launch: free tiers (ADR 0022, `docs/architecture/hosting.md`); Vercel Pro and Atlas M10 at the first sale
 
 ## How to work a phase

@@ -7,13 +7,13 @@ Decision: ADR 0022. Thresholds for later stages: `scaling.md`.
 | Piece | Service | Limits that matter | How the code stays inside them |
 | --- | --- | --- | --- |
 | Web, CMS, API | Vercel Hobby, region `bom1` | Non-commercial use only; function time and bandwidth caps | Pages render per request (ADR 0017); lesson content cached 30 s in memory |
-| Database | Atlas M0, Mumbai | 512 MB storage, 500 connections, shared CPU, no backups, pauses when idle | Pool of at most 10 per client (`db/client.ts`); TTL on runs (180 days) and run cache (30 days); nightly dump |
+| Database | Atlas M0, Mumbai | 512 MB storage, 500 connections, shared CPU, no backups, pauses when idle | Pool of at most 10 per client (`db/client.ts`); TTL on runs (180 days) and run cache (30 days) |
 | Redis | Upstash free | Monthly command cap and a small memory cap | Worker blocks 120 s on the queue; rate limits are one command per check |
 | Solver | Oracle Cloud Always Free, Arm (Ampere A1) | Card needed to sign up; capacity can run short; idle free VMs may be reclaimed | Docker image builds for arm64; `SOLVER_RUNNER=container`, gVisor; a small daily health job keeps it busy |
 | Solver fallback | Render free web service | Sleeps after 15 minutes; one process, no container per job | Testing only, never for learners |
 | DNS, TLS, WAF | Cloudflare free | Basic rules only | Admin host behind Cloudflare Access (free for small teams) |
 | Email | A free transactional plan (Resend or Brevo) | Daily send cap | Only verification, receipts and alerts |
-| Backups | GitHub Actions artifact, encrypted | 30-day retention | `infra/scripts/backup-mongo.sh` nightly; one restore drill per quarter |
+| Backups | None for now (dev data only) | Content is rebuilt from the import files | `infra/scripts/backup-mongo.sh` is kept; turn backups on before real learners' data exists |
 
 ### Redis budget (Upstash free)
 
@@ -31,8 +31,7 @@ of the cap, move to pay-as-you-go (a few dollars at this size).
 ### Atlas M0 watch list
 
 - Storage above 400 MB, or operations above 70 a second: move to M10.
-- A cluster paused for inactivity shows as `querySrv ENOTFOUND`: resume it in Atlas. The
-  nightly backup connects every day, which keeps it awake.
+- A cluster paused for inactivity shows as `querySrv ENOTFOUND`: resume it in Atlas.
 
 ## Stage 1: launch (first paying learner)
 

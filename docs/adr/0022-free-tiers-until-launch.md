@@ -20,8 +20,9 @@ Run every piece on a free plan until the first paying learner, as listed in
 - Solver: Oracle Cloud Always Free Arm VM (Docker, one container per job, gVisor). Render free
   only as a test fallback: it sleeps and cannot run a container per job.
 - DNS and edge: Cloudflare free. Email, when built: a free transactional plan.
-- Backups: the nightly `mongodump` GitHub Action into an encrypted artifact kept 30 days (M0
-  has no backups); it also keeps the cluster from pausing when idle.
+- Backups: none while the database holds only development data (founder, 2026-11-18). The
+  nightly backup workflow is removed; `infra/scripts/backup-mongo.sh` and the runbook stay, to
+  turn backups on before real learners' data exists. Atlas M10 brings continuous backups.
 
 Move each piece up when its threshold in `hosting.md` is reached, and in every case before
 payments open: Vercel Pro (Hobby is for non-commercial use), Atlas M10 (backups and dedicated
@@ -30,6 +31,9 @@ capacity), Upstash pay-as-you-go.
 ## Consequences
 
 - No hosting cost while the product is built and tried by invited learners.
+- No backups until they are turned back on: a lost or corrupted dev database is rebuilt from
+  the import files and migrations. Without a daily connection, an idle M0 cluster pauses and
+  must be resumed in Atlas.
 - Limits to watch: Atlas M0 storage, operations and idle pausing; Upstash's monthly command cap;
   Oracle's capacity and reclaiming of idle free VMs; Vercel Hobby's terms.
 - The free stack is not for paying learners. ADR 0013 still holds from the first sale.

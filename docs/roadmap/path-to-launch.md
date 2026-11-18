@@ -57,7 +57,7 @@ decision, account or content only the founder can supply.
 | Vercel Pro, Cloudflare (WAF, Access + MFA on admin), staging and production | Founder + Dev | Deferred |
 | Dedicated Mumbai cluster | Founder | Done (`siliconbox-dev`, ap-south-1) |
 | Least-privilege Atlas users | Founder + Dev | Done: site, answers reader and admin users, verified |
-| Backups to off-cluster storage, one encrypted restore drill | Founder + Dev | Script ready; storage not chosen |
+| Backups to off-cluster storage, one encrypted restore drill | Founder + Dev | Off until launch (ADR 0022); script kept |
 | Terms (no-sharing clause), refund policy, privacy notice and DPDP consent, export and delete | Founder (lawyer) + Dev | Not started |
 | Analytics and Drill pass rates | Dev | Not started |
 | Load test at 2x, outside penetration test, `/release-check` | Founder + Dev | Not started |

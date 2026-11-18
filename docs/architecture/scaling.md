@@ -24,7 +24,7 @@ Reading and running scale differently, so they are designed separately.
 - Index every filtered field.
 - Raw run logs in object storage; TTL on old run documents.
 - Validate writes with the shared Zod schemas; migrate-mongo from CI.
-- Backups: nightly `mongodump` on Atlas free; paid tier for point-in-time backups. Practise a restore every quarter.
+- Backups: off while only development data exists (ADR 0022); before launch, nightly `mongodump` or the paid tier's point-in-time backups. Practise a restore every quarter.
 
 ## Stage thresholds
 

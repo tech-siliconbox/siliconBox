@@ -20,7 +20,7 @@
     "@payloadcms/ui": "^3.93.0",
     "@react-pdf/renderer": "^4.9.0",
     "@siliconbox/shared": "workspace:*",
-    "better-auth": "^1.7.7",
+    "better-auth": "^1.7.25",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "graphql": "^16.14.2",
