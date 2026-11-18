@@ -19,6 +19,7 @@ export const ROUTES = {
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
   dashboard: '/dashboard',
+  activity: '/activity',
   settings: '/settings',
   help: '/help',
 } as const;

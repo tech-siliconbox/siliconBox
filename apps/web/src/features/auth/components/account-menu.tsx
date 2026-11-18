@@ -4,13 +4,9 @@ import { ROUTES } from '@siliconbox/shared';
 import { useEffect, useRef, useState } from 'react';
 import { SiteLink } from '@/components/ui/site-link';
 import { authClient } from '@/lib/auth-client';
+import { MEMBER_PAGES } from '@/lib/member-pages';
 import { useAuthAction } from '../hooks/use-auth-action';
 
-const LINKS = [
-  { href: ROUTES.dashboard, label: 'Overview' },
-  { href: ROUTES.settings, label: 'Settings' },
-  { href: ROUTES.help, label: 'Help' },
-];
 const ITEM = 'block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-muted';
 
 /** Up to two initials from the name, or the email's first letter. */
@@ -54,7 +50,7 @@ function MenuPanel({ name, email, onNavigate }: MenuPanelProps) {
         <p className="truncate text-[12px] text-muted-foreground">{email}</p>
       </div>
       <ul className="border-b border-border py-1">
-        {LINKS.map(({ href, label }) => (
+        {MEMBER_PAGES.map(({ href, label }) => (
           <li key={href}>
             <SiteLink href={href} onClick={onNavigate} className={ITEM}>
               {label}

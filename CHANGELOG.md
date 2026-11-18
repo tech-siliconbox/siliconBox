@@ -11,6 +11,7 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 - Settings (`/settings`): change the name or the password (other devices are signed out), see whether the email is verified and send the link again, and see each level's and the formal tool's window.
 - Help (`/help`): questions and answers written in the CMS (new `faqs` collection, drafts and publish like lessons). The site's database role may read it; re-apply roles with `node infra/mongodb/atlas-roles.mjs <projectId>`.
 - Names are kept to 100 characters on the server too, whatever the client sends.
+- Activity (`/activity`): day streak, longest streak, days active, lessons and runs; the last 12 months as a square a day in the design's heat colours (scrolls to this week on phones); the 20 most recent lessons and runs. Listed in the avatar menu and the sidebar.
 
 ### Changed (sign-in, ADR 0025)
 

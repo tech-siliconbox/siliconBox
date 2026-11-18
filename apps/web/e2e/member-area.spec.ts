@@ -11,7 +11,7 @@ const FAQ = `Invented FAQ e2e-${run}: how do Drills work?`;
 
 test.describe.configure({ mode: 'serial' });
 
-test('the Overview counts a finished lesson and lists it as recent activity', async ({ page }) => {
+test('a finished lesson shows on the Overview and on Activity', async ({ page }) => {
   test.setTimeout(60_000);
   const editor = await signInAsAdmin('editor');
   const course = await createDoc(editor, 'courses', {
@@ -51,6 +51,15 @@ test('the Overview counts a finished lesson and lists it as recent activity', as
   const recent = page.getByRole('region', { name: 'Recent activity' });
   await expect(recent).toContainText(LESSON_TITLE);
   await expect(recent).toContainText('Finished · just now');
+
+  // Activity: a one-day streak, today's square, and the lesson in the list.
+  await nav.getByRole('link', { name: 'Activity' }).click();
+  await expect(nav.getByRole('link', { name: 'Activity' })).toHaveAttribute('aria-current', 'page');
+  await expect(
+    page.getByRole('img', { name: 'Activity in the last 12 months: 1 done on 1 day' }),
+  ).toBeVisible();
+  await expect(page.getByTitle(/^1 done on /)).toHaveCount(1);
+  await expect(recent).toContainText(LESSON_TITLE);
 
   // Help is public, but a signed-in learner keeps the sidebar there.
   await nav.getByRole('link', { name: 'Help' }).click();

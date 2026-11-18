@@ -9,7 +9,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Button, `buttonVariants` | Actions; `primary`/`secondary`, `lg`/`md`/`sm`. Use `buttonVariants` to style a `Link` | Built |
 | Badge | Small mono label (`outline`, `muted`, `inverted`) | Built |
 | Card | Bordered surface, no shadow | Built |
-| Eyebrow | Mono uppercase label above headings | Built |
+| Eyebrow, EYEBROW_CLASS | Mono uppercase label above headings; its classes for a heading or table cell | Built |
 | Field, TextField, TextAreaField | Label plus control; input and textarea share one wrapper | Built |
 | CspImage | `next/image` without the inline style the CSP blocks; use it instead of `next/image` | Built |
 | Tabs | Tab list and panels | Planned |
@@ -64,7 +64,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | auth: ForgotPasswordForm, ResetPasswordForm | Ask for a reset link (same answer for any email); set a new password from the link | Built |
 | auth: VerifyEmailButton | Sends the email verification link again from Settings (ADR 0028) | Built |
 | auth: AccountMenu | The header's avatar menu when signed in: name, email, Overview, Settings, Help, Sign out; closes on Escape or a click outside | Built |
-| dashboard: DashboardFrame, DashboardNav | The member area's page frame with its sidebar (Overview, Settings, Help; Help keeps it when signed in); a row of tabs on phones | Built |
+| dashboard: DashboardFrame, DashboardNav | The member area's page frame with its sidebar (Overview, Activity, Settings, Help; Help keeps it when signed in); a row of tabs on phones | Built |
+| dashboard: StatTiles, Panel, RecentActivity | A row of numbers; a bordered section with a heading row and optional count; the latest finished lessons and runs (Overview, Activity) | Built |
+| dashboard: ActivityGraph | A year of activity, a square a day in the heat colours, scrolling to this week on phones; no client code | Built |
 | dashboard: windowText, outlineLinks | An access window in words ("Open until 18 Feb 2027"); lesson and Drill ids to their titles and page links | Built |
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
 | courses: CourseIndexLayout, ModuleIndex | A lesson beside its course's modules (sticky sidebar on wide screens, fold-out list on phones): each module folds out to its parts (theory, lab, practice, project, the practice tool) with times; done marks, current module, locked modules; pure rules in `features/courses/course-progress.ts` | Built |
@@ -113,7 +115,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | findPublishedQuestions | Published questions with company tags, search, filters, pages (`db/questions.ts`) | Built |
 | setLessonDone, findDoneLessonIds, findCompletions | Lesson progress; finished lessons with their dates (`db/progress.ts`) | Built |
 | findRunOutcomes, runSolved | A learner's runs, newest first, and whether one solved its Drill (`db/runs.ts`, `server/runs.ts`) | Built |
-| readActivity, activeDays, doneLessonIds, solvedDrillIds | A learner's finished lessons and runs as one newest-first list, and what it adds up to (`server/activity.ts`) | Built |
+| readActivity, dayCounts, activeDays, doneLessonIds, solvedDrillIds | A learner's finished lessons and runs as one newest-first list, and what it adds up to: per day, days, lessons, Drills (`server/activity.ts`) | Built |
 | readOverview | The Overview's data: every course with the learner's access, and their activity (`server/overview.ts`) | Built |
 | hasPassword | Whether the signed-in account has a password (Google-only accounts do not) (`server/auth/auth.ts`) | Built |
 | findPublishedFaqs | The Help page's published questions, in order (`db/faqs.ts`) | Built |
@@ -135,7 +137,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
 | assertEntitled, isEntitled | The one entitlement check used by every route; the same as a yes or no for what a page may offer | Built |
 | errorMessage | Message from an API error body, for client hooks (`lib/api-error.ts`) | Built |
-| formatDate, formatTimeAgo | "18 Feb 2027" and "3 hours ago", in India time (`lib/format-date.ts`) | Built |
+| formatDate, formatMonth, formatTimeAgo | "18 Feb 2027", "Feb" and "3 hours ago", in India time (`lib/format-date.ts`) | Built |
+| countOf | A number with its noun, plural unless one: "1 day", "3 Drills" (`lib/count-of.ts`) | Built |
+| MEMBER_PAGES | The learner's own pages in order, for the avatar menu and the sidebar (`lib/member-pages.ts`) | Built |
 | visibleMark | Builds the visible watermark text per user (`server/watermark.ts`) | Built |
 | redisRateLimiter, RATE_LIMITS | Fixed-window limiter (one Redis command a request) and per-route budgets | Built |
 | AppError, toResponse | Typed errors and the single error-to-response mapper | Built |
@@ -177,7 +181,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | decideAccess | Pure access decision for lessons, Drills, answers and career tools | Built |
 | isActive, addMonths, windowFrom | Window arithmetic (UTC calendar months) | Built |
 | contentStatus, toolStatus | A level's (or the tool's) window for display: open until, ended, or never bought (`entitlements/status.ts`) | Built |
-| activityDay, currentStreak, longestStreak, SITE_TIME_ZONE | Activity days in India time and day streaks; a streak lasts until the day without activity ends (`activity.ts`) | Built |
+| activityDay, dayDate, currentStreak, longestStreak, activityWeeks, SITE_TIME_ZONE | Activity days in India time, day streaks (a streak lasts until the day without activity ends) and the year graph's weeks (`activity.ts`) | Built |
 | FaqSchema | One Help question and its answer (`schemas/faq.ts`) | Built |
 | formatInr | Paise to "₹5,000" | Built |
 | DRILL_LIMITS, drillLimitProblem, TOP_MODULE_PATTERN | Per-level Drill caps and safe top-module names | Built |

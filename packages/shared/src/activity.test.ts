@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activityDay, currentStreak, longestStreak } from './activity';
+import { activityDay, activityWeeks, currentStreak, longestStreak } from './activity';
 
 describe('activity days', () => {
   it('counts a late evening in India as that day', () => {
@@ -20,5 +20,18 @@ describe('activity days', () => {
     const days = new Set(['2026-10-30', '2026-10-31', '2026-11-01', '2026-11-05', '2026-11-06']);
     expect(longestStreak(days)).toBe(3);
     expect(longestStreak(new Set())).toBe(0);
+  });
+
+  it('lays a year out in whole weeks from Monday, ending today', () => {
+    // 18 November 2026 is a Wednesday.
+    const weeks = activityWeeks(new Map([['2026-11-17', 3]]), new Date('2026-11-18T06:00:00Z'));
+    expect(weeks).toHaveLength(53);
+    expect(weeks[0]?.[0]?.day).toBe('2025-11-17');
+    expect(weeks[0]).toHaveLength(7);
+    expect(weeks.at(-1)).toEqual([
+      { day: '2026-11-16', count: 0 },
+      { day: '2026-11-17', count: 3 },
+      { day: '2026-11-18', count: 0 },
+    ]);
   });
 });

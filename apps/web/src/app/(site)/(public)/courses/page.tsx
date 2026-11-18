@@ -6,10 +6,9 @@ import { SiteLink } from '@/components/ui/site-link';
 import { CourseLevelBadge } from '@/features/courses/components/course-outline';
 import { findCourseOutlines } from '@/db/content';
 import { PageIntro } from '@/components/shared/page-intro';
+import { countOf } from '@/lib/count-of';
 
 export const metadata: Metadata = { title: 'Courses' };
-
-const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
 
 /**
  * One course in the catalogue, the whole card a link. Cards in a row share their height, and
@@ -34,8 +33,8 @@ function CourseCard({ course }: { course: CourseOutline }) {
         )}
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
           <span className="font-mono text-[11px] text-muted-foreground">
-            {count(course.modules.length, 'module')}
-            {drills > 0 && ` · ${count(drills, 'Drill')}`}
+            {countOf(course.modules.length, 'module')}
+            {drills > 0 && ` · ${countOf(drills, 'Drill')}`}
           </span>
           <span className="text-sm font-medium group-hover:underline">View course →</span>
         </div>

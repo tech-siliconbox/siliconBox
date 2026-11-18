@@ -28,9 +28,18 @@ export async function readActivity(userId: string): Promise<ActivityEvent[]> {
   return events.sort((a, b) => b.at.getTime() - a.at.getTime());
 }
 
-/** The days, on India time, with any activity: for streaks and the year graph. */
-export const activeDays = (events: readonly ActivityEvent[]) =>
-  new Set(events.map((event) => activityDay(event.at)));
+/** How many things the learner did on each day, on India time: for the activity graph. */
+export function dayCounts(events: readonly ActivityEvent[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const event of events) {
+    const day = activityDay(event.at);
+    counts.set(day, (counts.get(day) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/** The days with any activity: for streaks. */
+export const activeDays = (events: readonly ActivityEvent[]) => new Set(dayCounts(events).keys());
 
 /** The Drills solved at least once. */
 export const solvedDrillIds = (events: readonly ActivityEvent[]) =>

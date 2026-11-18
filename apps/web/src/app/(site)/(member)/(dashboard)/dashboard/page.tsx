@@ -1,9 +1,9 @@
-import { LEVEL_LABELS, ROUTES, currentStreak, slugify } from '@siliconbox/shared';
+import { LEVEL_LABELS, ROUTES, currentStreak } from '@siliconbox/shared';
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
 import { PageIntro } from '@/components/shared/page-intro';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Eyebrow } from '@/components/ui/eyebrow';
 import { SiteLink } from '@/components/ui/site-link';
 import { CourseProgressBar } from '@/features/courses/components/course-progress-bar';
 import {
@@ -12,11 +12,12 @@ import {
   nextLesson,
   readableModules,
 } from '@/features/courses/course-progress';
-import { outlineLinks } from '@/features/dashboard/outline-links';
+import { Panel } from '@/features/dashboard/components/panel';
+import { RecentActivity } from '@/features/dashboard/components/recent-activity';
+import { StatTiles } from '@/features/dashboard/components/stat-tiles';
 import { windowText } from '@/features/dashboard/window-text';
 import { cn } from '@/lib/cn';
-import { formatTimeAgo } from '@/lib/format-date';
-import { type ActivityEvent, activeDays, doneLessonIds, solvedDrillIds } from '@/server/activity';
+import { activeDays, doneLessonIds, solvedDrillIds } from '@/server/activity';
 import { requirePageIdentity } from '@/server/auth/page-identity';
 import { readOverview } from '@/server/overview';
 
@@ -24,42 +25,7 @@ export const metadata: Metadata = { title: 'Overview', robots: { index: false, f
 
 type Course = Awaited<ReturnType<typeof readOverview>>['courses'][number];
 type Done = ReadonlySet<string>;
-const EYEBROW = 'font-mono text-[11px] uppercase tracking-widest text-muted-foreground';
 const RECENT = 5;
-
-/** A bordered list: a heading row (with an optional count on the right), then its rows. */
-function Panel({ title, count, children }: { title: string; count?: string; children: ReactNode }) {
-  const id = `panel-${slugify(title)}`;
-  return (
-    <section aria-labelledby={id} className="rounded-card border border-border bg-card">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
-        <h2 id={id} className={EYEBROW}>
-          {title}
-        </h2>
-        {count !== undefined && <span className={EYEBROW}>{count}</span>}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function StatTiles({ tiles }: { tiles: { label: string; value: number; of?: number }[] }) {
-  return (
-    <dl className="grid gap-px overflow-hidden rounded-card border border-border bg-border sm:grid-cols-3">
-      {tiles.map(({ label, value, of }) => (
-        <div key={label} className="flex flex-col gap-2 bg-background px-5 py-4">
-          <dt className={EYEBROW}>{label}</dt>
-          <dd className="font-mono text-2xl font-semibold">
-            {value}
-            {of !== undefined && (
-              <span className="text-sm font-normal text-muted-foreground"> / {of}</span>
-            )}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
 
 /** The next lesson to read: in the first course with one the learner may open. */
 function ContinueCard({ courses, done }: { courses: Course[]; done: Done }) {
@@ -74,9 +40,9 @@ function ContinueCard({ courses, done }: { courses: Course[]; done: Done }) {
   return (
     <Card className="flex flex-wrap items-center justify-between gap-4 bg-muted">
       <div className="flex flex-col gap-1">
-        <p className={EYEBROW}>
+        <Eyebrow>
           Continue · {LEVEL_LABELS[course.level]} · Module {next.number}
-        </p>
+        </Eyebrow>
         <p className="text-lg font-semibold">{next.moduleTitle}</p>
       </div>
       <SiteLink href={ROUTES.lesson(course.slug, next.lesson.slug)} className={buttonVariants()}>
@@ -141,46 +107,6 @@ function GettingStarted({ steps }: { steps: Step[] }) {
   );
 }
 
-const RUN_WORD = { true: 'Solved', false: 'Tried', null: 'Checking' } as const;
-
-function RecentActivity({
-  events,
-  courses,
-  now,
-}: {
-  events: ActivityEvent[];
-  courses: Course[];
-  now: Date;
-}) {
-  const links = outlineLinks(courses.map(({ course }) => course));
-  const rows = events.slice(0, RECENT).flatMap((event) => {
-    const link =
-      event.kind === 'lesson' ? links.lessons.get(event.lessonId) : links.drills.get(event.drillId);
-    const word = event.kind === 'lesson' ? 'Finished' : RUN_WORD[`${event.solved}`];
-    return link === undefined ? [] : [{ ...link, word, at: event.at }];
-  });
-  return (
-    <Panel title="Recent activity">
-      {rows.length === 0 ? (
-        <p className="px-5 py-4 text-sm text-muted-foreground">Nothing yet.</p>
-      ) : (
-        <ul className="divide-y divide-border">
-          {rows.map(({ title, href, word, at }) => (
-            <li key={`${href}${at.getTime()}`} className="flex flex-col gap-0.5 px-5 py-3 text-sm">
-              <SiteLink href={href} className="font-medium hover:underline">
-                {title}
-              </SiteLink>
-              <span className="text-[12px] text-muted-foreground">
-                {word} · {formatTimeAgo(at, now)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
-  );
-}
-
 /** The first module and Drill of the first course, for the getting-started steps. */
 function firstSteps(course: Course['course'] | undefined, done: Done) {
   const [firstModule] = course === undefined ? [] : readableModules(course);
@@ -227,7 +153,7 @@ export default async function OverviewPage() {
         <CourseList courses={courses} done={done} />
         <div className="flex flex-col gap-6">
           <GettingStarted steps={steps} />
-          <RecentActivity events={events} courses={courses} now={now} />
+          <RecentActivity events={events} courses={outlines} now={now} limit={RECENT} />
         </div>
       </div>
     </div>
