@@ -51,6 +51,41 @@ const RunRecordSchema = z.object({
 export type RunRecord = z.infer<typeof RunRecordSchema>;
 
 const runs = () => getDb().collection(COLLECTIONS.runs);
+
+/** What a learner's activity needs from a run: the Drill, when, and enough to tell if it solved. */
+const RunOutcomeSchema = RunRecordSchema.pick({
+  drillId: true,
+  target: true,
+  grading: true,
+  createdAt: true,
+}).extend({
+  status: z
+    .enum(RUN_STATUSES)
+    .nullish()
+    .transform((status) => status ?? null),
+});
+export type RunOutcome = z.infer<typeof RunOutcomeSchema>;
+
+/** A learner's runs, newest first, without their code, logs or traces. */
+export async function findRunOutcomes(userId: string): Promise<RunOutcome[]> {
+  const documents = await runs()
+    .find(
+      { userId },
+      {
+        projection: {
+          _id: 0,
+          drillId: 1,
+          target: 1,
+          grading: 1,
+          createdAt: 1,
+          status: '$result.status',
+        },
+      },
+    )
+    .sort({ createdAt: -1 })
+    .toArray();
+  return documents.map((document) => RunOutcomeSchema.parse(document));
+}
 const parse = (document: unknown) => RunRecordSchema.parse(document);
 const PROJECTION = { projection: { _id: 0 } };
 

@@ -36,7 +36,8 @@ export async function createDoc(
     | 'drill_private'
     | 'companies'
     | 'questions'
-    | 'answers',
+    | 'answers'
+    | 'faqs',
   data: Record<string, unknown>,
 ): Promise<{ id: string; publicId: string; slug: string; status: number }> {
   const response = await client.post(`/cms-api/${collection}`, { data });

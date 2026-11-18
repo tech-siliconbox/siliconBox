@@ -193,7 +193,7 @@ export async function findCourseOutlines(slug?: string): Promise<CourseOutline[]
               durationMinutes: 1,
               sections: 1,
             }),
-            publishedChildren(COLLECTIONS.drills, 'drills', { slug: 1, title: 1 }),
+            publishedChildren(COLLECTIONS.drills, 'drills', { publicId: 1, slug: 1, title: 1 }),
             { $project: { _id: 0, title: 1, summary: 1, lessons: 1, drills: 1 } },
           ],
         },

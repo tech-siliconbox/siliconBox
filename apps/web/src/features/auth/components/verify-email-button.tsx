@@ -13,7 +13,7 @@ export function VerifyEmailButton({ email }: { email: string }) {
   const [sent, setSent] = useState(false);
   const send = async () => {
     setSent(
-      await run(() => authClient.sendVerificationEmail({ email, callbackURL: ROUTES.account })),
+      await run(() => authClient.sendVerificationEmail({ email, callbackURL: ROUTES.settings })),
     );
   };
   return (

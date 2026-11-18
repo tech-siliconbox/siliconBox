@@ -58,13 +58,17 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Name | Purpose | Status |
 | --- | --- | --- |
 | auth: AuthForm, useAuthAction, AuthPanel, FormError, formValue | Shared frame, submit and error handling for sign-in and sign-up | Built |
-| auth: SignInForm, SignUpForm, GoogleButton, SignOutButton | The auth actions (email and password, Google; ADR 0025) | Built |
-| auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset) | Built |
+| auth: SignInForm, SignUpForm, GoogleButton | The auth actions (email and password, Google; ADR 0025) | Built |
+| auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset, Settings); a new password carries the length rule | Built |
+| auth: NameField, NameForm, ChangePasswordForm | The name input (sign-up, Settings); change the name; change the password, signing other devices out | Built |
 | auth: ForgotPasswordForm, ResetPasswordForm | Ask for a reset link (same answer for any email); set a new password from the link | Built |
-| auth: VerifyEmailButton | Sends the email verification link again from the account page (ADR 0028) | Built |
-| auth: AccountActions | The header's Account link and sign-out, on member and public pages when signed in | Built |
+| auth: VerifyEmailButton | Sends the email verification link again from Settings (ADR 0028) | Built |
+| auth: AccountMenu | The header's avatar menu when signed in: name, email, Overview, Settings, Help, Sign out; closes on Escape or a click outside | Built |
+| dashboard: DashboardFrame, DashboardNav | The member area's page frame with its sidebar (Overview, Settings, Help; Help keeps it when signed in); a row of tabs on phones | Built |
+| dashboard: windowText, outlineLinks | An access window in words ("Open until 18 Feb 2027"); lesson and Drill ids to their titles and page links | Built |
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
 | courses: CourseIndexLayout, ModuleIndex | A lesson beside its course's modules (sticky sidebar on wide screens, fold-out list on phones): each module folds out to its parts (theory, lab, practice, project, the practice tool) with times; done marks, current module, locked modules; pure rules in `features/courses/course-progress.ts` | Built |
+| courses: CourseProgressBar, modulesDone, nextLesson | "N of M modules done" with a bar (module index, Overview); the next lesson a learner may open | Built |
 | PageIntro | The top of a section page: label, heading, a sentence (Courses, Pricing, Questions, Industry Ready) | Built |
 | SiteLink | Every link within the site; never prefetches (golden rule, ADR 0027). Lint allows `next/link` only here (`components/ui/site-link.tsx`) | Built |
 | admin-tools: TraceForm, TraceResults | Watermark trace tool: paste leaked text, see the accounts it points to | Built |
@@ -107,7 +111,12 @@ Check here before writing a component, hook or helper. Add a row when you create
 | replaceEntitlement | Replaces one window and audits it in one transaction (`db/entitlements.ts`) | Built |
 | findUserIdByEmail | Learner id for an email (`db/users.ts`) | Built |
 | findPublishedQuestions | Published questions with company tags, search, filters, pages (`db/questions.ts`) | Built |
-| setLessonDone, findDoneLessonIds | Lesson progress (`db/progress.ts`) | Built |
+| setLessonDone, findDoneLessonIds, findCompletions | Lesson progress; finished lessons with their dates (`db/progress.ts`) | Built |
+| findRunOutcomes, runSolved | A learner's runs, newest first, and whether one solved its Drill (`db/runs.ts`, `server/runs.ts`) | Built |
+| readActivity, activeDays, doneLessonIds, solvedDrillIds | A learner's finished lessons and runs as one newest-first list, and what it adds up to (`server/activity.ts`) | Built |
+| readOverview | The Overview's data: every course with the learner's access, and their activity (`server/overview.ts`) | Built |
+| hasPassword | Whether the signed-in account has a password (Google-only accounts do not) (`server/auth/auth.ts`) | Built |
+| findPublishedFaqs | The Help page's published questions, in order (`db/faqs.ts`) | Built |
 | recordProgress | Progress for a published lesson the learner may read (`server/progress.ts`) | Built |
 | optionalPageIdentity | The signed-in learner on a public page, or null | Built |
 | readLessonPreview | Latest lesson draft for a signed-in CMS admin (`server/preview.ts`) | Built |
@@ -126,6 +135,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
 | assertEntitled, isEntitled | The one entitlement check used by every route; the same as a yes or no for what a page may offer | Built |
 | errorMessage | Message from an API error body, for client hooks (`lib/api-error.ts`) | Built |
+| formatDate, formatTimeAgo | "18 Feb 2027" and "3 hours ago", in India time (`lib/format-date.ts`) | Built |
 | visibleMark | Builds the visible watermark text per user (`server/watermark.ts`) | Built |
 | redisRateLimiter, RATE_LIMITS | Fixed-window limiter (one Redis command a request) and per-route budgets | Built |
 | AppError, toResponse | Typed errors and the single error-to-response mapper | Built |
@@ -147,6 +157,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Companies, Questions, Answers | Question bank collections; answers admins-only | Built |
 | Drills, DrillPrivate | Drill authoring; private part never readable by the site | Built |
 | Services, SecurityAlerts | Industry Ready services; read-only alerts for Support | Built |
+| Faqs | The Help page's questions and answers, drafted and published like lessons | Built |
 | levelOfModule, relationId | Level of a module's course; id from a relationship value | Built |
 | content-import script | `pnpm content:import <file> [check] [prune]` (`scripts/content-import.ts`): courses, modules, lessons and Drills with their private part; reports or prunes what a file no longer lists; writes with `SCRIPT_CONTEXT` so CMS hooks skip server-only work | Built |
 | content-convert script | `pnpm content:convert` (`scripts/content-convert.ts`, `scripts/course-html/`): course HTML to an import file, one page per module with its markup word for word, diagram colours written onto the SVG, Drills after their labs; notes on anything changed (ADR 0024) | Built |
@@ -155,7 +166,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 
 | Name | Purpose | Status |
 | --- | --- | --- |
-| constants | Level labels, prices in paise, content and tool window lengths | Built |
+| constants | Level labels, prices in paise, content and tool window lengths, password and name lengths | Built |
 | schemas | Level, role, user id, entitlement, audit entry, lesson blocks (with `stateGraphProblems`), published lesson, course outline | Built |
 | slugify | Readable slugs for addresses and anchors (`packages/shared/src/slug.ts`) | Built |
 | inline-text | The lesson text format: `parseInlineText` for rendering, `escapeInlineText` and `inlineCode` for writing it | Built |
@@ -165,6 +176,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | grantFor, highestActiveLevel | Pure grant rules | Built |
 | decideAccess | Pure access decision for lessons, Drills, answers and career tools | Built |
 | isActive, addMonths, windowFrom | Window arithmetic (UTC calendar months) | Built |
+| contentStatus, toolStatus | A level's (or the tool's) window for display: open until, ended, or never bought (`entitlements/status.ts`) | Built |
+| activityDay, currentStreak, longestStreak, SITE_TIME_ZONE | Activity days in India time and day streaks; a streak lasts until the day without activity ends (`activity.ts`) | Built |
+| FaqSchema | One Help question and its answer (`schemas/faq.ts`) | Built |
 | formatInr | Paise to "₹5,000" | Built |
 | DRILL_LIMITS, drillLimitProblem, TOP_MODULE_PATTERN | Per-level Drill caps and safe top-module names | Built |
 | RunInputSchema, RunResultSchema, RunViewSchema, isDrillSolved, DRILL_RUN_DAILY_QUOTA, dailyRunQuota | Drill run input, solver result, learner view, solved rule and daily quota by level (`schemas/run.ts`, `entitlements/run-quota.ts`) | Built |

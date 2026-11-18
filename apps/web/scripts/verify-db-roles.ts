@@ -23,6 +23,11 @@ const CHECKS: Record<User, Check[]> = {
       run: (db) => db.collection('users').findOne({}),
     },
     {
+      what: 'read the Help questions',
+      allowed: true,
+      run: (db) => db.collection('faqs').findOne({}),
+    },
+    {
       what: 'read paid answers',
       allowed: false,
       run: (db) => db.collection('answers').findOne({}),

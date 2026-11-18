@@ -1,6 +1,6 @@
 'use client';
 
-import { ERRORS, MIN_PASSWORD_LENGTH, PASSWORD_CHANGED, ROUTES } from '@siliconbox/shared';
+import { ERRORS, PASSWORD_CHANGED, ROUTES } from '@siliconbox/shared';
 import { authClient } from '@/lib/auth-client';
 import { formValue } from '../form-value';
 import { AuthForm } from './auth-form';
@@ -23,12 +23,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           : result;
       }}
     >
-      <PasswordField
-        autoComplete="new-password"
-        label="New password"
-        placeholder="At least 10 characters"
-        minLength={MIN_PASSWORD_LENGTH}
-      />
+      <PasswordField autoComplete="new-password" label="New password" />
     </AuthForm>
   );
 }

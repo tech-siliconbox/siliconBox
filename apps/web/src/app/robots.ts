@@ -11,7 +11,15 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/courses/*/', '/questions/', '/account', '/preview', '/admin', '/api'],
+        disallow: [
+          '/courses/*/',
+          '/questions/',
+          '/dashboard',
+          '/settings',
+          '/preview',
+          '/admin',
+          '/api',
+        ],
       },
     ],
   };

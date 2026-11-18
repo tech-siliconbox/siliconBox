@@ -16,7 +16,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `questions` | Text, topics, company tags (company, year, internal source note), `publicId`; written by Payload with drafts | Public (published only; source note internal) |
 | `answers` | Private answer blocks, one per question (`question` unique); written by Payload | The answers-only database user, after the entitlement check (ADR 0019) |
 | `companies` | Name, slug (logo later, with permission and storage); written by Payload | Public |
-| `users` | Account, roles, MFA state (Better Auth) | Server |
+| `users` | Account: name, email, whether it is verified, role (Better Auth) | Server |
 | `sessions` | Active session, device, created, last seen (Better Auth) | Server |
 | `accounts`, `verifications` | Better Auth: sign-in methods (password, Google), email and reset tokens | Server |
 | `ended_sessions` | Hash of each session ended by a newer sign-in, kept 7 days to tell the old device why | Server |
@@ -27,6 +27,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `runs` | One learner run: user, Drill, request id, the learner's properties, state, result (with log and traces), hash, cached flag; kept 180 days | Owner |
 | `run_cache` | PASS/FAIL result by hash of design, properties and settings; kept 30 days | Server |
 | `services` | Industry Ready service cards and status (`open` or `locked`), locked reason, order | Public list |
+| `faqs` | Help page questions and answers, order; written by Payload with drafts | Public (published only) |
 | `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
 | `resumes` | One saved Resume Builder resume per learner | Owner, with delete |
 | `cv_screenings` | CV screening reports only (score, checks, keywords, file name); uploaded files are never stored | Owner, with delete |

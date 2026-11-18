@@ -23,6 +23,7 @@ export const COLLECTIONS = {
   questions: 'questions',
   companies: 'companies',
   services: 'services',
+  faqs: 'faqs',
   resumes: 'resumes',
   cvScreenings: 'cv_screenings',
 } as const;

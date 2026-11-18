@@ -4,6 +4,14 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (member area)
+
+- An avatar menu in the header for signed-in learners (name, email, Overview, Settings, Help, Sign out), on member and public pages alike. It replaces the Account link and the separate sign-out button.
+- Overview (`/dashboard`, was `/account`): modules done, Drills solved, day streak (India time), the next lesson to read, each course's access and progress, getting-started steps and recent activity.
+- Settings (`/settings`): change the name or the password (other devices are signed out), see whether the email is verified and send the link again, and see each level's and the formal tool's window.
+- Help (`/help`): questions and answers written in the CMS (new `faqs` collection, drafts and publish like lessons). The site's database role may read it; re-apply roles with `node infra/mongodb/atlas-roles.mjs <projectId>`.
+- Names are kept to 100 characters on the server too, whatever the client sends.
+
 ### Changed (sign-in, ADR 0025)
 
 - Learners sign in with email and password or with Google; two-factor sign-in is removed and its stored secrets deleted (migration `20261007000000-remove-two-factor`). One device at a time stays: a new sign-in, by either method, signs out every other device.

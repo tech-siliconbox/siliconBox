@@ -224,7 +224,11 @@ export const OutlineLessonSchema = z.object({
   sections: z.array(LessonSectionSchema).nullish(),
 });
 /** Public outline data for a Drill: its title only. */
-export const OutlineDrillSchema = z.object({ slug: SlugSchema, title: z.string().min(1) });
+export const OutlineDrillSchema = z.object({
+  publicId: PublicIdSchema,
+  slug: SlugSchema,
+  title: z.string().min(1),
+});
 export const OutlineModuleSchema = z.object({
   title: z.string().min(1),
   summary: z.string().nullish(),

@@ -1,10 +1,11 @@
 'use client';
 
-import { MIN_PASSWORD_LENGTH, ROUTES } from '@siliconbox/shared';
+import { ROUTES } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { authClient } from '@/lib/auth-client';
 import { formValue } from '../form-value';
 import { AuthForm } from './auth-form';
+import { NameField } from './name-field';
 import { PasswordField } from './password-field';
 
 export function SignUpForm() {
@@ -18,11 +19,11 @@ export function SignUpForm() {
           email: formValue(form, 'email'),
           password: formValue(form, 'password'),
           // Where the verification link brings the learner back to.
-          callbackURL: ROUTES.account,
+          callbackURL: ROUTES.settings,
         })
       }
     >
-      <TextField label="Name" name="name" autoComplete="name" required maxLength={100} />
+      <NameField />
       <TextField
         label="Email"
         name="email"
@@ -31,11 +32,7 @@ export function SignUpForm() {
         placeholder="you@example.com"
         required
       />
-      <PasswordField
-        autoComplete="new-password"
-        placeholder="At least 10 characters"
-        minLength={MIN_PASSWORD_LENGTH}
-      />
+      <PasswordField autoComplete="new-password" />
     </AuthForm>
   );
 }

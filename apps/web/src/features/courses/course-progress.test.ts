@@ -1,6 +1,6 @@
 import type { CourseOutline } from '@siliconbox/shared';
 import { describe, expect, it } from 'vitest';
-import { isModuleDone, moduleMinutes, readableModules } from './course-progress';
+import { isModuleDone, moduleMinutes, nextLesson, readableModules } from './course-progress';
 
 // Invented course: an empty module, a one-lesson module and a two-lesson module.
 const lesson = (publicId: string, durationMinutes: number) => ({
@@ -43,5 +43,14 @@ describe('course progress', () => {
       [2, 'a'],
       [3, 'b'],
     ]);
+  });
+
+  it('continues at the first lesson not done that the learner may open', () => {
+    const all = () => true;
+    expect(nextLesson(COURSE, new Set(), all)).toMatchObject({ number: 2, moduleTitle: 'One' });
+    expect(nextLesson(COURSE, new Set(['a', 'b']), all)?.lesson.publicId).toBe('c');
+    expect(nextLesson(COURSE, new Set(['a', 'b', 'c']), all)).toBeNull();
+    // With only free lessons open and none free, there is nowhere to continue.
+    expect(nextLesson(COURSE, new Set(), (lesson) => lesson.preview)).toBeNull();
   });
 });

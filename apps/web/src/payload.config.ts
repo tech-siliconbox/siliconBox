@@ -8,6 +8,7 @@ import { Answers } from './cms/collections/answers';
 import { Companies } from './cms/collections/companies';
 import { Courses } from './cms/collections/courses';
 import { DrillPrivate } from './cms/collections/drill-private';
+import { Faqs } from './cms/collections/faqs';
 import { Drills } from './cms/collections/drills';
 import { Lessons } from './cms/collections/lessons';
 import { Modules } from './cms/collections/modules';
@@ -47,6 +48,7 @@ export default buildConfig({
     Questions,
     Answers,
     Services,
+    Faqs,
     AccessGrants,
     SecurityAlerts,
   ],

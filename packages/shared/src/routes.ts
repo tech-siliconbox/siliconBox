@@ -18,7 +18,9 @@ export const ROUTES = {
   signUp: '/sign-up',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
-  account: '/account',
+  dashboard: '/dashboard',
+  settings: '/settings',
+  help: '/help',
 } as const;
 
 export const API_ROUTES = {

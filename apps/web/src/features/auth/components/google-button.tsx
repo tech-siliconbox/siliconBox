@@ -37,7 +37,7 @@ export function GoogleButton() {
     run(() =>
       authClient.signIn.social({
         provider: 'google',
-        callbackURL: ROUTES.account,
+        callbackURL: ROUTES.dashboard,
         errorCallbackURL: ROUTES.signIn,
       }),
     );

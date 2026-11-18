@@ -20,7 +20,16 @@
       ],
       "insertOnly": ["security-alerts"],
       "findInsert": ["audit_log"],
-      "readOnly": ["courses", "modules", "lessons", "drills", "questions", "companies", "services"]
+      "readOnly": [
+        "courses",
+        "modules",
+        "lessons",
+        "drills",
+        "questions",
+        "companies",
+        "services",
+        "faqs"
+      ]
     },
     "siliconboxAnswersReader": {
       "readOnly": ["answers"]

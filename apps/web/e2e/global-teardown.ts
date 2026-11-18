@@ -6,6 +6,7 @@ import { withAdminDb } from './db';
 const TEST_EMAIL = /@example\.test$/;
 const TEST_SLUG = /^e2e-/;
 const TEST_QUESTION = /^Invented question e2e-/;
+const TEST_FAQ = /^Invented FAQ e2e-/;
 
 async function removeTestLearners(db: Db): Promise<void> {
   const users = await db
@@ -71,6 +72,16 @@ async function removeTestQuestions(db: Db): Promise<void> {
   await db.collection('companies').deleteMany({ slug: TEST_SLUG });
 }
 
+async function removeTestFaqs(db: Db): Promise<void> {
+  const faqs = await db
+    .collection('faqs')
+    .find({ question: TEST_FAQ }, { projection: { _id: 1 } })
+    .toArray();
+  const ids = faqs.map((faq) => faq._id);
+  await db.collection('_faqs_versions').deleteMany({ parent: { $in: ids } });
+  await db.collection('faqs').deleteMany({ _id: { $in: ids } });
+}
+
 async function removeTestGrants(db: Db): Promise<void> {
   await db.collection('access-grants').deleteMany({ learnerEmail: TEST_EMAIL });
 }
@@ -90,6 +101,7 @@ export default async function globalTeardown(): Promise<void> {
   await withAdminDb(async (db) => {
     await removeTestContent(db);
     await removeTestQuestions(db);
+    await removeTestFaqs(db);
     await removeTestGrants(db);
     await removeTestAdmins(db);
     await removeTestLearners(db);

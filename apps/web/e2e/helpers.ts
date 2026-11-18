@@ -39,7 +39,7 @@ export async function signUp(page: Page, learner: Learner): Promise<void> {
   await page.getByLabel('Email').fill(learner.email);
   await page.getByLabel('Password', { exact: true }).fill(learner.password);
   await page.getByRole('button', { name: 'Create account' }).click();
-  await expect(page).toHaveURL('/account');
+  await expect(page).toHaveURL('/dashboard');
 }
 
 /** Email and password step only; the caller checks where it lands. */

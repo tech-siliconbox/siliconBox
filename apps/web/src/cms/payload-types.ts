@@ -77,6 +77,7 @@ export interface Config {
     questions: Question;
     answers: Answer;
     services: Service;
+    faqs: Faq;
     'access-grants': AccessGrant;
     'security-alerts': SecurityAlert;
     'payload-kv': PayloadKv;
@@ -96,6 +97,7 @@ export interface Config {
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     answers: AnswersSelect<false> | AnswersSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
     'access-grants': AccessGrantsSelect<false> | AccessGrantsSelect<true>;
     'security-alerts': SecurityAlertsSelect<false> | SecurityAlertsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -1109,6 +1111,22 @@ export interface Service {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: string;
+  question: string;
+  /**
+   * Plain text; `code`, **bold** and *italic* work, as in lessons.
+   */
+  answer: string;
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "access-grants".
  */
 export interface AccessGrant {
@@ -1211,6 +1229,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'services';
         value: string | Service;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: string | Faq;
       } | null)
     | ({
         relationTo: 'access-grants';
@@ -2140,6 +2162,18 @@ export interface ServicesSelect<T extends boolean = true> {
   order?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

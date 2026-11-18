@@ -7,7 +7,7 @@ import { type AuthResult, useAuthAction } from '../hooks/use-auth-action';
 import { FormError } from './form-error';
 
 type AuthFormProps = {
-  /** Where to go on success; null stays on the page. Defaults to the account page. */
+  /** Where to go on success; null stays on the page. Defaults to the dashboard. */
   next?: string | null;
   submitLabel: string;
   pendingLabel: string;
@@ -17,7 +17,7 @@ type AuthFormProps = {
 
 /** Fields, error and submit button shared by every auth form. */
 export function AuthForm({
-  next = ROUTES.account,
+  next = ROUTES.dashboard,
   submitLabel,
   pendingLabel,
   submit,

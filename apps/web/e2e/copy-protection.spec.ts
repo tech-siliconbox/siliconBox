@@ -60,6 +60,8 @@ async function openAsEntitledLearner(page: Page): Promise<void> {
 }
 
 test('lesson text cannot be copied, code can, and nothing prints', async ({ page, context }) => {
+  // Publishes a lesson and signs a learner up with access: more than the default.
+  test.setTimeout(60_000);
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await openAsEntitledLearner(page);
   const text = page.getByText(PASSAGE.slice(9));
