@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LessonBlockRenderer } from '@/components/lesson/lesson-block-renderer';
 import { PaidContentLocked } from '@/components/shared/paid-content-locked';
+import { ProtectedContent } from '@/components/shared/protected-content';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { readAnswer } from '@/server/answers';
 import { requirePageIdentity } from '@/server/auth/page-identity';
@@ -29,9 +30,11 @@ export default async function AnswerPage({ params }: AnswerPageProps) {
         </h1>
       </header>
       <Eyebrow className="mb-4">Answer</Eyebrow>
-      {answer.blocks.map((block, index) => (
-        <LessonBlockRenderer key={index} block={block} />
-      ))}
+      <ProtectedContent>
+        {answer.blocks.map((block, index) => (
+          <LessonBlockRenderer key={index} block={block} />
+        ))}
+      </ProtectedContent>
       <footer className="mt-12 border-t border-border pt-6">
         <Link href={ROUTES.questions} className="text-sm text-link-idle hover:text-link-hover">
           ← All questions

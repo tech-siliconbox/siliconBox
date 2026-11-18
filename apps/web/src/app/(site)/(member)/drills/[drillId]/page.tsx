@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { LessonBlockRenderer } from '@/components/lesson/lesson-block-renderer';
 import { PaidContentLocked } from '@/components/shared/paid-content-locked';
+import { ProtectedContent } from '@/components/shared/protected-content';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { DrillWorkspace } from '@/features/drills/components/drill-workspace';
 import { requirePageIdentity } from '@/server/auth/page-identity';
@@ -27,9 +28,11 @@ export default async function DrillPage({ params }: DrillPageProps) {
           <Eyebrow>{drill.topic ? `Drill · ${drill.topic}` : 'Drill'}</Eyebrow>
           <h1 className="text-3xl font-bold leading-tight tracking-tight">{drill.title}</h1>
         </header>
-        {drill.brief.map((block, index) => (
-          <LessonBlockRenderer key={index} block={block} />
-        ))}
+        <ProtectedContent>
+          {drill.brief.map((block, index) => (
+            <LessonBlockRenderer key={index} block={block} />
+          ))}
+        </ProtectedContent>
       </article>
       <DrillWorkspace
         drill={{

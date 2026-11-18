@@ -25,5 +25,7 @@ describe('invisible mark', () => {
 
   it.each([0, 1, 0xffffffff])('round-trips the edge code %i', (code) => {
     expect(findMarks(embedMark('One-word', code))).toEqual([code]);
+    // A bullet line keeps its "- " marker so the text format still reads it as a bullet.
+    expect(embedMark('- Run it', code).startsWith('- Run')).toBe(true);
   });
 });

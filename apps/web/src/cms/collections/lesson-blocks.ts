@@ -6,6 +6,7 @@ import {
   STATE_GRAPH_LIMITS,
   stateGraphProblems,
   type RevealContentBlock,
+  SLUG_PATTERN,
 } from '@siliconbox/shared';
 import type { Block } from 'payload';
 
@@ -166,6 +167,36 @@ const coordinate = (name: string) =>
 
 export const LESSON_BLOCKS: LessonBlockConfig[] = [
   ...CONTENT_BLOCKS,
+  {
+    slug: 'html',
+    labels: { singular: 'Page markup (author design)', plural: 'Page markup' },
+    fields: [
+      {
+        name: 'html',
+        type: 'code',
+        required: true,
+        admin: {
+          language: 'html',
+          description:
+            'Your page markup, shown complete in the site design (ADR 0024). Sanitised on every read; scripts and inline styles are removed. Link to a lesson with href="lesson:<slug>".',
+        },
+      },
+    ],
+  },
+  {
+    slug: 'drillEmbed',
+    labels: { singular: 'Drill (practice in the tool)', plural: 'Drills' },
+    fields: [
+      {
+        name: 'drill',
+        type: 'text',
+        required: true,
+        validate: (value: unknown) =>
+          typeof value === 'string' && SLUG_PATTERN.test(value) ? true : 'Use the Drill slug.',
+        admin: { description: 'Slug of a published Drill, shown here with the tool.' },
+      },
+    ],
+  },
   {
     slug: 'reveal',
     labels: { singular: 'Reveal (show / hide)', plural: 'Reveals' },

@@ -3,6 +3,9 @@ import type { LessonBlock, LessonBlockType } from '@siliconbox/shared';
 import type { ReactNode } from 'react';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { sanitizeSvg } from '@/server/sanitize-svg';
+import { CopyCodeButton } from './copy-code-button';
+import { CourseHtml } from './course-html';
+import { DrillEmbed } from './drill-embed';
 import { LessonList } from './lesson-list';
 import { LessonTable } from './lesson-table';
 import { Prose, TextBody } from './prose';
@@ -17,6 +20,18 @@ const HEADING_CLASS = {
 
 const PRE =
   'mb-4 overflow-x-auto whitespace-pre rounded-sm border border-border bg-muted/40 p-4 font-mono text-[12px] leading-relaxed';
+
+/** A code example: the one part of paid content that may be selected and copied (ADR 0023). */
+function CodeExample({ code, language }: { code: string; language?: string }) {
+  return (
+    <div className="relative">
+      <CopyCodeButton code={code} />
+      <pre className={PRE} data-language={language} data-copyable="">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
 
 type Renderers = {
   [Type in LessonBlockType]: (block: Extract<LessonBlock, { blockType: Type }>) => ReactNode;
@@ -39,23 +54,19 @@ const RENDERERS: Renderers = {
           {filename}
         </figcaption>
       )}
-      <pre className={PRE} data-language={language}>
-        <code>{code}</code>
-      </pre>
+      <CodeExample code={code} language={language} />
     </figure>
   ),
   assertion: ({ code, caption }) => (
     <figure className="mb-4">
       <Eyebrow className="mb-2">Assertion</Eyebrow>
-      <pre className={PRE}>
-        <code>{code}</code>
-      </pre>
+      <CodeExample code={code} />
       {caption && <figcaption className="text-[13px] text-muted-foreground">{caption}</figcaption>}
     </figure>
   ),
   callout: ({ title, tone, text }) => (
-    <aside role="note" className="mb-5 rounded border border-border bg-muted p-4 text-[14px]">
-      <Eyebrow className="mb-2">{title ?? tone}</Eyebrow>
+    <aside role="note" data-tone={tone} className="callout-box">
+      <p className="callout-title">{title ?? tone}</p>
       <TextBody text={text} />
     </aside>
   ),
@@ -88,7 +99,13 @@ const RENDERERS: Renderers = {
     </details>
   ),
   stateGraph: (block) => <StateGraphFigure graph={block} />,
+  html: ({ html }) => <CourseHtml html={html} />,
+  drillEmbed: ({ drill }) => <DrillEmbed slug={drill} renderBlocks={renderBlocks} />,
 };
+
+function renderBlocks(blocks: LessonBlock[]) {
+  return blocks.map((block, index) => <LessonBlockRenderer key={index} block={block} />);
+}
 
 /** Renders one lesson block on the server. Paid text never reaches a client component. */
 export function LessonBlockRenderer({ block }: { block: LessonBlock }) {

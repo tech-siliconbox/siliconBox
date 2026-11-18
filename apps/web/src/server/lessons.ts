@@ -1,6 +1,11 @@
 import 'server-only';
-import { type PublishedLesson, PublicIdSchema } from '@siliconbox/shared';
-import { findPublishedLesson } from '@/db/content';
+import { type LessonBlock, type PublishedLesson, PublicIdSchema } from '@siliconbox/shared';
+import {
+  type PublishedLessonWithLevel,
+  findLessonPublicIds,
+  findPublishedLesson,
+} from '@/db/content';
+import { linkedLessonSlugs, resolveCourseLinks } from './course-html';
 import type { Identity } from './auth/authenticate';
 import { assertEntitled } from './entitlements';
 import { AppError } from './errors';
@@ -27,19 +32,35 @@ export async function readLesson(
   return markLesson(found.lesson, learnerMarkCode(identity.userId));
 }
 
+/** Links in the author's markup point at lessons by slug; resolve them once per cached copy. */
+export async function withResolvedLinks(blocks: LessonBlock[]): Promise<LessonBlock[]> {
+  const html = blocks.flatMap((block) => (block.blockType === 'html' ? [block.html] : []));
+  if (html.length === 0) return blocks;
+  const lessonIds = await findLessonPublicIds(html.flatMap(linkedLessonSlugs));
+  return blocks.map((block) =>
+    block.blockType === 'html'
+      ? { ...block, html: resolveCourseLinks(block.html, lessonIds) }
+      : block,
+  );
+}
+
 // docs/architecture/content-delivery.md: keep a published lesson 30 to 60 seconds in memory.
 // Only the content is cached: pacing, the entitlement check and the watermark run every read.
 const LESSON_CACHE_MS = 30_000;
-const publishedLessons =
-  createTtlCache<NonNullable<Awaited<ReturnType<typeof findPublishedLesson>>>>(LESSON_CACHE_MS);
+const publishedLessons = createTtlCache<PublishedLessonWithLevel>(LESSON_CACHE_MS);
 
 async function findPublishedLessonCached(publicId: string) {
   const cached = publishedLessons.get(publicId);
   if (cached !== undefined) return cached;
   const found = await findPublishedLesson(publicId);
   // Misses are not cached, so a newly published lesson is readable at once.
-  if (found !== null) publishedLessons.set(publicId, found);
-  return found;
+  if (found === null) return null;
+  const prepared = {
+    ...found,
+    lesson: { ...found.lesson, blocks: await withResolvedLinks(found.lesson.blocks) },
+  };
+  publishedLessons.set(publicId, prepared);
+  return prepared;
 }
 
 /** Called when content is published or changed, so this instance serves the new version at once. */

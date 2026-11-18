@@ -1,6 +1,7 @@
 import 'server-only';
 import { type PublishedLesson, PublishedLessonSchema } from '@siliconbox/shared';
 import { cmsAdminSession } from './cms-admin';
+import { withResolvedLinks } from './lessons';
 
 /**
  * The latest draft of a lesson, for a signed-in CMS admin only. Uses Payload's own session and
@@ -23,5 +24,9 @@ export async function readLessonPreview(
     })
     .catch(() => null);
   if (draft === null) return null;
-  return { lesson: PublishedLessonSchema.parse(draft), adminEmail: user.email };
+  const lesson = PublishedLessonSchema.parse(draft);
+  return {
+    lesson: { ...lesson, blocks: await withResolvedLinks(lesson.blocks) },
+    adminEmail: user.email,
+  };
 }

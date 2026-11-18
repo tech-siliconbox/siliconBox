@@ -99,7 +99,9 @@ test('an admin previews the latest draft; a learner cannot', async ({ page }) =>
   const editor = await signInAsAdmin('editor');
   await page.context().addCookies((await editor.storageState()).cookies);
   await page.goto(ROUTES.lessonPreview(paidLessonDbId));
-  await expect(page.getByRole('status')).toContainText('Preview of the latest draft');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Preview of the latest draft' }),
+  ).toBeVisible();
   await expect(page.getByText(DRAFT)).toBeVisible();
 
   await page.context().clearCookies();
@@ -180,7 +182,7 @@ async function expectEveryBlockRenders(page: Page): Promise<void> {
   await expect(page.getByText('hint.')).toBeVisible();
   // The state graph comes from the lesson; the site only animates it.
   await page.getByRole('button', { name: 'Run formal' }).click();
-  await expect(page.getByText(/Shortest counterexample \(2 cycles\): S0 → S1 → S2/)).toBeVisible();
+  await expect(page.getByText(/shortest trace, 2 cycles\): S0 → S1 → S2/)).toBeVisible();
   await page.getByRole('button', { name: 'Run 1000 tests' }).click();
   await expect(page.getByText('Tests run: 1000')).toBeVisible();
 }

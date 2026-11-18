@@ -21,6 +21,10 @@ Raster images are stamped with the learner's mark on the server and delivered th
 - Keep a lookup from pattern to user in a private table for tracing.
 - A test checks that paid views carry both marks.
 
+## Copy protection
+
+Paid text cannot be selected, copied, cut, dragged, right-clicked or printed, and blurs while the window is out of focus; code examples keep a Copy button (ADR 0023, `ProtectedContent`). Screenshots and recordings cannot be blocked from a web page, which is why the marks below matter.
+
 ## Limits
 
 A filmed screen or hand-typed copy can still carry the visible mark, but a cropped screenshot might not. Watermarking deters and traces; it does not prevent.

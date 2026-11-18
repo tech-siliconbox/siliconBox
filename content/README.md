@@ -6,24 +6,26 @@ Payload is the published source of truth; after the first import, edit in the ad
 ## Converting a course from HTML
 
 A course written as HTML pages (one numbered page per module, `index.html` for the course home,
-any other page as a reference module, with `style.css` and scripts in a sibling `assets/`
-folder) becomes an import file with:
+any other page as a reference module, with `style.css` and `sim-vs-formal.js` in a sibling
+`assets/` folder) becomes an import file with:
 
 ```
-pnpm content:convert <course folder> <level> content/import/<level>.json [course slug]
+pnpm content:convert <course folder> <level> content/import/<level>.json [drills.json] [course slug]
 ```
 
-The text is copied word for word. Each module page becomes one lesson per `<h2>` section (the
-content before the first section joins the first lesson); the course home becomes the module 1
-lesson "Course overview"; the overview and the first section are the free preview. Site chrome
-(header, navigation, module tag, legend) is left out because the site supplies its own.
-Diagrams keep the author's colours (the stylesheet's `.fv-flow` rules are written onto the SVG),
-and the simulation-vs-formal figure becomes a `stateGraph` block whose states and transitions
-are read from `assets/sim-vs-formal.js` (never run). Anything that cannot be carried over
-exactly is printed at the end of the run. Then import the file as below.
+Each module stays one page with all its content (ADR 0024): the page becomes the module's one
+lesson, its markup kept in `html` blocks with the text word for word; the course home becomes
+the course `introduction` on the public course page; module 1 is the free preview. The site
+shows the markup in its own design (`apps/web/src/app/(site)/lesson-content.css`), keeping the
+colour coding of boxes. The course stylesheet is read only for diagram colours, which are
+written onto the SVG. The simulation-vs-formal figure becomes a `stateGraph` block read from
+`assets/sim-vs-formal.js` (never run). With a drills import file, each module's Drills follow
+its lab as `drillEmbed` blocks, so learners practise on the page. Every change (scripts and
+inline styles removed) is printed at the end of the run. Then import the file as below.
 
 The Basic course was converted and imported on 2026-11-18 from `~/Desktop/SB/course/basic`
-(outside the repository): 11 modules, 93 lessons, over the demo slugs.
+(outside the repository): 10 modules and the SVA cheatsheet, one page each, with 8 Drills in
+`basic-drills.json`.
 
 ## Importing courses (JSON)
 
@@ -55,7 +57,9 @@ be tried; the real course content replaces them by re-using the same slugs.
   `list` (`ordered`, optional `start`, `items` with `text` and an optional `answer` shown
   behind "Show answer"), `table` (`columns`, `rows` of `cells`), `reveal` (a `label` such as
   "Show hints" and the blocks it hides) and `stateGraph` (an interactive simulation-vs-formal
-  figure: panel titles and texts, `testLength`, `states` and `transitions`). No video.
+  figure: panel titles and texts, `testLength`, `states` and `transitions`), `html` (an author's
+  page markup, ADR 0024: sanitised on every render, links written `lesson:<slug>`) and
+  `drillEmbed` (a Drill slug: the Drill's brief and editor in the page). No video.
 - Text format: `` `code` `` (a longer fence such as ``` `` `define `` ``` holds a backtick),
   `**bold**`, `*italic*`, `\` escapes. In callouts, list items, answers and table cells a blank
   line starts a paragraph and lines beginning with `- ` are bullets

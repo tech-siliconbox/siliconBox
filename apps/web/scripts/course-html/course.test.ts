@@ -1,143 +1,103 @@
 import { describe, expect, it } from 'vitest';
 import { type CoursePage, convertCourse } from './course';
-import { readSvgRules } from './svg-styles';
 
 // Invented pages in the course's HTML shape; no real course text.
-const page = (body: string) =>
-  `<!DOCTYPE html><html><head><title>x</title></head><body><header class="site-header">Site</header><main><article class="card">${body}<div class="nav-bar"><a href="index.html">Home</a></div></article></main></body></html>`;
+const page = (title: string, body: string) =>
+  `<!DOCTYPE html><html><head><title>${title} | Invented Course</title></head><body><header class="site-header">Site</header><main><article class="card">${body}</article></main><script src="x.js"></script></body></html>`;
 
-const INDEX = page(`
-  <span class="module-tag">Invented tag</span>
-  <h1>Invented Course</h1>
-  <p class="lead">An invented summary.</p>
-  <h2>Who is this for?</h2>
-  <ol class="module-list"><li><span class="num">1</span><a href="01-a.html"><strong>Invented module</strong></a><span class="pill">2 h</span>
-    <span class="desc">What it covers.</span></li></ol>`);
+const INDEX = page(
+  'Invented Course',
+  `<span class="module-tag">Level 1</span><h1>Invented Course</h1><p class="lead">An invented summary.</p>
+  <ol class="module-list"><li><a href="01-a.html"><strong>Invented module</strong></a></li></ol>`,
+);
+const MODULE = page(
+  'Module 1: Invented Module',
+  `<span class="module-tag">Basic · Module 1 of 1</span><h1>Invented Module</h1>
+  <p class="lead">Invented lead.</p><p class="meta">Estimated time: 2.5 hours</p>
+  <div class="callout warn"><span class="title">Careful</span>Invented warning.</div>
+  <pre><code>assert property (p);  <span class="c">// comment</span></code></pre>
+  <figure><svg viewBox="0 0 10 10" style="width:100%;max-width:640px"><rect class="fl-box" width="5" height="5"/></svg></figure>
+  <div class="lab"><h2>Lab 1: Invented lab</h2><ol><li>Do it.</li></ol></div>
+  <script src="../assets/figure.js"></script>
+  <div class="nav-bar"><a href="index.html">Course home</a></div>`,
+);
+const CSS = `:root { --brand: #0b5fff; }
+body { color: #111; }
+main { max-width: 900px; }
+.callout.warn { background: #fff4e0; }
+.fv-flow .fl-box { fill: #eef4ff; stroke: var(--brand); }`;
 
-const MODULE = page(`
-  <h1>Invented Module</h1>
-  <p class="lead">Invented lead.</p>
-  <h2>1.1 First section</h2>
-  <p>Uses <code>a [*3]</code>, <strong>bold </strong>and 2<sup>n</sup> states.</p>
-  <div class="callout warn"><span class="title">Invented title</span>Body text.<ul><li>one</li><li>two</li></ul></div>
-  <div class="filename">invented.sby</div>
-  <pre><code>[options]
-mode bmc  <span class="c"># comment</span></code></pre>
-  <h2>1.2 Second section</h2>
-  <ol>
-    <li>Question one?<details><summary>Show answer</summary>Answer one.</details></li>
-    <li>Pick one:<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td><code>x</code></td><td>y</td></tr></tbody></table></li>
-    <li>Last item.</li>
-  </ol>
-  <details><summary>Show hints</summary><p>Hint text.</p></details>
-  <figure class="fv-flow"><svg viewBox="0 0 10 10" aria-label="Invented diagram"><rect class="fl-box" width="5" height="5"/></svg><figcaption><strong>Figure 1.</strong> Caption.</figcaption></figure>
-  <h2>Summary</h2><p>Invented summary.</p>
-  <h2>Quick quiz</h2><ol><li>Invented question?</li></ol>`);
+const { content, notes } = convertCourse(
+  {
+    pages: [
+      { file: 'index.html', html: INDEX },
+      { file: '01-a.html', html: MODULE },
+    ] as CoursePage[],
+    stylesheet: CSS,
+    stateGraphScript: null,
+  },
+  {
+    slug: 'basic',
+    level: 'basic',
+    order: 1,
+    drillsByModule: new Map([['basic-module-01', ['basic-module-01-drill-01']]]),
+  },
+);
+const [course] = content.courses;
+const [module] = course?.modules ?? [];
+const [lesson] = module?.lessons ?? [];
 
-const CSS = `:root { --line: #123456; }
-.fv-flow .fl-box { fill: #fff; stroke: var(--line); stroke-width: 1.5; }`;
-
-const convert = (pages: CoursePage[]) =>
-  convertCourse(
-    { pages, svgRules: readSvgRules(CSS, 'fv-flow'), stateGraphScript: null },
-    { slug: 'basic', level: 'basic', order: 1 },
-  );
-
-describe('convertCourse', () => {
-  const { content, notes } = convert([
-    { file: 'index.html', html: INDEX },
-    { file: '01-a.html', html: MODULE },
-  ]);
-  const [course] = content.courses;
-  const [module] = course?.modules ?? [];
-  const [overview, first, second, review] = module?.lessons ?? [];
-
-  it('takes the course and module from the pages, and leaves out site chrome', () => {
+describe('convertCourse: one page per module, all content kept', () => {
+  it('keeps the course home as the introduction, links rewritten', () => {
     expect(course).toMatchObject({
       slug: 'basic',
       title: 'Invented Course',
       summary: 'An invented summary.',
     });
+    expect(course?.introduction).toContain('<span class="module-tag">Level 1</span>');
+    expect(course?.introduction).toContain('href="lesson:basic-module-01-lesson-01"');
+    expect(course?.introduction).not.toContain('site-header');
+  });
+
+  it('makes each module page one lesson, free for the first module', () => {
     expect(module).toMatchObject({
       slug: 'basic-module-01',
       title: 'Invented Module',
       summary: 'Invented lead.',
     });
-    expect(JSON.stringify(content)).not.toMatch(/Invented tag|Site|Home/);
-  });
-
-  it('opens with the course overview, then one lesson per section; the first two are free', () => {
-    expect(module?.lessons.map((lesson) => [lesson.slug, lesson.title, lesson.preview])).toEqual([
-      ['basic-module-01-lesson-01', 'Course overview', true],
-      ['basic-module-01-lesson-02', '1.1 First section', true],
-      ['basic-module-01-lesson-03', '1.2 Second section', false],
-      ['basic-module-01-lesson-04', 'Summary · Quick quiz', false],
-    ]);
-    expect(overview?.blocks).toContainEqual({
-      blockType: 'list',
-      ordered: true,
-      items: [{ text: '**Invented module** · 2 h\n\nWhat it covers.' }],
+    expect(lesson).toMatchObject({
+      slug: 'basic-module-01-lesson-01',
+      title: 'Module 1: Invented Module',
+      preview: true,
+      durationMinutes: 150,
     });
   });
 
-  it('keeps the text and its formatting', () => {
-    expect(first?.blocks).toEqual([
-      { blockType: 'paragraph', text: 'Invented lead.' },
-      { blockType: 'paragraph', text: 'Uses `a [*3]`, **bold** and 2ⁿ states.' },
-      {
-        blockType: 'callout',
-        tone: 'warning',
-        title: 'Invented title',
-        text: 'Body text.\n\n- one\n- two',
-      },
-      {
-        blockType: 'code',
-        language: 'sby',
-        code: '[options]\nmode bmc  # comment',
-        filename: 'invented.sby',
-      },
-    ]);
-  });
-
-  it('places a table after its list item and continues the numbering', () => {
-    expect(second?.blocks.slice(0, 3)).toEqual([
-      {
-        blockType: 'list',
-        ordered: true,
-        items: [{ text: 'Question one?', answer: 'Answer one.' }, { text: 'Pick one:' }],
-      },
-      {
-        blockType: 'table',
-        columns: [{ text: 'A' }, { text: 'B' }],
-        rows: [{ cells: [{ text: '`x`' }, { text: 'y' }] }],
-      },
-      { blockType: 'list', ordered: true, start: 3, items: [{ text: 'Last item.' }] },
-    ]);
-    expect(notes).toContain(
-      '01-a.html: a table inside a list item now follows that item, and the list continues',
+  it('keeps the markup as written and puts the Drill right after the lab', () => {
+    const [markup, drill, rest] = lesson?.blocks ?? [];
+    expect(markup?.blockType).toBe('html');
+    const html = markup?.blockType === 'html' ? markup.html : '';
+    expect(html).toContain(
+      '<div class="callout warn"><span class="title">Careful</span>Invented warning.</div>',
     );
+    expect(html).toContain('<span class="c">// comment</span>');
+    expect(html).toContain('<h2>Lab 1: Invented lab</h2>');
+    expect(html).not.toContain('style=');
+    expect(html).not.toContain('<script');
+    expect(drill).toEqual({ blockType: 'drillEmbed', drill: 'basic-module-01-drill-01' });
+    expect(rest?.blockType === 'html' && rest.html).toContain('href="course:basic"');
   });
 
-  it('turns hints into a reveal and writes diagram styles onto the SVG', () => {
-    expect(second?.blocks[3]).toEqual({
-      blockType: 'reveal',
-      label: 'Show hints',
-      content: [{ blockType: 'paragraph', text: 'Hint text.' }],
-    });
-    expect(second?.blocks[4]).toEqual({
-      blockType: 'diagram',
-      svg: '<svg viewBox="0 0 10 10" aria-label="Invented diagram"><rect width="5" height="5" fill="#fff" stroke="#123456" stroke-width="1.5"/></svg>',
-      alt: 'Invented diagram',
-      caption: '**Figure 1.** Caption.',
-    });
-  });
-
-  it('merges the closing review sections into one lesson, keeping each heading', () => {
-    expect(review?.blocks).toEqual([
-      { blockType: 'heading', level: '2', text: 'Summary' },
-      { blockType: 'paragraph', text: 'Invented summary.' },
-      { blockType: 'heading', level: '2', text: 'Quick quiz' },
-      { blockType: 'list', ordered: true, items: [{ text: 'Invented question?' }] },
-    ]);
+  it('draws diagrams in the course colours without the course stylesheet', () => {
+    const html = lesson?.blocks[0]?.blockType === 'html' ? lesson.blocks[0].html : '';
+    expect(course).not.toHaveProperty('stylesheet');
+    expect(html).toContain(
+      '<svg viewBox="0 0 10 10"><rect width="5" height="5" fill="#eef4ff" stroke="#0b5fff"/>',
+    );
+    expect(html).not.toContain('class="fl-box"');
+    expect(notes).toContain('01-a.html: diagram inline style dropped (the site sizes diagrams)');
+    expect(notes).toContain(
+      '01-a.html: a script was removed (the interactive figure is rebuilt as a block)',
+    );
   });
 });

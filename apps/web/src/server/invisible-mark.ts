@@ -20,10 +20,13 @@ function encode(code: number): string {
   return FRAME + bits.replace(/[01]/g, (bit) => (bit === '1' ? ONE : ZERO)) + FRAME;
 }
 
+// The first word, past any leading space and a "- " bullet marker (which must stay intact for
+// the text format to read the line as a bullet).
+const FIRST_WORD = /^\s*(?:-\s+)?\S+/;
+
 /** Inserts the code after the first word, where it survives copying any part of the passage start. */
 export function embedMark(text: string, code: number): string {
-  const cut = text.indexOf(' ');
-  const at = cut === -1 ? text.length : cut;
+  const at = FIRST_WORD.exec(text)?.[0].length ?? text.length;
   return text.slice(0, at) + encode(code) + text.slice(at);
 }
 

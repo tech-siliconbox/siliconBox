@@ -52,7 +52,9 @@ their widths (`input logic [3:0] count`), or multi-bit signals are read as 1 bit
 the design by name, so only the design's ports are visible. Helper logic in the properties
 module (wires, registers, `always` blocks) is kept as written, so a checker can model internal
 behaviour from the ports. A `cover` must name a `property`; an inline expression is not
-lowered. `include and file system tasks are refused.
+lowered. `sig[->N] ##K expr` after `|=>` or `|->` is supported. If any statement uses SVA the
+engine cannot lower yet, the run stops with an ERROR naming it (never a PASS that skipped a
+check). `include and file system tasks are refused.
 
 Publish gate: `python -m app.gate <content import file.json>` (`pnpm drills:verify`) runs every
 Drill's reference solution, reference design, bug variants and starter on the real solver.

@@ -14,7 +14,7 @@ formal.org shipped course text in static JavaScript chunks, so anyone with the b
 
 - Paid responses send `Cache-Control: private, no-store`; the CDN never caches them.
 - No lesson text in any JS file, sitemap, RSS feed or search index.
-- Lessons are structured blocks. One lesson per response, never a whole course.
+- Lessons are structured blocks; an author's course page is kept as sanitised markup in `html` blocks (ADR 0024). One lesson per response, never a whole course.
 - Diagrams are inline SVG. Raster images only via short-lived signed links, watermarked.
 - Identifiers are random and opaque (UUIDs or signed short-lived references).
 - Sequential release: the API only serves lessons the level allows.

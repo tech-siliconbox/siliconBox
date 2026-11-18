@@ -2,6 +2,7 @@ import 'server-only';
 import type { LessonBlock } from '@siliconbox/shared';
 import { raiseAlert } from './alerts';
 import { getConfig } from './config';
+import { markCourseHtml } from './course-html';
 import { embedMark, markCode } from './invisible-mark';
 import { RATE_LIMITS, enforceRateLimit, redisRateLimiter } from './rate-limit';
 
@@ -40,6 +41,8 @@ function markBlock<Block extends LessonBlock>(block: Block, code: number): Block
       };
     case 'reveal':
       return { ...block, content: block.content.map((inner) => markBlock(inner, code)) };
+    case 'html':
+      return { ...block, html: markCourseHtml(block.html, code) };
     default:
       return block;
   }

@@ -40,6 +40,9 @@ from app.engine.sva_parser import (
 
 logger = logging.getLogger("veriassist.lowering")
 
+# A goto repetition followed by a delay and an expression: `tick[->3] ##1 done`.
+GOTO_THEN_DELAY = re.compile(r"^\(?\s*(\w+)\s*\[->(\d+)\]\s*##(\d+)\s*(.+?)\s*\)?$")
+
 
 class SVALoweringEngine:
     """
@@ -57,6 +60,9 @@ class SVALoweringEngine:
         synthesizable SystemVerilog module with `ifdef FORMAL guards.
         """
         self._reg_counter = 0
+        # Statements that could not be lowered: (label, kind, original SVA). The pipeline refuses
+        # to run with any, so a property is never silently left unchecked.
+        self.skipped: list[tuple[str, str, str]] = []
         lines = []
 
         # If no signals declared, auto-detect from property bodies
@@ -164,6 +170,7 @@ class SVALoweringEngine:
                     self._format_comment_block("    ", "Original SVA:", prop.body.strip()[:80])
                 )
                 logger.warning(f"Skipping {assertion.label}: {reason}")
+                self.skipped.append((assertion.label, assertion.type, prop.body.strip()))
             else:
                 lines.extend(monitor_lines)
             lines.append("")
@@ -327,6 +334,16 @@ class SVALoweringEngine:
 
         # Determine what's in the consequent
         cons_raw = analysis.consequent
+
+        # ── Goto repetition then a delay: sig[->N] ##K expr ──
+        goto_then = GOTO_THEN_DELAY.match(cons_raw.strip())
+        if goto_then:
+            signal, n, k, check_raw = goto_then.groups()
+            check_expr = self._translate_expression(check_raw.strip(), parsed)
+            same_cycle = analysis.implication_type == "overlapping"
+            return lines + self._lower_goto_then_delay(
+                label, atype, ante, same_cycle, signal, int(n), int(k), check_expr, parsed
+            )
 
         # ── Fixed delay ##N ───────────────────────────────
         if analysis.delays and analysis.delays[0]["type"] == "fixed":
@@ -642,6 +659,67 @@ class SVALoweringEngine:
         lines.append("        end")
         lines.append("    end")
         return lines
+
+    # ═══════════════════════════════════════════════════════════
+    # GOTO REPETITION THEN A DELAY  sig[->N] ##K expr
+    # ═══════════════════════════════════════════════════════════
+
+    def _lower_goto_then_delay(
+        self,
+        label: str,
+        atype: str,
+        ante: str,
+        same_cycle: bool,
+        signal: str,
+        n: int,
+        k: int,
+        check: str,
+        parsed: ParsedSVA,
+    ) -> list[str]:
+        """After the antecedent, count N occurrences of `signal` (not necessarily consecutive);
+        K cycles after the Nth, `check` must hold (assert), is constrained (assume) or is
+        covered (cover). With |=> the count starts in the cycle after the antecedent; with |->
+        (`same_cycle`) an occurrence in the antecedent's own cycle counts too."""
+        cnt_reg = self._unique_reg(f"{label}_goto_cnt")
+        active_reg = self._unique_reg(f"{label}_goto_active")
+        due_reg = self._unique_reg(f"{label}_goto_due")
+        width = max(1, n.bit_length())
+        shift = f"{{{due_reg}[{k - 2}:0], 1'b0}}" if k > 1 else "1'b0"
+        start = f"({ante}) && !{active_reg}"
+        counting = f"({active_reg} || ({start}))" if same_cycle else active_reg
+        nth = f"{counting} && ({signal}) && ({cnt_reg} + 1 >= {n})"
+        due = f"{due_reg}[{k - 1}]"
+        statement = {
+            "assert": (
+                f"            if ({due} && !({check}))",
+                f"                {label}: assert(0);",
+            ),
+            "assume": (f"            if ({due})", f"                {label}: assume({check});"),
+            "cover": (
+                f"            if ({due} && ({check}))",
+                f"                {label}: cover(1);",
+            ),
+        }[atype]
+        return [
+            f"    reg [{width - 1}:0] {cnt_reg};",
+            f"    reg {active_reg};",
+            f"    reg [{k - 1}:0] {due_reg};",
+            f"    always @({parsed.clock_edge} {parsed.clock}) begin",
+            f"        if ({parsed.reset_condition}) begin",
+            f"            {cnt_reg} <= 0; {active_reg} <= 0; {due_reg} <= 0;",
+            "        end else begin",
+            *statement,
+            f"            {due_reg} <= {shift} | ({nth} ? {k}'d1 : {k}'d0);",
+            f"            if ({nth}) begin",
+            f"                {active_reg} <= 0; {cnt_reg} <= 0;",
+            f"            end else if ({counting} && ({signal})) begin",
+            f"                {active_reg} <= 1; {cnt_reg} <= {cnt_reg} + 1;",
+            f"            end else if ({start}) begin",
+            f"                {active_reg} <= 1; {cnt_reg} <= 0;",
+            "            end",
+            "        end",
+            "    end",
+        ]
 
     # ═══════════════════════════════════════════════════════════
     # NON-CONSECUTIVE REPETITION [=N]

@@ -1,5 +1,4 @@
 import { type Element, isTag } from 'domhandler';
-import render from 'dom-serializer';
 import type { Notes } from './notes';
 
 // Course diagrams take their colours and fonts from classes in the course stylesheet. The site
@@ -31,6 +30,8 @@ function readVariables(css: string): Map<string, string> {
 }
 
 /** Rules written as `<scope> .a.b` or `<scope> text` inside the diagram's scope class. */
+export type SvgRules = Rule[];
+
 export function readSvgRules(css: string, scope: string): Rule[] {
   const variables = readVariables(css);
   const resolve = (value: string) =>
@@ -69,9 +70,8 @@ function styleTree(element: Element, rules: Rule[]): void {
   for (const child of element.children) if (isTag(child)) styleTree(child, rules);
 }
 
-/** The SVG as standalone markup with its stylesheet classes written onto each element. */
-export function inlineSvg(svg: Element, rules: Rule[], notes: Notes): string {
+/** Writes the stylesheet's diagram rules onto the SVG's own elements, in place. */
+export function styleSvg(svg: Element, rules: Rule[], notes: Notes): void {
   if (svg.attribs.style) notes.add('diagram inline style dropped (the site sizes diagrams)');
   styleTree(svg, rules);
-  return render(svg, { xmlMode: true, encodeEntities: 'utf8' });
 }

@@ -29,6 +29,15 @@ export const Courses: CollectionConfig = {
       options: LEVELS.map((level) => ({ label: level, value: level })),
     },
     { name: 'summary', type: 'textarea', maxLength: 600 },
+    {
+      name: 'introduction',
+      type: 'code',
+      admin: {
+        language: 'html',
+        description:
+          'Optional: the course home page in your own markup (shown publicly instead of the plain outline). Links to lessons are written lesson:<slug>.',
+      },
+    },
     orderField,
     publicIdField,
   ],
