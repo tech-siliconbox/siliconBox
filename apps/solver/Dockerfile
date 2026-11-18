@@ -5,7 +5,8 @@
 # Build: docker build -t siliconbox-solver apps/solver
 
 # ── OSS CAD Suite (Yosys, SymbiYosys, solvers), pinned to the version CI tests ─────────────
-FROM debian:bookworm-slim AS tools
+# Exact base images, so every build gets the tested system (bump deliberately).
+FROM debian:bookworm-20261104-slim AS tools
 ARG OSS_CAD_SUITE_DATE=2026-10-01
 ARG TARGETARCH
 RUN apt-get update \
@@ -20,16 +21,16 @@ RUN set -eu; \
     rm /tmp/oss.tgz
 
 # ── App ─────────────────────────────────────────────────────────────────────────────────────
-FROM python:3.12-slim-bookworm
+FROM python:3.12.16-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     SOLVER_TOOL_PATH=/opt/oss-cad-suite/bin \
     SOLVER_WORK_ROOT=/work
 COPY --from=tools /opt/oss-cad-suite /opt/oss-cad-suite
 WORKDIR /app
-COPY pyproject.toml ./
+COPY pyproject.toml constraints.txt ./
 COPY app ./app
-RUN pip install --no-cache-dir . \
+RUN pip install --no-cache-dir -c constraints.txt . \
  && mkdir -p /work && chown 65534:65534 /work
 # nobody: the app never needs root.
 USER 65534:65534

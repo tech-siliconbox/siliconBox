@@ -4,17 +4,17 @@ version = "0.1.0"
 description = "Private formal-verification service for SiliconBox. Only the SiliconBox backend may call it."
 requires-python = ">=3.12"
 dependencies = [
-  "defusedxml>=0.7",
-  "fastapi>=0.120",
-  "pydantic-settings>=2.6",
-  "pyjwt>=2.10",
-  "redis>=5.2",
-  "uvicorn[standard]>=0.32",
+  "defusedxml==0.7.1",
+  "fastapi==0.163.1",
+  "pydantic-settings==2.16.3",
+  "pyjwt==2.15.1",
+  "redis==8.1.0",
+  "uvicorn[standard]==0.54.0",
 ]
 
 [dependency-groups]
 # click: SymbiYosys needs it when run from this virtualenv on a developer machine.
-dev = ["click>=8.1", "fakeredis>=2.26", "httpx2", "pytest>=8.3", "ruff>=0.8", "vulture>=2.13"]
+dev = ["click==8.5.1", "fakeredis==2.40.0", "httpx2==2.16.2", "pytest==9.2.0", "ruff==0.17.5", "vulture==2.16"]
 
 [tool.ruff]
 line-length = 100
