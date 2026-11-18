@@ -4,6 +4,12 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (watermark trace)
+- Watermark trace tool at `/admin-tools/trace` for Support and Owner: paste leaked text or a visible mark from a screenshot, see the learner accounts it came from. Rate-limited and audit-logged (`watermark_trace`); the text is never stored.
+
+### Changed (dependencies)
+- Payload 3.94.0 (needs Node 26.13.1 or newer locally); its own patched undici and mongoose replace the overrides.
+
 ### Security
 - Next.js 16.4.6 (critical: unauthenticated remote code execution), Payload 3.93, zod 4.6.7; patched undici, mongoose, dompurify and vite through overrides; sass moved to the current 1.x line and its optional file watcher skipped, which removes picomatch (GHSA-fc5q-39xc-vjpf, no fix released) from the runtime.
 

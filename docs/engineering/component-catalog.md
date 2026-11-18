@@ -52,6 +52,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | auth: SignInForm, SignUpForm, GoogleButton, SignOutButton | The auth actions | Built |
 | auth: TwoFactorSettings, EnableTwoFactor, TwoFactorChallengeForm, TotpQrCode, PasswordField | Two-factor setup, sign-in code step and turning it off | Built |
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
+| admin-tools: TraceForm, TraceResults | Watermark trace tool: paste leaked text, see the accounts it points to | Built |
 | drills: DrillWorkspace, CodeEditor, RunOutput, WaveformView | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
 | drills: useDrillRun, useDrillDraft, waveRows | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser; trace to waveform rows | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
@@ -74,6 +75,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | startRun, readRun | Start and follow a run: visible job, then grading against the hidden designs (`server/runs.ts`) | Built |
 | gradingPlan, gradingView, startGrading, advanceGrading | ADR 0021 grading (`server/grading.ts`); hidden designs read only through `db/grading.ts` | Built |
 | solverJob, jobHash | The learner's code against a design with the Drill's settings; cache key (`server/drill-jobs.ts`) | Built |
+| cmsAdminSession, hasAdminRole | The signed-in CMS admin for a request (Payload session) and a role check; used by the lesson preview and the trace tool (`server/cms-admin.ts`) | Built |
+| traceLeak, traceLeakAction | Hidden codes and visible marks in leaked text to learner accounts; the admin action is rate-limited and audit-logged (`server/watermark-trace*.ts`) | Built |
+| visibleMark, parseVisibleMarks | Writes and reads the visible watermark (`server/watermark.ts`) | Built |
 | readDrill | One published Drill for one learner: paced, readable with content access, `canRun` with tool access too, brief watermarked (`server/drills.ts`) | Built |
 | markCode, embedMark, findMarks | Invisible per-learner watermark in text (`server/invisible-mark.ts`) | Built |
 | sanitizeSvg | Allow-listed inline SVG for diagrams | Built |

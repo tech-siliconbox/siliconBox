@@ -19,6 +19,7 @@ export * from './schemas/resume';
 export * from './schemas/role';
 export * from './schemas/run';
 export * from './schemas/service';
+export * from './schemas/watermark';
 export * from './entitlements/access';
 export * from './entitlements/grant';
 export * from './entitlements/held';

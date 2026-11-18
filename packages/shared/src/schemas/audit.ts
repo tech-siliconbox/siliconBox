@@ -8,6 +8,8 @@ export const AuditActionSchema = z.enum([
   'refund',
   'admin_edit',
   'entitlement_change',
+  // An admin traced leaked text back to learner accounts (docs/security/watermarking.md).
+  'watermark_trace',
 ]);
 export type AuditAction = z.infer<typeof AuditActionSchema>;
 

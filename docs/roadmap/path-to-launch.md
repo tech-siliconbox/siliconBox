@@ -31,7 +31,7 @@ decision, account or content only the founder can supply.
 | Daily reading cap | Dev | Done (150 a day, to tune) |
 | Anomaly alerts, lesson memory cache | Dev | Done (alerts by email wait on the email provider) |
 | Test: no paid content in any bundle, sitemap or feed | Dev | Done |
-| Watermark trace tool for admins | Dev | Not started |
+| Watermark trace tool for admins | Dev | Done (`/admin-tools/trace`, Support and Owner) |
 
 ## Phase 3: Solver (the riskiest part; payments wait for its gate)
 
