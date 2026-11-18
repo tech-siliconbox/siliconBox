@@ -1,7 +1,7 @@
 import { ERRORS, ROUTES } from '@siliconbox/shared';
-import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { LockedCard } from './locked-card';
+import { SiteLink } from '@/components/ui/site-link';
 
 type PaidContentLockedProps = { title: string; reason: 'NOT_ENTITLED' | 'RATE_LIMITED' };
 
@@ -14,12 +14,12 @@ export function PaidContentLocked({ title, reason }: PaidContentLockedProps) {
         reason={ERRORS[reason].message}
         action={
           reason === 'NOT_ENTITLED' ? (
-            <Link
+            <SiteLink
               href={ROUTES.pricing}
               className={buttonVariants({ size: 'sm', className: 'w-fit' })}
             >
               See pricing
-            </Link>
+            </SiteLink>
           ) : undefined
         }
       />

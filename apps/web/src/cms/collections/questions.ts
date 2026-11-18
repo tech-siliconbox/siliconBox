@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload';
 import { contentAccess } from '../access';
 import { publicIdField } from '../fields/public-id';
+import { slugFrom } from '../fields/slug';
 
 const THIS_YEAR = new Date().getFullYear();
 
@@ -12,6 +13,7 @@ export const Questions: CollectionConfig = {
   versions: { drafts: true, maxPerDoc: 50 },
   fields: [
     { name: 'text', type: 'textarea', required: true, maxLength: 2000 },
+    slugFrom('text'),
     {
       name: 'topics',
       type: 'text',

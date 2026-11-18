@@ -1,8 +1,8 @@
 import { type PublicService, ROUTES } from '@siliconbox/shared';
-import Link from 'next/link';
 import { LockedCard } from '@/components/shared/locked-card';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { SiteLink } from '@/components/ui/site-link';
 
 /**
  * Pages for open services, added as each service is built. An open service without a page here
@@ -31,9 +31,9 @@ export function ServiceCard({ service }: { service: PublicService }) {
       </div>
       {service.summary && <p className="text-sm text-muted-foreground">{service.summary}</p>}
       {page !== undefined && (
-        <Link href={page} className="text-sm underline underline-offset-4">
+        <SiteLink href={page} className="text-sm underline underline-offset-4">
           Open {service.title}
-        </Link>
+        </SiteLink>
       )}
     </Card>
   );

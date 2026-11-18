@@ -34,6 +34,14 @@ function describe(content: ContentImport): string {
   return `${content.courses.length} courses, ${modules.length} modules, ${lessons} lessons, ${drills} Drills`;
 }
 
+/** Optional fields a file may leave out. Leaving one out clears it: the file is the source of truth. */
+const OPTIONAL_FIELDS: Record<Collection, string[]> = {
+  courses: ['summary', 'introduction'],
+  modules: ['summary'],
+  lessons: ['durationMinutes'],
+  drills: ['topic', 'designCode'],
+};
+
 /** Creates or updates the document with this slug and returns its id. */
 async function upsert(
   run: Run,
@@ -63,7 +71,9 @@ async function upsert(
     return created.id;
   }
   run.tally.updated += 1;
-  await run.payload.update({ collection, id: existing.id, data: withStatus, draft, ...WRITE });
+  const cleared = OPTIONAL_FIELDS[collection].filter((field) => !(field in data));
+  const update = { ...Object.fromEntries(cleared.map((field) => [field, null])), ...withStatus };
+  await run.payload.update({ collection, id: existing.id, data: update, draft, ...WRITE });
   return existing.id;
 }
 

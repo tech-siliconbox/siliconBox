@@ -8,7 +8,7 @@ Assets: paid lesson, Drill and answer content; learner accounts and CVs; payment
 | Account sharing | One paid account used by many people | One device at a time, watermarks, new-device alerts, terms forbidding sharing |
 | Screen recording or manual copying | Learner films or retypes content | Cannot be prevented; visible and invisible watermarks make leaks traceable |
 | Forged payment | Fake "success" callback, tampered price | Server-side price, signed webhook only, unique payment id |
-| Broken object access | Changing a lesson id to read another level | Per-object authorisation in `assertEntitled()`, opaque ids |
+| Broken object access | Changing a lesson id to read another level | Per-object authorisation in `assertEntitled()` on every page and route |
 | NoSQL injection | `{"$ne": null}` in a body | Zod schemas, operator stripping, no raw query building |
 | Solver abuse | Path traversal, config injection, endless runs | Hardening list, server-set limits, isolated runners, service auth |
 | Admin takeover | Stolen admin password | Cloudflare Access + MFA, own host, short session, audit log |

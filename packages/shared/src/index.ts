@@ -5,6 +5,7 @@ export * from './errors';
 export * from './inline-text';
 export * from './money';
 export * from './routes';
+export * from './slug';
 export * from './schemas/alert';
 export * from './schemas/audit';
 export * from './schemas/content-import';

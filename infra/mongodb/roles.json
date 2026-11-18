@@ -8,7 +8,6 @@
         "sessions",
         "accounts",
         "verifications",
-        "twoFactors",
         "entitlements",
         "orders",
         "progress",

@@ -62,7 +62,19 @@ export default defineConfig(
       ...nextPlugin.configs['core-web-vitals'].rules,
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.flatConfigs.strict.rules,
+      // Golden rule (ADR 0027): links never prefetch, so only SiteLink may use next/link.
+      'no-restricted-imports': [
+        'error',
+        {
+          name: 'next/link',
+          message: 'Use SiteLink (@/components/ui/site-link): it never prefetches.',
+        },
+      ],
     },
+  },
+  {
+    files: ['apps/web/src/components/ui/site-link.tsx'],
+    rules: { 'no-restricted-imports': 'off' },
   },
   {
     files: ['**/*.test.{ts,tsx}'],

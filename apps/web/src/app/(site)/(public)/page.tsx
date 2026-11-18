@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import { ROUTES } from '@siliconbox/shared';
 import { buttonVariants } from '@/components/ui/button';
 import { Eyebrow } from '@/components/ui/eyebrow';
+import { SiteLink } from '@/components/ui/site-link';
 
 export default function LandingPage() {
   return (
@@ -15,15 +15,15 @@ export default function LandingPage() {
         built into every Drill.
       </p>
       <div className="flex flex-wrap gap-3">
-        <Link href={ROUTES.signUp} className={buttonVariants({ size: 'lg' })}>
+        <SiteLink href={ROUTES.signUp} className={buttonVariants({ size: 'lg' })}>
           Get started
-        </Link>
-        <Link
+        </SiteLink>
+        <SiteLink
           href={ROUTES.courses}
           className={buttonVariants({ variant: 'secondary', size: 'lg' })}
         >
           Browse courses
-        </Link>
+        </SiteLink>
       </div>
       <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
         Lessons · Drills · Formal tool

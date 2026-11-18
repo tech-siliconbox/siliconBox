@@ -1,12 +1,14 @@
 'use client';
 
 import { API_ROUTES } from '@siliconbox/shared';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 type MarkDoneButtonProps = { lessonId: string; initiallyDone: boolean };
 
 export function MarkDoneButton({ lessonId, initiallyDone }: MarkDoneButtonProps) {
+  const router = useRouter();
   const [done, setDone] = useState(initiallyDone);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -20,8 +22,13 @@ export function MarkDoneButton({ lessonId, initiallyDone }: MarkDoneButtonProps)
       body: JSON.stringify({ lessonId, done: !done }),
     }).catch(() => null);
     setPending(false);
-    if (response?.ok === true) setDone(!done);
-    else setFailed(true);
+    if (response?.ok !== true) {
+      setFailed(true);
+      return;
+    }
+    setDone(!done);
+    // The course index beside the lesson shows the new mark.
+    router.refresh();
   }
 
   return (

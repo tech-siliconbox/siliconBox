@@ -23,6 +23,7 @@ describe('ConfigSchema', () => {
     ['a short auth secret', { ...base, BETTER_AUTH_SECRET: 'short' }],
     ['a missing database URI', { ...base, MONGODB_URI_APP: undefined }],
     ['only half of the Google pair', { ...base, GOOGLE_CLIENT_ID: 'id' }],
+    ['only half of the email pair', { ...base, RESEND_API_KEY: 'key' }],
   ])('rejects %s', (_label, env) => {
     expect(ConfigSchema.safeParse(env).success).toBe(false);
   });

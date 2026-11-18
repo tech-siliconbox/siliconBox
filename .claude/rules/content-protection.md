@@ -16,3 +16,4 @@ paths:
 - Every paid view includes the visible watermark and the invisible per-user text pattern. Never let styling hide the watermark or hurt contrast.
 - The page re-checks the session every minute and shows a clear message when another device took over.
 - Do not add a robots.txt entry as protection; it is advice, not security.
+- Golden rule (ADR 0027): content reaches the browser only inside its server-rendered page. No content API, no extra calls on load, `SiteLink` (never prefetches) for every link, AI crawlers refused in the proxy.

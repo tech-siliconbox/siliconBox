@@ -1,4 +1,4 @@
-import { type ContentImport, ContentImportSchema, type Level } from '@siliconbox/shared';
+import { type ContentImport, ContentImportSchema, type Level, slugify } from '@siliconbox/shared';
 import { createNotes } from './notes';
 import { type CoursePageParts, pageBlocks, pageMarkup, readCoursePage } from './pages';
 import { readSvgRules } from './svg-styles';
@@ -36,8 +36,6 @@ const FREE_MODULES = 1;
 
 const pad = (value: number) => String(value).padStart(2, '0');
 const moduleSlug = (course: string, position: number) => `${course}-module-${pad(position)}`;
-const lessonSlug = (course: string, position: number) =>
-  `${moduleSlug(course, position)}-lesson-01`;
 
 /** Course pages in reading order: numbered modules first, then reference pages. */
 function orderPages(pages: CoursePage[]): CoursePage[] {
@@ -49,12 +47,27 @@ function orderPages(pages: CoursePage[]): CoursePage[] {
   ];
 }
 
+/** Each page's lesson slug, from its heading: the readable part of its address (ADR 0026). */
+function withLessonSlugs<P extends { parts: CoursePageParts }>(
+  pages: P[],
+): (P & { slug: string })[] {
+  const used = new Set<string>();
+  return pages.map((page) => {
+    const base = slugify(page.parts.heading);
+    let slug = base;
+    for (let n = 2; used.has(slug); n += 1) slug = `${base}-${n}`;
+    used.add(slug);
+    return { ...page, slug };
+  });
+}
+
 function toModule(
   slug: string,
   position: number,
-  parts: CoursePageParts,
+  lesson: { slug: string; parts: CoursePageParts },
   blocks: ImportModule['lessons'][number]['blocks'],
 ): ImportModule {
+  const { parts } = lesson;
   const summary = parts.lead.length <= MODULE_SUMMARY_MAX ? parts.lead : '';
   return {
     slug: moduleSlug(slug, position),
@@ -64,7 +77,7 @@ function toModule(
     drills: [],
     lessons: [
       {
-        slug: lessonSlug(slug, position),
+        slug: lesson.slug,
         title: parts.title || parts.heading,
         order: 1,
         preview: position <= FREE_MODULES,
@@ -81,13 +94,12 @@ export function convertCourse(sources: CourseSources, options: CourseOptions) {
   const notes: string[] = [];
   const index = sources.pages.find((page) => page.file === INDEX_FILE);
   if (index === undefined) throw new Error('The course folder has no index.html');
-  const pages = orderPages(sources.pages);
+  const pages = withLessonSlugs(
+    orderPages(sources.pages).map((page) => ({ ...page, parts: readCoursePage(page.html) })),
+  );
   const links = new Map<string, string>([
     [INDEX_FILE, `course:${options.slug}`],
-    ...pages.map((page, i): [string, string] => [
-      page.file,
-      `lesson:${lessonSlug(options.slug, i + 1)}`,
-    ]),
+    ...pages.map((page): [string, string] => [page.file, `lesson:${page.slug}`]),
   ]);
   const svgRules = readSvgRules(sources.stylesheet, DIAGRAM_SCOPE);
   const context = (file: string, drills: string[]) => ({
@@ -101,9 +113,9 @@ export function convertCourse(sources: CourseSources, options: CourseOptions) {
   const home = readCoursePage(index.html);
   const introduction = pageMarkup(home.root, context(INDEX_FILE, []));
   const modules = pages.map((page, i) => {
-    const parts = readCoursePage(page.html);
     const drills = options.drillsByModule.get(moduleSlug(options.slug, i + 1)) ?? [];
-    return toModule(options.slug, i + 1, parts, pageBlocks(parts.root, context(page.file, drills)));
+    const blocks = pageBlocks(page.parts.root, context(page.file, drills));
+    return toModule(options.slug, i + 1, page, blocks);
   });
 
   const course: ImportCourse = {

@@ -1,10 +1,9 @@
 import 'server-only';
 import { ROUTES } from '@siliconbox/shared';
-import render from 'dom-serializer';
 import { type ChildNode, type Element, isTag, isText } from 'domhandler';
 import { findAll } from 'domutils';
-import { parseDocument } from 'htmlparser2';
 import sanitizeHtml from 'sanitize-html';
+import { parseHtml, renderHtml } from '@/lib/html-document';
 import { embedMark } from './invisible-mark';
 import { SVG_ATTRIBUTES, SVG_ELEMENTS } from './sanitize-svg';
 
@@ -66,12 +65,18 @@ const LINK = /href="(lesson|course):([a-z0-9-]+)"/g;
 export const linkedLessonSlugs = (html: string): string[] =>
   [...html.matchAll(LINK)].filter(([, kind]) => kind === 'lesson').map(([, , slug = '']) => slug);
 
-/** `lesson:` and `course:` links to site paths; a lesson that is not published links nowhere. */
-export function resolveCourseLinks(html: string, lessonIds: ReadonlyMap<string, string>): string {
+/**
+ * `lesson:` and `course:` links to site paths, given each published lesson's course by its
+ * slug; a lesson that is not published links nowhere.
+ */
+export function resolveCourseLinks(
+  html: string,
+  lessonCourses: ReadonlyMap<string, string>,
+): string {
   return html.replace(LINK, (_match, kind: string, slug: string) => {
     if (kind === 'course') return `href="${ROUTES.course(slug)}"`;
-    const publicId = lessonIds.get(slug);
-    return publicId === undefined ? 'href="#"' : `href="${ROUTES.lesson(publicId)}"`;
+    const course = lessonCourses.get(slug);
+    return course === undefined ? 'href="#"' : `href="${ROUTES.lesson(course, slug)}"`;
   });
 }
 
@@ -97,10 +102,7 @@ const insideCode = (element: Element): boolean =>
 
 /** The learner's invisible mark after the first word of every passage; code stays untouched. */
 export function markCourseHtml(html: string, code: number): string {
-  const document = parseDocument(html, {
-    lowerCaseAttributeNames: false,
-    recognizeSelfClosing: true,
-  });
+  const document = parseHtml(html);
   for (const element of findAll(
     (node) => MARKED.has(node.name) && !insideCode(node),
     document.children,
@@ -110,5 +112,5 @@ export function markCourseHtml(html: string, code: number): string {
     const start = node.data.search(/\S/);
     node.data = node.data.slice(0, start) + embedMark(node.data.slice(start), code);
   }
-  return render(document, { encodeEntities: 'utf8' });
+  return renderHtml(document);
 }

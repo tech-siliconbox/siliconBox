@@ -51,12 +51,15 @@ export function DrillWorkspace({ drill, canRun }: DrillWorkspaceProps) {
 
   return (
     <div className="flex min-h-0 flex-col">
-      <div className="flex h-11 items-center border-b border-border px-1" role="tablist">
-        <FileTabs
-          tabs={hasDesign ? ['design', 'properties'] : ['properties']}
-          active={tab}
-          onSelect={setTab}
-        />
+      {/* On narrow screens the buttons wrap below the file tabs. */}
+      <div className="flex min-h-11 flex-wrap items-center gap-y-1 border-b border-border px-1 py-1">
+        <div role="tablist" className="flex items-center">
+          <FileTabs
+            tabs={hasDesign ? ['design', 'properties'] : ['properties']}
+            active={tab}
+            onSelect={setTab}
+          />
+        </div>
         <div className="ml-auto flex items-center gap-2 pr-2">
           <Button size="sm" variant="secondary" onClick={draft.reset} disabled={busy}>
             Reset code

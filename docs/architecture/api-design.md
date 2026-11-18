@@ -15,31 +15,29 @@ In code the order is: origin check on writes, authenticate, rate-limit (per acco
 
 ## Built so far
 
+No route returns lesson, Drill, answer or question text; those reach the browser only inside their server-rendered page (ADR 0027).
+
 | Route | Access | Rate limit |
 | --- | --- | --- |
 | `GET /api/v1/me` | Signed in | `read` |
 | `GET /api/v1/services` | Anyone | `read` |
 | `GET, PUT, DELETE /api/v1/resume`; `GET /api/v1/resume/pdf` | Signed in; service open and an active content entitlement (DELETE always allowed) | `read` / `write` |
 | `POST, GET, DELETE /api/v1/cv-screenings`; `DELETE /api/v1/cv-screenings/:id` | Same; uploads are multipart, PDF or .docx up to 5 MB | `cvScreen` (10 an hour) / `read` / `write` |
-| `GET /api/v1/questions/:id/answer` | Signed in; active content entitlement (`readAnswer` calls assertEntitled) | `read`, plus `contentRead` |
-| `GET /api/v1/questions` | Anyone; `q`, `topic`, `company`, `page` (strict query schema) | `read` |
 | `POST /api/v1/progress` | Signed in; lesson must be published and readable by the learner | `write` |
-| `GET /api/v1/lessons/:id` | Signed in; `readLesson` checks the lesson's level with `assertEntitled` | `read`, plus `contentRead` (12 a minute) |
 | `/cms-api/*` | Payload REST for the admin UI; every collection requires a signed-in admin (ADR 0018) | Payload's own; admin host behind Cloudflare Access later |
-| `GET, POST /api/auth/*` | Better Auth (sign-up, sign-in, sign-out, session, TOTP) | `read` / `authWrite` |
+| `GET, POST /api/auth/*` | Better Auth (sign-up, sign-in, Google, sign-out, session) | `read` / `authWrite` |
 
 ## Routes
 
 | Area | Routes (examples) | Who may call |
 | --- | --- | --- |
 | Catalogue | `GET /courses`, `GET /courses/:slug` (outline only) | Anyone |
-| Question bank | `GET /questions` | Anyone |
-| Question answers | `GET /questions/:id/answer` | Signed in + any active content entitlement |
-| Learning | `GET /lessons/:id`, `POST /progress` | Signed in + content entitlement for that level |
-| Drills | `GET /drills/:id`, `POST /drills/:id/runs`, `GET /runs/:id` | Signed in + active tool entitlement + content entitlement for the Drill's level |
+| Question answers | Page `/questions/:slug` only (no API) | Signed in + any active content entitlement |
+| Learning | Page `/courses/:course/:lesson` only; `POST /progress` | Signed in + content entitlement for that level |
+| Drills | Page `/courses/:course/drills/:drill`; `POST /drills/:id/runs`, `GET /runs/:id` | Signed in + active tool entitlement + content entitlement for the Drill's level |
 | Industry Ready | `GET /services`; Resume Builder and CV screening routes | List: anyone. Free tools: signed in + any active content entitlement. Locked services refuse every call |
 | Billing | `POST /checkout`, `POST /webhooks/razorpay` | Signed in; webhook by signature only |
-| Account | `GET /me`, session, MFA, data export, delete | Owner |
+| Account | `GET /me`, session, data export, delete | Owner |
 | Admin | `/admin/*` (Payload), including changing a learner's window | Admin role + MFA + Cloudflare Access |
 
 ## Cross-cutting controls

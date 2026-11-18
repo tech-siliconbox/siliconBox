@@ -50,9 +50,9 @@ function withModuleAndCourse(moduleField: string): Document[] {
   ];
 }
 
-type Published = { document: Document; level: Level };
+type Published = { document: Document; level: Level; courseSlug: string };
 
-/** A published document by public id (or slug), with the level of the course it belongs to. */
+/** A published document by public id (or slug), with the level and slug of its course. */
 async function findPublishedWithLevel(
   collection: string,
   match: { publicId: string } | { slug: string },
@@ -63,33 +63,52 @@ async function findPublishedWithLevel(
       { $match: { ...match, _status: PUBLISHED } },
       { $limit: 1 },
       ...withModuleAndCourse('module'),
-      { $project: { _id: 0, document: '$$ROOT', level: '$course.level' } },
+      {
+        $project: {
+          _id: 0,
+          document: '$$ROOT',
+          level: '$course.level',
+          courseSlug: '$course.slug',
+        },
+      },
     ])
     .toArray();
   if (found === undefined) return null;
-  return { document: found.document as Document, level: LevelSchema.parse(found.level) };
+  return {
+    document: found.document as Document,
+    level: LevelSchema.parse(found.level),
+    courseSlug: String(found.courseSlug),
+  };
 }
 
-export type PublishedLessonWithLevel = { lesson: PublishedLesson; level: Level };
+export type PublishedLessonInCourse = { lesson: PublishedLesson; level: Level; courseSlug: string };
 
+/** A published lesson by slug (its page address) or by public id (the progress API). */
 export async function findPublishedLesson(
-  publicId: string,
-): Promise<PublishedLessonWithLevel | null> {
-  const found = await findPublishedWithLevel(COLLECTIONS.lessons, { publicId });
-  return found && { lesson: PublishedLessonSchema.parse(found.document), level: found.level };
+  match: { publicId: string } | { slug: string },
+): Promise<PublishedLessonInCourse | null> {
+  const found = await findPublishedWithLevel(COLLECTIONS.lessons, match);
+  return (
+    found && {
+      lesson: PublishedLessonSchema.parse(found.document),
+      level: found.level,
+      courseSlug: found.courseSlug,
+    }
+  );
 }
 
-/** Public ids of published lessons by slug, for links between course pages. */
-export async function findLessonPublicIds(slugs: string[]): Promise<Map<string, string>> {
+/** The course of each published lesson, by lesson slug, for links between course pages. */
+export async function findLessonCourses(slugs: string[]): Promise<Map<string, string>> {
   if (slugs.length === 0) return new Map();
   const lessons = await getDb()
     .collection(COLLECTIONS.lessons)
-    .find(
-      { slug: { $in: [...new Set(slugs)] }, _status: PUBLISHED },
-      { projection: { _id: 0, slug: 1, publicId: 1 } },
-    )
+    .aggregate([
+      { $match: { slug: { $in: [...new Set(slugs)] }, _status: PUBLISHED } },
+      ...withModuleAndCourse('module'),
+      { $project: { _id: 0, slug: 1, courseSlug: '$course.slug' } },
+    ])
     .toArray();
-  return new Map(lessons.map((lesson) => [String(lesson.slug), String(lesson.publicId)]));
+  return new Map(lessons.map((lesson) => [String(lesson.slug), String(lesson.courseSlug)]));
 }
 
 const DrillForRunSchema = z.object({
@@ -108,13 +127,18 @@ const DrillForRunSchema = z.object({
 /** `cmsId` links the Drill to its private part, which only grading may read (ADR 0021). */
 export type DrillForRun = z.infer<typeof DrillForRunSchema> & { level: Level; cmsId: unknown };
 
-/** A published Drill as the learner sees it, with its level. Never its private part. */
-/** A published Drill by public id, or by slug when a lesson embeds it. */
-export async function findPublishedDrill(
-  match: { publicId: string } | { slug: string },
-): Promise<{ drill: PublishedDrill; level: Level } | null> {
-  const found = await findPublishedWithLevel(COLLECTIONS.drills, match);
-  return found && { drill: PublishedDrillSchema.parse(found.document), level: found.level };
+export type PublishedDrillInCourse = { drill: PublishedDrill; level: Level; courseSlug: string };
+
+/** A published Drill by slug, with its level and course. Never its private part. */
+export async function findPublishedDrill(slug: string): Promise<PublishedDrillInCourse | null> {
+  const found = await findPublishedWithLevel(COLLECTIONS.drills, { slug });
+  return (
+    found && {
+      drill: PublishedDrillSchema.parse(found.document),
+      level: found.level,
+      courseSlug: found.courseSlug,
+    }
+  );
 }
 
 /** A published Drill's design and solver settings, for starting a run. Never its private part. */
@@ -163,11 +187,13 @@ export async function findCourseOutlines(slug?: string): Promise<CourseOutline[]
             { $sort: { order: 1 } },
             publishedChildren(COLLECTIONS.lessons, 'lessons', {
               publicId: 1,
+              slug: 1,
               title: 1,
               preview: 1,
               durationMinutes: 1,
+              sections: 1,
             }),
-            publishedChildren(COLLECTIONS.drills, 'drills', { publicId: 1, title: 1 }),
+            publishedChildren(COLLECTIONS.drills, 'drills', { slug: 1, title: 1 }),
             { $project: { _id: 0, title: 1, summary: 1, lessons: 1, drills: 1 } },
           ],
         },

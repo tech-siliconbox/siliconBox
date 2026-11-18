@@ -23,7 +23,11 @@ const existingNames = new Set((JSON.parse(existing || '[]') ?? []).map((role) =>
 for (const [name, role] of Object.entries(roles)) {
   const privilege = privilegesFor(role)
     .flatMap(({ collection, actions }) =>
-      actions.map((action) => `${action.toUpperCase()}@${database}.${collection}`),
+      // Atlas names actions in upper snake case: listIndexes becomes LIST_INDEXES.
+      actions.map(
+        (action) =>
+          `${action.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase()}@${database}.${collection}`,
+      ),
     )
     .join(',');
   const verb = existingNames.has(name) ? 'update' : 'create';

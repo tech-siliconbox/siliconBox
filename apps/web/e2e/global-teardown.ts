@@ -15,7 +15,7 @@ async function removeTestLearners(db: Db): Promise<void> {
   const ids = users.map((user) => user._id);
   const idStrings = ids.map(String);
   await Promise.all([
-    ...['sessions', 'accounts', 'twoFactors'].map((name) =>
+    ...['sessions', 'accounts'].map((name) =>
       db.collection(name).deleteMany({ userId: { $in: ids } }),
     ),
     ...[

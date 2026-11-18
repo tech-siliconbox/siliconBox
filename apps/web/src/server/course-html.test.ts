@@ -41,19 +41,16 @@ describe('sanitizeCourseHtml', () => {
 
 describe('course links', () => {
   const html =
-    '<a href="lesson:basic-module-02-lesson-01">next</a>' +
-    '<a href="lesson:basic-module-09-lesson-01">later</a><a href="course:basic">home</a>';
+    '<a href="lesson:invented-idea">next</a>' +
+    '<a href="lesson:invented-later">later</a><a href="course:basic">home</a>';
 
   it('finds the lessons a page links to', () => {
-    expect(linkedLessonSlugs(html)).toEqual([
-      'basic-module-02-lesson-01',
-      'basic-module-09-lesson-01',
-    ]);
+    expect(linkedLessonSlugs(html)).toEqual(['invented-idea', 'invented-later']);
   });
 
-  it('points links at lesson and course pages; an unpublished lesson links nowhere', () => {
-    const resolved = resolveCourseLinks(html, new Map([['basic-module-02-lesson-01', 'abc-123']]));
-    expect(resolved).toContain(`href="${ROUTES.lesson('abc-123')}"`);
+  it('points links at readable lesson and course addresses; an unpublished lesson links nowhere', () => {
+    const resolved = resolveCourseLinks(html, new Map([['invented-idea', 'basic']]));
+    expect(resolved).toContain('href="/courses/basic/invented-idea"');
     expect(resolved).toContain('href="#"');
     expect(resolved).toContain(`href="${ROUTES.course('basic')}"`);
     expect(resolved).not.toMatch(/lesson:|course:/);

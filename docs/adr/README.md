@@ -28,3 +28,7 @@ Each file records one hard-to-reverse decision. Add a new one with `/new-adr <ti
 | [0022](0022-free-tiers-until-launch.md) | Free tiers until launch, then scale by thresholds |
 | [0023](0023-copy-protection-on-the-website.md) | Copy protection for paid text on the website |
 | [0024](0024-course-pages-complete-in-the-site-design.md) | Course pages: one page per module, complete, in the site's design |
+| [0025](0025-sign-in-without-two-factor.md) | Learner sign-in: email and password or Google, no two-factor |
+| [0026](0026-readable-page-addresses.md) | Readable page addresses: slugs, never ids |
+| [0027](0027-content-only-in-its-page.md) | Golden rule: copyrighted content leaves the server only inside its page |
+| [0028](0028-email-through-resend.md) | Email through Resend; verify the address before a purchase |

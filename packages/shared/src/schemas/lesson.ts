@@ -200,15 +200,31 @@ export const PublishedLessonSchema = z.object({
 });
 export type PublishedLesson = z.infer<typeof PublishedLessonSchema>;
 
-/** Public outline data: titles and order only, never lesson text. */
+/** What a part of a lesson is: reading, hands-on work on the tool, questions, or a project. */
+export const SECTION_KINDS = ['theory', 'lab', 'practice', 'project'] as const;
+export type SectionKind = (typeof SECTION_KINDS)[number];
+
+/** One part of an author's page (an `h2`): where it starts, what it is and its share of the time. */
+export const LessonSectionSchema = z.object({
+  anchor: z.string().regex(/^[a-z0-9-]+$/),
+  title: z.string().min(1),
+  kind: z.enum(SECTION_KINDS),
+  minutes: z.number().int().positive().nullish(),
+  hasDrill: z.boolean(),
+});
+export type LessonSection = z.infer<typeof LessonSectionSchema>;
+
+/** Public outline data: titles, parts and times only, never lesson text. */
 export const OutlineLessonSchema = z.object({
   publicId: PublicIdSchema,
+  slug: SlugSchema,
   title: z.string().min(1),
   preview: z.boolean(),
   durationMinutes: z.number().int().positive().nullish(),
+  sections: z.array(LessonSectionSchema).nullish(),
 });
 /** Public outline data for a Drill: its title only. */
-export const OutlineDrillSchema = z.object({ publicId: PublicIdSchema, title: z.string().min(1) });
+export const OutlineDrillSchema = z.object({ slug: SlugSchema, title: z.string().min(1) });
 export const OutlineModuleSchema = z.object({
   title: z.string().min(1),
   summary: z.string().nullish(),

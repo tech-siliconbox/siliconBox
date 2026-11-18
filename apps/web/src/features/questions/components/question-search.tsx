@@ -1,6 +1,6 @@
 import { type QuestionQuery, ROUTES } from '@siliconbox/shared';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { SiteLink } from '@/components/ui/site-link';
 
 /** A plain GET form: searching needs no client JavaScript. */
 export function QuestionSearch({ query }: { query: QuestionQuery }) {
@@ -24,9 +24,9 @@ export function QuestionSearch({ query }: { query: QuestionQuery }) {
       {query.company !== undefined && <input type="hidden" name="company" value={query.company} />}
       <Button type="submit">Search</Button>
       {filtered && (
-        <Link href={ROUTES.questions} className="text-sm text-link-idle hover:text-link-hover">
+        <SiteLink href={ROUTES.questions} className="text-sm text-link-idle hover:text-link-hover">
           Clear
-        </Link>
+        </SiteLink>
       )}
     </form>
   );

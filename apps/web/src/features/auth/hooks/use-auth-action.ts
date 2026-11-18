@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-/** An auth call's outcome. `next` overrides where to go on success (for example, the code step). */
-export type AuthResult = { error: { message?: string | undefined } | null; next?: string };
+/** An auth call's outcome. */
+export type AuthResult = { error: { message?: string | undefined } | null };
 
 const FALLBACK_ERROR = 'Something went wrong. Please try again.';
 
@@ -27,9 +27,8 @@ export function useAuthAction(next: string | null) {
       setError(result.error.message ?? FALLBACK_ERROR);
       return false;
     }
-    const destination = result.next ?? next;
-    if (destination !== null) {
-      router.push(destination);
+    if (next !== null) {
+      router.push(next);
       router.refresh();
     }
     return true;
