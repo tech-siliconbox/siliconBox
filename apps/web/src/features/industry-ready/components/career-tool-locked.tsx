@@ -1,7 +1,7 @@
 import { ERRORS, ROUTES } from '@siliconbox/shared';
-import Link from 'next/link';
 import { LockedCard } from '@/components/shared/locked-card';
 import { buttonVariants } from '@/components/ui/button';
+import { SiteLink } from '@/components/ui/site-link';
 
 type CareerToolLockedProps = { title: string; reason: 'SERVICE_LOCKED' | 'NOT_ENTITLED' };
 
@@ -17,12 +17,12 @@ export function CareerToolLocked({ title, reason }: CareerToolLockedProps) {
             : ERRORS.SERVICE_LOCKED.message
         }
         action={
-          <Link
+          <SiteLink
             href={reason === 'NOT_ENTITLED' ? ROUTES.pricing : ROUTES.industryReady}
             className={buttonVariants({ size: 'sm', className: 'w-fit' })}
           >
             {reason === 'NOT_ENTITLED' ? 'See pricing' : 'Back to Industry Ready'}
-          </Link>
+          </SiteLink>
         }
       />
     </div>

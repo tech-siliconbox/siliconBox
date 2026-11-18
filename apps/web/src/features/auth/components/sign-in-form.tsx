@@ -1,6 +1,7 @@
 'use client';
 
 import { ROUTES } from '@siliconbox/shared';
+import { SiteLink } from '@/components/ui/site-link';
 import { TextField } from '@/components/ui/text-field';
 import { authClient } from '@/lib/auth-client';
 import { formValue } from '../form-value';
@@ -12,18 +13,30 @@ export function SignInForm() {
     <AuthForm
       submitLabel="Sign in"
       pendingLabel="Signing in…"
-      submit={async (form) => {
-        const result = await authClient.signIn.email({
+      submit={(form) =>
+        authClient.signIn.email({
           email: formValue(form, 'email'),
           password: formValue(form, 'password'),
-        });
-        // With two-factor on, the password step creates no session yet; ask for the code.
-        const needsCode = result.data !== null && 'twoFactorRedirect' in result.data;
-        return needsCode ? { error: null, next: ROUTES.signInTwoFactor } : result;
-      }}
+        })
+      }
     >
-      <TextField label="Email" name="email" type="email" autoComplete="email" required />
-      <PasswordField />
+      <TextField
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        placeholder="you@example.com"
+        required
+        action={
+          <SiteLink
+            href={ROUTES.forgotPassword}
+            className="font-mono text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            Forgot password?
+          </SiteLink>
+        }
+      />
+      <PasswordField autoComplete="current-password" />
     </AuthForm>
   );
 }

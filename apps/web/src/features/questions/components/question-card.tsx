@@ -1,8 +1,8 @@
 import { type PublicQuestion, ROUTES } from '@siliconbox/shared';
-import Link from 'next/link';
 import { CompanyTag } from '@/components/shared/company-tag';
 import { Badge } from '@/components/ui/badge';
 import { questionsHref } from '../questions-href';
+import { SiteLink } from '@/components/ui/site-link';
 
 export function QuestionCard({ question }: { question: PublicQuestion }) {
   return (
@@ -12,29 +12,29 @@ export function QuestionCard({ question }: { question: PublicQuestion }) {
         <ul aria-label="Asked at" className="flex flex-wrap gap-2">
           {question.companies.map((company) => (
             <li key={`${company.slug}-${company.year}`}>
-              <Link
+              <SiteLink
                 href={questionsHref({ company: company.slug })}
                 className="inline-flex items-center gap-1.5"
               >
                 <CompanyTag name={company.name} />
                 <span className="font-mono text-[11px] text-muted-foreground">{company.year}</span>
-              </Link>
+              </SiteLink>
             </li>
           ))}
         </ul>
       )}
       <div className="flex flex-wrap items-center gap-2">
         {question.topics.map((topic) => (
-          <Link key={topic} href={questionsHref({ topic })}>
+          <SiteLink key={topic} href={questionsHref({ topic })}>
             <Badge>{topic}</Badge>
-          </Link>
+          </SiteLink>
         ))}
-        <Link
-          href={ROUTES.question(question.publicId)}
+        <SiteLink
+          href={ROUTES.question(question.slug)}
           className="ml-auto text-[12px] underline underline-offset-4"
         >
           Read the answer (active access)
-        </Link>
+        </SiteLink>
       </div>
     </article>
   );

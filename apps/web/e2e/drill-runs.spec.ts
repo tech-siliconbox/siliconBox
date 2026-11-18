@@ -8,6 +8,7 @@ import {
 } from '@siliconbox/shared';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
+import { BASE_URL } from './base-url';
 import { expect, failOnCspViolation, newLearner, signUp, test } from './helpers';
 
 // Phase 3: a learner runs their properties on a Drill through the solver. Needs the solver API
@@ -23,7 +24,6 @@ const HIDDEN_MARK = `hidden design ${run}`;
 const CORRECT_DESIGN = `${fixture('counter.sv')}\n// ${HIDDEN_MARK}\n`;
 // Too strict: also fails on the correct counter, which legally reaches 9.
 const TOO_STRICT = PROPERTIES.replace("count <= 4'd9", "count <= 4'd8");
-const BASE_URL = 'http://localhost:3000';
 
 test.describe.configure({ mode: 'serial' });
 

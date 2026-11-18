@@ -27,3 +27,6 @@ export const INTERMEDIATE_UPGRADE_MONTHS = 3;
 
 /** Every purchase, upgrades included, starts a fresh tool window of this length. */
 export const TOOL_WINDOW_MONTHS = 3;
+
+/** The shortest password an account may have (sign-up, reset). */
+export const MIN_PASSWORD_LENGTH = 10;

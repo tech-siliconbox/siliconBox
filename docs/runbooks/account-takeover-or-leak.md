@@ -3,7 +3,7 @@
 ## Takeover
 
 1. Revoke all sessions for the account.
-2. Force password reset and offer TOTP.
+2. Force a password reset.
 3. Check the audit log for purchases, downloads and changes.
 4. Notify the learner by email.
 

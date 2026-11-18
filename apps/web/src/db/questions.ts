@@ -20,7 +20,7 @@ function tagCompany(field: 'name' | 'slug'): Document {
 
 const PUBLIC_FIELDS: Document = {
   _id: 0,
-  publicId: 1,
+  slug: 1,
   text: 1,
   topics: 1,
   companies: {

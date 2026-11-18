@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { BrandMark } from './brand-mark';
 import { NAV_LINKS } from './nav-links';
+import { SiteLink } from '@/components/ui/site-link';
 
 export function SiteHeader({ actions }: { actions: ReactNode }) {
   return (
@@ -15,9 +15,9 @@ export function SiteHeader({ actions }: { actions: ReactNode }) {
           <ul className="hidden items-center gap-5 sm:flex">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-sm text-link-idle hover:text-link-hover">
+                <SiteLink href={link.href} className="text-sm text-link-idle hover:text-link-hover">
                   {link.label}
-                </Link>
+                </SiteLink>
               </li>
             ))}
           </ul>

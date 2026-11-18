@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PublicIdSchema, SlugSchema } from './lesson';
+import { SlugSchema } from './lesson';
 
 export const QUESTIONS_PER_PAGE = 20;
 
@@ -14,7 +14,7 @@ export type QuestionQuery = z.infer<typeof QuestionQuerySchema>;
 
 /** The public part of a question: never the answer, never the internal source note. */
 export const PublicQuestionSchema = z.object({
-  publicId: PublicIdSchema,
+  slug: SlugSchema,
   text: z.string().min(1),
   topics: z
     .array(z.string())

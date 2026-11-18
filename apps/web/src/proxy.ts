@@ -1,10 +1,25 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { isRefusedAgent } from '@/lib/ai-crawlers';
+
+const ROBOTS_PATH = '/robots.txt';
+/** Asks AI systems not to train on or reuse anything the site serves. */
+const NO_AI = 'noai, noimageai';
 
 /**
- * Per-request CSP nonce. Next applies it to its own scripts during server rendering, which
- * makes every page dynamic (ADR 0017). frame-ancestors is limited to ourselves.
+ * Refuses AI crawlers and scraping tools (golden rule, ADR 0027); they may still read robots.txt.
+ * Then a per-request CSP nonce. Next applies it to its own scripts during server rendering,
+ * which makes every page dynamic (ADR 0017). frame-ancestors is limited to ourselves.
  */
 export function proxy(request: NextRequest): NextResponse {
+  if (
+    request.nextUrl.pathname !== ROBOTS_PATH &&
+    isRefusedAgent(request.headers.get('user-agent'))
+  ) {
+    return new NextResponse('Automated access is not allowed.', {
+      status: 403,
+      headers: { 'X-Robots-Tag': `noindex, nofollow, ${NO_AI}` },
+    });
+  }
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const csp = buildCsp(nonce, {
     isDev: process.env.NODE_ENV === 'development',
@@ -18,6 +33,7 @@ export function proxy(request: NextRequest): NextResponse {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('X-Robots-Tag', NO_AI);
   return response;
 }
 

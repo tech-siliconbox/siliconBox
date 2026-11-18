@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { ROUTES } from '@siliconbox/shared';
 import type { Page } from '@playwright/test';
 import { EVERY_OTHER_BLOCK, createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
+import { BASE_URL } from './base-url';
 import { withAdminDb } from './db';
 import { expect, failOnCspViolation, newLearner, signUp, test } from './helpers';
 
@@ -17,8 +18,10 @@ const INVISIBLE_MARK = /\u2063[\u200B\u200C]{32}\u2063/;
 
 test.describe.configure({ mode: 'serial' });
 
-let paidLessonId = '';
-let previewLessonId = '';
+// Readable addresses (ADR 0026): course and lesson slugs, never an id.
+const COURSE = `e2e-course-${run}`;
+const PAID_PAGE = ROUTES.lesson(COURSE, `e2e-paid-${run}`);
+const PREVIEW_PAGE = ROUTES.lesson(COURSE, `e2e-preview-${run}`);
 let paidLessonDbId = '';
 let moduleDbId = '';
 
@@ -29,7 +32,7 @@ test('an author cannot publish, an editor can', async () => {
 
   const course = await createDoc(editor, 'courses', {
     title: `Invented course ${run}`,
-    slug: `e2e-course-${run}`,
+    slug: COURSE,
     level: 'basic',
     order: 1,
     _status: 'published',
@@ -55,9 +58,7 @@ test('an author cannot publish, an editor can', async () => {
   const paid = await createDoc(editor, 'lessons', lesson('paid', passage(PAID), false));
   const preview = await createDoc(editor, 'lessons', lesson('preview', passage(PREVIEW), true));
   expect([paid.status, preview.status]).toEqual([201, 201]);
-  paidLessonId = paid.publicId;
   paidLessonDbId = paid.id;
-  previewLessonId = preview.publicId;
 
   // A later draft must stay invisible to learners until it is published.
   const draft = await editor.patch(`/cms-api/lessons/${paidLessonDbId}?draft=true`, {
@@ -98,7 +99,7 @@ test('an editor writes a Drill within the level caps, with its private part', as
 test('an admin previews the latest draft; a learner cannot', async ({ page }) => {
   const editor = await signInAsAdmin('editor');
   await page.context().addCookies((await editor.storageState()).cookies);
-  await page.goto(ROUTES.lessonPreview(paidLessonDbId));
+  await page.goto(ROUTES.lessonPreview(`e2e-paid-${run}`));
   await expect(
     page.getByRole('status').filter({ hasText: 'Preview of the latest draft' }),
   ).toBeVisible();
@@ -106,14 +107,14 @@ test('an admin previews the latest draft; a learner cannot', async ({ page }) =>
 
   await page.context().clearCookies();
   await signUp(page, newLearner());
-  const response = await page.goto(ROUTES.lessonPreview(paidLessonDbId));
+  const response = await page.goto(ROUTES.lessonPreview(`e2e-paid-${run}`));
   expect(response?.status()).toBe(404);
   expect(await page.content()).not.toContain(DRAFT);
 });
 
 test('the public outline lists lesson titles but no lesson text', async ({ page }) => {
   failOnCspViolation(page);
-  await page.goto(ROUTES.course(`e2e-course-${run}`));
+  await page.goto(ROUTES.course(COURSE));
   await expect(page.getByRole('link', { name: 'Invented paid' })).toBeVisible();
   await expect(page.getByText('Free preview')).toBeVisible();
   expect(await page.content()).not.toContain(PAID);
@@ -126,10 +127,10 @@ test('a learner reads the preview, is refused the paid lesson, then reads it onc
   const learner = newLearner();
   await signUp(page, learner);
 
-  await page.goto(ROUTES.lesson(previewLessonId));
+  await page.goto(PREVIEW_PAGE);
   await expect(page.getByText(PREVIEW)).toBeVisible();
 
-  await page.goto(ROUTES.lesson(paidLessonId));
+  await page.goto(PAID_PAGE);
   await expect(page.getByText('This lesson is locked')).toBeVisible();
   expect(await page.content()).not.toContain(PAID);
   await expectNoPaidTextInScripts(page);
@@ -144,7 +145,7 @@ test('a learner reads the preview, is refused the paid lesson, then reads it onc
     db.collection('audit_log').countDocuments({ action: 'entitlement_change', subjectId: me.id }),
   );
   expect(audited).toBe(1);
-  const response = await page.goto(ROUTES.lesson(paidLessonId));
+  const response = await page.goto(PAID_PAGE);
   expect(response?.headers()['cache-control']).toContain('no-store');
 
   const text = page.getByText(PAID);
@@ -161,13 +162,11 @@ test('a learner reads the preview, is refused the paid lesson, then reads it onc
     'aria-pressed',
     'true',
   );
-  await page.goto(ROUTES.course(`e2e-course-${run}`));
+  await page.goto(ROUTES.course(COURSE));
   await expect(page.getByRole('link', { name: 'Invented paid (done)' })).toBeVisible();
 
-  const api = await page.request.get(`/api/v1/lessons/${paidLessonId}`);
-  expect(api.status()).toBe(200);
-  expect(api.headers()['cache-control']).toBe('private, no-store');
-  expect(JSON.stringify(await api.json())).toMatch(INVISIBLE_MARK);
+  // The golden rule: lesson text reaches the browser only inside its page, never as an API.
+  expect((await page.request.get(`/api/v1/lessons/e2e-paid-${run}`)).status()).toBe(404);
 });
 
 /** The lesson fixture holds every block type (EVERY_OTHER_BLOCK); each must render and work. */
@@ -212,7 +211,7 @@ test('progress is refused without a session and for an unknown lesson', async ({
   request,
 }) => {
   const body = { lessonId: crypto.randomUUID(), done: true };
-  const origin = { origin: 'http://localhost:3000' };
+  const origin = { origin: BASE_URL };
   expect((await request.post('/api/v1/progress', { data: body, headers: origin })).status()).toBe(
     401,
   );

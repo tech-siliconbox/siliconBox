@@ -7,6 +7,12 @@ const optional = z.preprocess(
   z.string().min(1).optional(),
 );
 
+/** Settings that only work together. */
+const PAIRED = [
+  ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'],
+  ['RESEND_API_KEY', 'EMAIL_FROM'],
+] as const;
+
 export const ConfigSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']),
@@ -23,13 +29,22 @@ export const ConfigSchema = z
     BETTER_AUTH_URL: z.url(),
     GOOGLE_CLIENT_ID: optional,
     GOOGLE_CLIENT_SECRET: optional,
+    // Email through Resend: a send-only key and the sender, as "Name <address>".
+    RESEND_API_KEY: optional,
+    EMAIL_FROM: optional,
+    // Where learners' replies go (the sender must be on a verified domain; this need not be).
+    EMAIL_REPLY_TO: optional,
   })
-  .refine(
-    (env) => (env.GOOGLE_CLIENT_ID === undefined) === (env.GOOGLE_CLIENT_SECRET === undefined),
-    {
-      message: 'Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither',
-    },
-  );
+  .superRefine((env, context) => {
+    for (const [first, second] of PAIRED) {
+      if ((env[first] === undefined) !== (env[second] === undefined)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Set both ${first} and ${second}, or neither`,
+        });
+      }
+    }
+  });
 type Config = z.infer<typeof ConfigSchema>;
 
 let cached: Config | undefined;

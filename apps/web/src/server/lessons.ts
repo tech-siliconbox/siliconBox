@@ -1,10 +1,6 @@
 import 'server-only';
-import { type LessonBlock, type PublishedLesson, PublicIdSchema } from '@siliconbox/shared';
-import {
-  type PublishedLessonWithLevel,
-  findLessonPublicIds,
-  findPublishedLesson,
-} from '@/db/content';
+import { type LessonBlock, type PublishedLesson, SlugSchema } from '@siliconbox/shared';
+import { type PublishedLessonInCourse, findLessonCourses, findPublishedLesson } from '@/db/content';
 import { linkedLessonSlugs, resolveCourseLinks } from './course-html';
 import type { Identity } from './auth/authenticate';
 import { assertEntitled } from './entitlements';
@@ -13,33 +9,35 @@ import { enforceReadPacing, learnerMarkCode, markBlocks } from './paid-content';
 import { createTtlCache } from './ttl-cache';
 
 /**
- * One published lesson for one learner: paced, checked against their entitlements on every
- * read, and carrying their invisible mark. Used by the lesson page and the lesson API.
+ * One published lesson for one learner, with its course: paced, checked against their
+ * entitlements on every read, and carrying their invisible mark.
  */
 export async function readLesson(
   identity: Identity,
-  lessonId: string,
+  { course, lesson }: { course: string; lesson: string },
   now: Date = new Date(),
-): Promise<PublishedLesson> {
+): Promise<PublishedLessonInCourse> {
   await enforceReadPacing(identity.userId);
-  const id = PublicIdSchema.safeParse(lessonId);
-  if (!id.success) throw new AppError('NOT_FOUND', 'malformed lesson id');
-  const found = await findPublishedLessonCached(id.data);
-  if (found === null) throw new AppError('NOT_FOUND', `no published lesson ${id.data}`);
+  const slug = SlugSchema.safeParse(lesson);
+  const found = slug.success ? await findPublishedLessonCached(slug.data) : null;
+  // The address names the course too; a lesson under another course's address is not found.
+  if (found?.courseSlug !== course) {
+    throw new AppError('NOT_FOUND', `no published lesson ${course}/${lesson}`);
+  }
 
   const resource = { kind: 'lesson', level: found.level, isPreview: found.lesson.preview } as const;
   await assertEntitled(resource, identity, now);
-  return markLesson(found.lesson, learnerMarkCode(identity.userId));
+  return { ...found, lesson: markLesson(found.lesson, learnerMarkCode(identity.userId)) };
 }
 
 /** Links in the author's markup point at lessons by slug; resolve them once per cached copy. */
 export async function withResolvedLinks(blocks: LessonBlock[]): Promise<LessonBlock[]> {
   const html = blocks.flatMap((block) => (block.blockType === 'html' ? [block.html] : []));
   if (html.length === 0) return blocks;
-  const lessonIds = await findLessonPublicIds(html.flatMap(linkedLessonSlugs));
+  const lessonCourses = await findLessonCourses(html.flatMap(linkedLessonSlugs));
   return blocks.map((block) =>
     block.blockType === 'html'
-      ? { ...block, html: resolveCourseLinks(block.html, lessonIds) }
+      ? { ...block, html: resolveCourseLinks(block.html, lessonCourses) }
       : block,
   );
 }
@@ -47,19 +45,19 @@ export async function withResolvedLinks(blocks: LessonBlock[]): Promise<LessonBl
 // docs/architecture/content-delivery.md: keep a published lesson 30 to 60 seconds in memory.
 // Only the content is cached: pacing, the entitlement check and the watermark run every read.
 const LESSON_CACHE_MS = 30_000;
-const publishedLessons = createTtlCache<PublishedLessonWithLevel>(LESSON_CACHE_MS);
+const publishedLessons = createTtlCache<PublishedLessonInCourse>(LESSON_CACHE_MS);
 
-async function findPublishedLessonCached(publicId: string) {
-  const cached = publishedLessons.get(publicId);
+async function findPublishedLessonCached(slug: string) {
+  const cached = publishedLessons.get(slug);
   if (cached !== undefined) return cached;
-  const found = await findPublishedLesson(publicId);
+  const found = await findPublishedLesson({ slug });
   // Misses are not cached, so a newly published lesson is readable at once.
   if (found === null) return null;
   const prepared = {
     ...found,
     lesson: { ...found.lesson, blocks: await withResolvedLinks(found.lesson.blocks) },
   };
-  publishedLessons.set(publicId, prepared);
+  publishedLessons.set(slug, prepared);
   return prepared;
 }
 

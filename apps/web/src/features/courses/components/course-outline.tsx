@@ -1,42 +1,43 @@
 import { type CourseOutline, LEVEL_LABELS, ROUTES } from '@siliconbox/shared';
-import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { formatDuration } from '@/lib/format-duration';
+import { SiteLink } from '@/components/ui/site-link';
 
 type OutlineModule = CourseOutline['modules'][number];
 type OutlineLesson = OutlineModule['lessons'][number];
 
 const ROW = 'flex items-center gap-3 px-5 py-3.5';
 
-function LessonRow({ lesson, done }: { lesson: OutlineLesson; done: boolean }) {
+function LessonRow({ href, lesson, done }: { href: string; lesson: OutlineLesson; done: boolean }) {
   return (
     <li className={ROW}>
       <span aria-hidden="true" className="w-4 font-mono text-[12px]">
         {done ? '✓' : ''}
       </span>
-      <Link
+      <SiteLink
         aria-label={done ? `${lesson.title} (done)` : undefined}
-        href={ROUTES.lesson(lesson.publicId)}
+        href={href}
         className="flex-1 text-[13px] hover:underline"
       >
         {lesson.title}
-      </Link>
+      </SiteLink>
       {lesson.preview && <Badge>Free preview</Badge>}
       {lesson.durationMinutes && (
         <span className="font-mono text-[11px] text-muted-foreground">
-          {lesson.durationMinutes} min
+          {formatDuration(lesson.durationMinutes)}
         </span>
       )}
     </li>
   );
 }
 
-function DrillRow({ drill }: { drill: OutlineModule['drills'][number] }) {
+function DrillRow({ href, drill }: { href: string; drill: OutlineModule['drills'][number] }) {
   return (
     <li className={ROW}>
       <span aria-hidden="true" className="w-4" />
-      <Link href={ROUTES.drill(drill.publicId)} className="flex-1 text-[13px] hover:underline">
+      <SiteLink href={href} className="flex-1 text-[13px] hover:underline">
         {drill.title}
-      </Link>
+      </SiteLink>
       <Badge variant="muted">Drill</Badge>
     </li>
   );
@@ -63,12 +64,17 @@ export function CourseOutlineView({ course, doneLessonIds }: CourseOutlineViewPr
             {module.lessons.map((lesson) => (
               <LessonRow
                 key={lesson.publicId}
+                href={ROUTES.lesson(course.slug, lesson.slug)}
                 lesson={lesson}
                 done={doneLessonIds.has(lesson.publicId)}
               />
             ))}
             {module.drills.map((drill) => (
-              <DrillRow key={drill.publicId} drill={drill} />
+              <DrillRow
+                key={drill.slug}
+                href={ROUTES.drill(course.slug, drill.slug)}
+                drill={drill}
+              />
             ))}
           </ol>
         </section>

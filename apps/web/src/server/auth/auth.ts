@@ -1,13 +1,16 @@
 import 'server-only';
+import { MIN_PASSWORD_LENGTH } from '@siliconbox/shared';
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { nextCookies } from 'better-auth/next-js';
-import { haveIBeenPwned, twoFactor } from 'better-auth/plugins';
+import { haveIBeenPwned } from 'better-auth/plugins';
 import { getDb, getMongoClient } from '@/db/client';
 import { getConfig } from '@/server/config';
+import { type Email, sendEmail } from '@/server/email';
+import { AppError } from '@/server/errors';
+import { log } from '@/server/log';
+import { passwordResetEmail, verificationEmail } from '@/server/account-emails';
 import { onSessionCreated } from './on-session-created';
-
-const MIN_PASSWORD_LENGTH = 10;
 
 export function isGoogleSignInEnabled(): boolean {
   return getConfig().GOOGLE_CLIENT_ID !== undefined;
@@ -19,6 +22,32 @@ function googleProvider() {
   return { google: { clientId: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET } };
 }
 
+const RESEND_PATH = '/send-verification-email';
+type LinkRecipient = { user: { name: string; email: string }; url: string };
+
+/** Sends an account email; a failure is logged, never shown, so no answer reveals an account. */
+async function sendQuietly(email: Email, event: string): Promise<void> {
+  try {
+    await sendEmail(email);
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    log('warn', event, { detail: error.detail });
+  }
+}
+
+/**
+ * Sends the verification link. At sign-up a failed send is logged and the account is still made
+ * (the learner can ask again); asked for again from the account page, a failure is reported.
+ */
+async function sendVerificationLink(
+  { user, url }: LinkRecipient,
+  request?: Request,
+): Promise<void> {
+  const email = verificationEmail(user, url);
+  const askedAgain = request !== undefined && new URL(request.url).pathname.endsWith(RESEND_PATH);
+  await (askedAgain ? sendEmail(email) : sendQuietly(email, 'verification_email_not_sent'));
+}
+
 function createAuth() {
   const config = getConfig();
   return betterAuth({
@@ -26,7 +55,22 @@ function createAuth() {
     baseURL: config.BETTER_AUTH_URL,
     secret: config.BETTER_AUTH_SECRET,
     database: mongodbAdapter(getDb(), { client: getMongoClient(), usePlural: true }),
-    emailAndPassword: { enabled: true, minPasswordLength: MIN_PASSWORD_LENGTH },
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: MIN_PASSWORD_LENGTH,
+      // The reset answer is the same whether or not the account exists, even if sending fails.
+      sendResetPassword: ({ user, url }) =>
+        sendQuietly(passwordResetEmail(user, url), 'password_reset_email_not_sent'),
+      // A new password signs the account out everywhere.
+      revokeSessionsOnPasswordReset: true,
+    },
+    // Verified before any purchase (access model). No sign-in from the link: opening it on
+    // another device would sign this one out (one device at a time).
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: false,
+      sendVerificationEmail: sendVerificationLink,
+    },
     socialProviders: googleProvider(),
     user: {
       additionalFields: {
@@ -41,7 +85,10 @@ function createAuth() {
     rateLimit: { enabled: false },
     // Same client-IP headers as the API gate, so sessions record the address we rate-limit on.
     advanced: { ipAddress: { ipAddressHeaders: ['cf-connecting-ip', 'x-real-ip'] } },
-    plugins: [twoFactor({ issuer: 'SiliconBox' }), haveIBeenPwned(), nextCookies()],
+    // A Google sign-in joins an existing account only when that account's email is verified
+    // (Better Auth's default), so a password account made with someone else's email cannot
+    // capture their Google sign-in.
+    plugins: [haveIBeenPwned(), nextCookies()],
   });
 }
 

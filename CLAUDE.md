@@ -16,10 +16,12 @@ Read this file first, then the doc the task points to. Details live in `docs/`; 
 8. **Money is INR, no GST for now.** The tax rate is a setting, default 0. Prices are decided on the server only.
 9. **Light theme only**, Geist and Geist Mono, tokens in `docs/design/formal-tokens-light.css`.
 10. **No secrets in the repo, logs, client code or URLs.** Use the host secret store. See `.claude/rules/security.md`.
+11. **Golden rule: copyrighted content leaves the server only inside the page that shows it.** No API returns lesson, Drill, answer or question text; pages make no extra calls for their content; links never prefetch (`SiteLink`, enforced by lint); AI crawlers are refused. See ADR 0027.
+12. **Page addresses are readable slugs, never ids** (`/courses/basic/formal-tool-flow`). Opaque ids stay in API paths only. See ADR 0026.
 
 ## Stack
 
-Next.js (App Router, TypeScript) + Payload CMS in one app (`apps/web`), MongoDB Atlas (Mumbai), Better Auth (MongoDB adapter, TOTP), Razorpay, Redis for rate limits and the job queue, Cloudflare in front, separate sandboxed solver (`apps/solver`, FastAPI + OSS CAD Suite). Decisions and reasons: `docs/adr/`.
+Next.js (App Router, TypeScript) + Payload CMS in one app (`apps/web`), MongoDB Atlas (Mumbai), Better Auth (MongoDB adapter; email and password or Google), Razorpay, Redis for rate limits and the job queue, Cloudflare in front, separate sandboxed solver (`apps/solver`, FastAPI + OSS CAD Suite). Decisions and reasons: `docs/adr/`.
 
 ## Repository map
 
@@ -80,6 +82,7 @@ Clean, readable code made of reusable parts, with no redundant code. Full rules:
 - Schema changes are migrate-mongo scripts reviewed like code. Never edit production data by hand.
 - Write a test with every change to entitlement, pricing or session logic.
 - Small commits, conventional messages (`feat:`, `fix:`, `docs:`, `chore:`, `test:`). Do not commit unless asked.
+- Dependencies: stable releases only (no alpha, beta, rc, canary), pinned to exact versions so every machine runs what was tested: `save-exact` in `.npmrc` and `pnpm-lock.yaml`; the solver's `pyproject.toml` pins plus `apps/solver/constraints.txt`; Docker base images by exact tag; Node from `.nvmrc`. An upgrade is a deliberate change that runs every check.
 - If a doc and the code disagree, say so and ask. Do not silently pick one. Record real decisions as a new ADR.
 
 ## Always-loaded facts

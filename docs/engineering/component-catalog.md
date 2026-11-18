@@ -35,6 +35,10 @@ Check here before writing a component, hook or helper. Add a row when you create
 | PaidContentLocked | Why a lesson or answer is locked, with the way forward | Built |
 | SessionGuard | Re-checks the session every minute and on focus; sends the learner to sign-in with the reason | Built |
 | LessonBlockRenderer | Renders lesson blocks on the server from one renderer per block type (`components/lesson`); diagrams go through `sanitizeSvg` | Built |
+| formatDuration | Reading time as "45 min" or "2.5 h" (`lib/format-duration.ts`) | Built |
+| parseHtml, renderHtml | The one way to read and write author markup, keeping SVG intact (`lib/html-document.ts`) | Built |
+| isRefusedAgent, AI_CRAWLERS | AI crawlers and scraping tools refused by the proxy and named in robots.txt (`lib/ai-crawlers.ts`, ADR 0027) | Built |
+| deriveSections | A page's parts (h2): anchors, kind, share of the time; run on every lesson save (`cms/lesson-sections.ts`) | Built |
 | Prose, TextBody | Inline lesson text (`code`, **bold**, *italic*), and multi-line text with paragraphs and "- " bullets (`components/lesson/prose.tsx`) | Built |
 | CopyCodeButton | Copy button on code examples, the one copyable part of paid content | Built |
 | LessonBody | A lesson's blocks inside `ProtectedContent`, with the site's heading unless the lesson is an author's page that has its own (`components/lesson/lesson-body.tsx`) | Built |
@@ -54,9 +58,15 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Name | Purpose | Status |
 | --- | --- | --- |
 | auth: AuthForm, useAuthAction, AuthPanel, FormError, formValue | Shared frame, submit and error handling for sign-in and sign-up | Built |
-| auth: SignInForm, SignUpForm, GoogleButton, SignOutButton | The auth actions | Built |
-| auth: TwoFactorSettings, EnableTwoFactor, TwoFactorChallengeForm, TotpQrCode, PasswordField | Two-factor setup, sign-in code step and turning it off | Built |
+| auth: SignInForm, SignUpForm, GoogleButton, SignOutButton | The auth actions (email and password, Google; ADR 0025) | Built |
+| auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset) | Built |
+| auth: ForgotPasswordForm, ResetPasswordForm | Ask for a reset link (same answer for any email); set a new password from the link | Built |
+| auth: VerifyEmailButton | Sends the email verification link again from the account page (ADR 0028) | Built |
+| auth: AccountActions | The header's Account link and sign-out, on member and public pages when signed in | Built |
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
+| courses: CourseIndexLayout, ModuleIndex | A lesson beside its course's modules (sticky sidebar on wide screens, fold-out list on phones): each module folds out to its parts (theory, lab, practice, project, the practice tool) with times; done marks, current module, locked modules; pure rules in `features/courses/course-progress.ts` | Built |
+| PageIntro | The top of a section page: label, heading, a sentence (Courses, Pricing, Questions, Industry Ready) | Built |
+| SiteLink | Every link within the site; never prefetches (golden rule, ADR 0027). Lint allows `next/link` only here (`components/ui/site-link.tsx`) | Built |
 | admin-tools: TraceForm, TraceResults | Watermark trace tool: paste leaked text, see the accounts it points to | Built |
 | drills: DrillWorkspace, CodeEditor, RunOutput, WaveformView | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
 | drills: useDrillRun, useDrillDraft, waveRows | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser; trace to waveform rows | Built |
@@ -76,7 +86,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | createApiGate, gateKindOf | Builds the gate from its dependencies (tests inject fakes); marks gated handlers | Built |
 | authenticate, requirePageIdentity | Session to `Identity` for routes and for pages | Built |
 | getAuth, onSessionCreated | Better Auth instance; after each sign-in: audit, watermark code, end other sessions | Built |
-| readLesson, markLesson | One published lesson for one learner: paced, entitlement-checked, watermarked (`server/lessons.ts`) | Built |
+| sendEmail, verificationEmail, passwordResetEmail | One email through Resend (send-only key; never to reserved test domains); the account link emails in text and HTML (`server/email.ts`, `server/account-emails.ts`) | Built |
+| readCourseIndex, findDoneInCourse | A lesson's course for its module index: outline, done lessons, full access or preview only (`server/course-index.ts`, `server/progress.ts`) | Built |
+| readLesson, markLesson | One published lesson for one learner, by its course and lesson slugs: paced, entitlement-checked, watermarked (`server/lessons.ts`) | Built |
 | startRun, readRun | Start and follow a run: visible job, then grading against the hidden designs (`server/runs.ts`) | Built |
 | gradingPlan, gradingView, startGrading, advanceGrading | ADR 0021 grading (`server/grading.ts`); hidden designs read only through `db/grading.ts` | Built |
 | solverJob, jobHash | The learner's code against a design with the Drill's settings; cache key (`server/drill-jobs.ts`) | Built |
@@ -89,7 +101,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | sanitizeCourseHtml, resolveCourseLinks, markCourseHtml | An author's page markup: allow-listed elements and attributes, `lesson:`/`course:` links to routes, the invisible watermark in its text (`server/course-html.ts`, ADR 0024) | Built |
 | enforceRateLimit | Throws RATE_LIMITED with Retry-After; used by the gate and by lesson reads | Built |
 | createMongoClient | Every database user's client, with the small pool free Atlas needs (`db/client.ts`) | Built |
-| findPublishedLesson, findPublishedDrill, findPublishedDrillForRun, findCourseOutlines, findLessonPublicIds | Published content reads, sharing one published-with-level query; Drills by public id or slug; lesson public ids for links between course pages (`db/content.ts`, ADR 0018) | Built |
+| findPublishedLesson, findPublishedDrill, findPublishedDrillForRun, findCourseOutlines, findLessonCourses | Published content reads, sharing one published-with-level query; lessons and Drills by slug with their course; each linked lesson's course for links between pages (`db/content.ts`, ADR 0018) | Built |
 | registerMarkCode | Watermark code to learner trace table (`db/watermark-codes.ts`) | Built |
 | buildAdminGrant, applyAdminGrant | Admin grant to entitlement plus audit entry (`server/grants.ts`) | Built |
 | replaceEntitlement | Replaces one window and audits it in one transaction (`db/entitlements.ts`) | Built |
@@ -101,7 +113,6 @@ Check here before writing a component, hook or helper. Add a row when you create
 | readLessonPreview | Latest lesson draft for a signed-in CMS admin (`server/preview.ts`) | Built |
 | enforceReadPacing, learnerMarkCode, markBlocks | Shared by every paid read (`server/paid-content.ts`) | Built |
 | loadPaidContent, isLocked | Page helper: not found becomes 404, no access becomes a lock reason (`server/paid-page.ts`) | Built |
-| paidReadRoute | GET route for one paid item by public id (`server/api/paid-read-route.ts`) | Built |
 | readAnswer, findPublishedQuestion, findPublishedAnswerBlocks | Question answers through the answers-only user (`server/answers.ts`, `db/answers.ts`) | Built |
 | createTtlCache, clearLessonCache | In-memory cache with expiry; the published-lesson cache | Built |
 | signInAnomalies, clientCountry | Pure sign-in anomaly detection (`server/anomalies.ts`) | Built |
@@ -146,6 +157,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | --- | --- | --- |
 | constants | Level labels, prices in paise, content and tool window lengths | Built |
 | schemas | Level, role, user id, entitlement, audit entry, lesson blocks (with `stateGraphProblems`), published lesson, course outline | Built |
+| slugify | Readable slugs for addresses and anchors (`packages/shared/src/slug.ts`) | Built |
 | inline-text | The lesson text format: `parseInlineText` for rendering, `escapeInlineText` and `inlineCode` for writing it | Built |
 | ERRORS, ErrorCode | Stable error codes with status and client message | Built |
 | ROUTES, API_ROUTES | Every page and API path | Built |

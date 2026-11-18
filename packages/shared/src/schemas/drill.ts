@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LessonBlockSchema, PublicIdSchema } from './lesson';
+import { LessonBlockSchema, PublicIdSchema, SlugSchema } from './lesson';
 import type { Level } from './level';
 
 // Drill settings the server attaches to every run. Learners never choose them (CLAUDE.md rule 6).
@@ -45,6 +45,7 @@ export function drillLimitProblem(
  */
 export const PublishedDrillSchema = z.object({
   publicId: PublicIdSchema,
+  slug: SlugSchema,
   title: z.string().min(1),
   topic: z.string().nullish(),
   target: z.enum(DRILL_TARGETS),

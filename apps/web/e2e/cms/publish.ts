@@ -1,8 +1,7 @@
 import { execFileSync } from 'node:child_process';
+import { BASE_URL } from '../base-url';
 import type { AdminRole } from '@siliconbox/shared';
 import { type APIRequestContext, request } from '@playwright/test';
-
-const BASE_URL = 'http://localhost:3000';
 
 /** Creates a CMS admin with `role` and returns an API client signed in as them. */
 export async function signInAsAdmin(role: AdminRole): Promise<APIRequestContext> {
@@ -39,10 +38,18 @@ export async function createDoc(
     | 'questions'
     | 'answers',
   data: Record<string, unknown>,
-): Promise<{ id: string; publicId: string; status: number }> {
+): Promise<{ id: string; publicId: string; slug: string; status: number }> {
   const response = await client.post(`/cms-api/${collection}`, { data });
-  const body = (await response.json()) as { doc?: { id: string; publicId?: string } };
-  return { id: body.doc?.id ?? '', publicId: body.doc?.publicId ?? '', status: response.status() };
+  const body = (await response.json()) as {
+    doc?: { id: string; publicId?: string; slug?: string };
+  };
+  const doc = body.doc;
+  return {
+    id: doc?.id ?? '',
+    publicId: doc?.publicId ?? '',
+    slug: doc?.slug ?? '',
+    status: response.status(),
+  };
 }
 
 export const paragraph = (text: string) => ({ blockType: 'paragraph', text });

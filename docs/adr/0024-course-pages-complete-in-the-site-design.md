@@ -55,6 +55,6 @@ labs have the practice tool on the page, and the look is the site's own design l
   rule when an author uses a new one.
 - The content column is the site's lesson width, narrower than the original pages; wide tables
   and long code lines scroll inside their frames.
-- The free preview is now all of Module 1 (one page), where the access model says "course
-  overview and the first section". Needs the founder's confirmation before launch.
+- The free preview is all of Module 1 (one page) for signed-in visitors, confirmed by the
+  founder on 2026-11-18 and recorded in the access model.
 - Lessons built from structured blocks (the demo course, Drill briefs) are unchanged.

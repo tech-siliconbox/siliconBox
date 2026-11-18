@@ -8,6 +8,7 @@ const run = crypto.randomUUID().slice(0, 8);
 const PASSAGE = `Invented copyrighted passage ${run}.`;
 const CODE = `assert property (@(posedge clk) req |-> ##1 ack); // ${run}`;
 
+/** Publishes an invented lesson and returns its page address. */
 async function publishLesson(editor: APIRequestContext): Promise<string> {
   const course = await createDoc(editor, 'courses', {
     title: `Invented protected course ${run}`,
@@ -30,7 +31,8 @@ async function publishLesson(editor: APIRequestContext): Promise<string> {
     blocks: [paragraph(PASSAGE), { blockType: 'code', language: 'systemverilog', code: CODE }],
     _status: 'published',
   });
-  return lesson.publicId;
+  expect(lesson.status).toBe(201);
+  return ROUTES.lesson(`e2e-protect-course-${run}`, `e2e-protect-lesson-${run}`);
 }
 
 /** Selects everything inside `target`, then fires `type` there; true when the page blocked it. */
@@ -50,11 +52,11 @@ function blockedAfterSelecting(target: Locator, type: 'copy' | 'contextmenu'): P
 }
 
 async function openAsEntitledLearner(page: Page): Promise<void> {
-  const lessonId = await publishLesson(await signInAsAdmin('editor'));
+  const lessonPage = await publishLesson(await signInAsAdmin('editor'));
   const learner = newLearner();
   await signUp(page, learner);
   await grantAccess(await signInAsAdmin('support'), learner.email);
-  await page.goto(ROUTES.lesson(lessonId));
+  await page.goto(lessonPage);
 }
 
 test('lesson text cannot be copied, code can, and nothing prints', async ({ page, context }) => {

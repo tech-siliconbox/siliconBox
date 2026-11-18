@@ -1,5 +1,5 @@
 import { ROUTES } from '@siliconbox/shared';
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '@playwright/test';
 import { createDoc, grantAccess, paragraph, signInAsAdmin } from './cms/publish';
 import { expect, failOnCspViolation, newLearner, signUp, test } from './helpers';
 
@@ -10,6 +10,8 @@ const COURSE = `e2e-pages-course-${run}`;
 const LESSON = `e2e-pages-lesson-${run}`;
 const DRILL = `e2e-pages-drill-${run}`;
 const DRILL_TITLE = `Invented page Drill ${run}`;
+// Readable addresses (ADR 0026): course, lesson and Drill slugs, never an id.
+const LESSON_PAGE = ROUTES.lesson(COURSE, LESSON);
 // Learners' copies carry an invisible mark after the first word of each passage.
 const WARNING = `Invented warning ${run}.`;
 
@@ -24,7 +26,9 @@ const PAGE = `<span class="module-tag">Basic · Module 1 of 1</span><h1>Invented
 <div class="lab"><h2>Lab 1: Invented lab</h2><ol><li>Invented step.</li></ol></div>`;
 const AFTER_LAB = `<div class="nav-bar"><a href="course:${COURSE}">Course home</a></div>`;
 
-async function publishCoursePage(editor: APIRequestContext): Promise<string> {
+test.describe.configure({ mode: 'serial' });
+
+async function publishCoursePage(editor: APIRequestContext): Promise<void> {
   const course = await createDoc(editor, 'courses', {
     title: `Invented page course ${run}`,
     slug: COURSE,
@@ -68,20 +72,21 @@ async function publishCoursePage(editor: APIRequestContext): Promise<string> {
     _status: 'published',
   });
   expect([course.status, drill.status, lesson.status]).toEqual([201, 201, 201]);
-  return lesson.publicId;
 }
 
 test('a module page is whole, in the site design, with its Drill after the lab', async ({
   page,
 }) => {
-  const lessonId = await publishCoursePage(await signInAsAdmin('editor'));
+  // Publishes a course, a Drill and a lesson, then signs a learner up: more than the default.
+  test.setTimeout(60_000);
+  await publishCoursePage(await signInAsAdmin('editor'));
   failOnCspViolation(page);
 
   // The public course page is the author's home page, linking to the module's page.
   await page.goto(ROUTES.course(COURSE));
   await expect(page.getByRole('link', { name: 'Invented module' })).toHaveAttribute(
     'href',
-    ROUTES.lesson(lessonId),
+    LESSON_PAGE,
   );
 
   const learner = newLearner();
@@ -89,7 +94,7 @@ test('a module page is whole, in the site design, with its Drill after the lab',
   const support = await signInAsAdmin('support');
   await grantAccess(support, learner.email);
   await grantAccess(support, learner.email, 'tool');
-  await page.goto(ROUTES.lesson(lessonId));
+  await page.goto(LESSON_PAGE);
 
   const heading = page.getByRole('heading', { level: 1 });
   await expect(heading).toContainText(`Module ${run}`);
@@ -115,8 +120,64 @@ test('a module page is whole, in the site design, with its Drill after the lab',
   await expect(practice).toBeVisible();
   await expect(practice.getByRole('button', { name: 'Run verification' })).toBeVisible();
   await expect(practice.locator('.callout-box[data-tone="tip"]')).toBeVisible();
+  await expect(practice.getByRole('link', { name: 'Open full screen →' })).toHaveAttribute(
+    'href',
+    ROUTES.drill(COURSE, DRILL),
+  );
   await expect(page.getByRole('link', { name: 'Course home' })).toHaveAttribute(
     'href',
     ROUTES.course(COURSE),
   );
+
+  await expectModuleIndexAndPhoneLayout(page, practice);
 });
+
+test('the golden rule: content comes only with its page, and AI crawlers get no page', async ({
+  page,
+  request,
+}) => {
+  const learner = newLearner();
+  await signUp(page, learner);
+  await grantAccess(await signInAsAdmin('support'), learner.email);
+  const fetched: string[] = [];
+  page.on('request', (sent) => {
+    if (['fetch', 'xhr'].includes(sent.resourceType())) fetched.push(new URL(sent.url()).pathname);
+  });
+  await page.goto(LESSON_PAGE);
+  await page.getByRole('navigation', { name: 'Course modules' }).hover();
+  await page.waitForTimeout(1500);
+  // No prefetch of other pages, no API call: the page arrived with everything it shows.
+  expect(fetched).toEqual([]);
+
+  const crawler = {
+    'user-agent': 'Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)',
+  };
+  expect((await request.get(ROUTES.course(COURSE), { headers: crawler })).status()).toBe(403);
+  const robots = await (await request.get('/robots.txt', { headers: crawler })).text();
+  expect(robots).toContain('User-Agent: GPTBot');
+});
+
+/** The module index beside the page, the done mark, and the phone layout. */
+async function expectModuleIndexAndPhoneLayout(page: Page, practice: Locator): Promise<void> {
+  // The module index beside the page: this module is open on its parts, theory and lab marked,
+  // and marking it done ticks it.
+  const index = page.getByRole('navigation', { name: 'Course modules' });
+  await expect(index.getByRole('link', { name: 'Overview' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  const lab = index.getByRole('link', { name: /Lab 1: Invented lab/ });
+  await expect(lab).toHaveAttribute('href', `${LESSON_PAGE}#section-lab-1-invented-lab`);
+  await expect(lab).toContainText('Tool');
+  await page.getByRole('button', { name: 'Mark as done' }).click();
+  // Saved first, then the page refreshes to show the tick in the index.
+  await expect(page.getByRole('button', { name: '✓ Done' })).toBeVisible();
+  await expect(index.locator('summary')).toContainText('(done)', { timeout: 10_000 });
+  await expect(index).toContainText('1 of 1 modules done');
+
+  // On a phone the index folds out above the page, and the Drill's Run button stays on screen.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByText('All modules')).toBeVisible();
+  const runButton = await practice.getByRole('button', { name: 'Run verification' }).boundingBox();
+  expect((runButton?.x ?? Infinity) + (runButton?.width ?? 0)).toBeLessThanOrEqual(390);
+}

@@ -53,7 +53,8 @@ decision, account or content only the founder can supply.
 | --- | --- | --- |
 | Razorpay account verified | Founder | Not started |
 | Checkout, signed webhook, refunds, entitlement writes (pricing rules already done and tested) | Dev | Rules done; endpoints not started |
-| Email provider: verification, receipts, new-device alerts, expiry reminders | Founder + Dev | Deferred |
+| Email: verification and password reset (Resend, ADR 0028) | Dev | Built; at hosting, verify `siliconbox.in` in Resend (DNS records) and set `EMAIL_FROM` to an address on it |
+| Email: receipts, new-device alerts, expiry reminders | Dev | Not started (same provider) |
 | Vercel Pro, Cloudflare (WAF, Access + MFA on admin), staging and production | Founder + Dev | Deferred |
 | Dedicated Mumbai cluster | Founder | Done (`siliconbox-dev`, ap-south-1) |
 | Least-privilege Atlas users | Founder + Dev | Done: site, answers reader and admin users, verified |

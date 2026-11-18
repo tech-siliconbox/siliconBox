@@ -14,7 +14,7 @@ pnpm content:convert <course folder> <level> content/import/<level>.json [drills
 ```
 
 Each module stays one page with all its content (ADR 0024): the page becomes the module's one
-lesson, its markup kept in `html` blocks with the text word for word; the course home becomes
+lesson, named from its heading (its address is `/courses/<course>/<lesson slug>`, ADR 0026), its markup kept in `html` blocks with the text word for word; the course home becomes
 the course `introduction` on the public course page; module 1 is the free preview. The site
 shows the markup in its own design (`apps/web/src/app/(site)/lesson-content.css`), keeping the
 colour coding of boxes. The course stylesheet is read only for diagram colours, which are

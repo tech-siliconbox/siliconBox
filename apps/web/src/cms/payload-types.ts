@@ -463,6 +463,19 @@ export interface Lesson {
         blockType: 'stateGraph';
       }
   )[];
+  /**
+   * Worked out on every save from the page: its parts (h2), what each is, and its share of the time.
+   */
+  sections?:
+    | {
+        anchor: string;
+        title: string;
+        kind: 'theory' | 'lab' | 'practice' | 'project';
+        minutes?: number | null;
+        hasDrill?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   publicId?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -791,6 +804,10 @@ export interface Company {
 export interface Question {
   id: string;
   text: string;
+  /**
+   * Made from the text when left empty.
+   */
+  slug: string;
   /**
    * For example: SVA, liveness, AXI.
    */
@@ -1543,6 +1560,16 @@ export interface LessonsSelect<T extends boolean = true> {
               blockName?: T;
             };
       };
+  sections?:
+    | T
+    | {
+        anchor?: T;
+        title?: T;
+        kind?: T;
+        minutes?: T;
+        hasDrill?: T;
+        id?: T;
+      };
   publicId?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1841,6 +1868,7 @@ export interface CompaniesSelect<T extends boolean = true> {
  */
 export interface QuestionsSelect<T extends boolean = true> {
   text?: T;
+  slug?: T;
   topics?: T;
   companyTags?:
     | T

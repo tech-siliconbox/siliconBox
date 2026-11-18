@@ -1,6 +1,6 @@
 # 0004. Better Auth with opaque cookie sessions
 
-- Status: Accepted
+- Status: Accepted; TOTP dropped by [0025](0025-sign-in-without-two-factor.md)
 - Date: 2026-10-01
 
 ## Context

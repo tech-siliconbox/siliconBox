@@ -18,7 +18,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `companies` | Name, slug (logo later, with permission and storage); written by Payload | Public |
 | `users` | Account, roles, MFA state (Better Auth) | Server |
 | `sessions` | Active session, device, created, last seen (Better Auth) | Server |
-| `accounts`, `verifications`, `twoFactors` | Better Auth: sign-in methods, email and reset tokens, TOTP secrets | Server |
+| `accounts`, `verifications` | Better Auth: sign-in methods (password, Google), email and reset tokens | Server |
 | `ended_sessions` | Hash of each session ended by a newer sign-in, kept 7 days to tell the old device why | Server |
 | `products` | Levels, prices (INR), tax rate setting | Server |
 | `orders` | Order id, user, product, credit applied, amount, status, Razorpay ids | Server |

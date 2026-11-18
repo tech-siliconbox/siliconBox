@@ -14,7 +14,6 @@ const learner: Identity = {
   email: 'learner@example.test',
   role: 'learner',
   emailVerified: true,
-  twoFactorEnabled: false,
 };
 
 function fakeDeps(overrides: Partial<GateDeps> = {}): GateDeps {

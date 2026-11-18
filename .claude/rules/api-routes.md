@@ -17,7 +17,7 @@ Every handler goes through the shared wrapper in this order:
 Also:
 
 - Routes live under `/api/v1`. Responses for paid content set `Cache-Control: private, no-store`.
-- Return one lesson at a time, never a whole course. Use opaque ids.
+- No route returns lesson, Drill, answer or question text: content leaves the server only inside its page (golden rule, ADR 0027). API paths use opaque ids; page addresses use slugs (ADR 0026).
 - Errors are generic to the client and detailed in the server log.
 - Add a test for each gate. A route test that skips a gate must fail the build.
 - Price, quota, depth, timeout and solver settings come from the server, never from the request.

@@ -30,6 +30,11 @@ export const ERRORS = {
     status: 503,
     message: 'The formal tool is busy or unavailable. Please try again in a minute.',
   },
+  INVALID_LINK: { status: 400, message: 'This link has expired or was already used.' },
+  EMAIL_NOT_SENT: {
+    status: 503,
+    message: 'We could not send the email. Please try again in a few minutes.',
+  },
   INTERNAL: { status: 500, message: 'Something went wrong. Please try again.' },
 } as const satisfies Record<string, { status: number; message: string }>;
 

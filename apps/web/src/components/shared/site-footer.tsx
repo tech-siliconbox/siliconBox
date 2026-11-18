@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { BrandMark } from './brand-mark';
 import { NAV_LINKS } from './nav-links';
+import { SiteLink } from '@/components/ui/site-link';
 
 export function SiteFooter() {
   return (
@@ -9,9 +9,13 @@ export function SiteFooter() {
         <BrandMark />
         <nav aria-label="Footer" className="flex gap-6 text-[13px]">
           {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="text-link-idle hover:text-link-hover">
+            <SiteLink
+              key={link.href}
+              href={link.href}
+              className="text-link-idle hover:text-link-hover"
+            >
               {link.label}
-            </Link>
+            </SiteLink>
           ))}
         </nav>
       </div>

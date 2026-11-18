@@ -55,7 +55,7 @@ describe('convertCourse: one page per module, all content kept', () => {
       summary: 'An invented summary.',
     });
     expect(course?.introduction).toContain('<span class="module-tag">Level 1</span>');
-    expect(course?.introduction).toContain('href="lesson:basic-module-01-lesson-01"');
+    expect(course?.introduction).toContain('href="lesson:invented-module"');
     expect(course?.introduction).not.toContain('site-header');
   });
 
@@ -66,7 +66,7 @@ describe('convertCourse: one page per module, all content kept', () => {
       summary: 'Invented lead.',
     });
     expect(lesson).toMatchObject({
-      slug: 'basic-module-01-lesson-01',
+      slug: 'invented-module',
       title: 'Module 1: Invented Module',
       preview: true,
       durationMinutes: 150,

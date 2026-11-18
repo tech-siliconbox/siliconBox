@@ -8,22 +8,24 @@ import { withResolvedLinks } from './lessons';
  * access rules, so a learner or a visitor gets null and the page shows "not found".
  */
 export async function readLessonPreview(
-  cmsId: string,
+  slug: string,
 ): Promise<{ lesson: PublishedLesson; adminEmail: string } | null> {
   const session = await cmsAdminSession();
   if (session === null) return null;
   const { payload, user } = session;
-  const draft = await payload
-    .findByID({
+  const { docs } = await payload
+    .find({
       collection: 'lessons',
-      id: cmsId,
+      where: { slug: { equals: slug } },
+      limit: 1,
       draft: true,
       depth: 0,
       overrideAccess: false,
       user,
     })
-    .catch(() => null);
-  if (draft === null) return null;
+    .catch(() => ({ docs: [] }));
+  const [draft] = docs;
+  if (draft === undefined) return null;
   const lesson = PublishedLessonSchema.parse(draft);
   return {
     lesson: { ...lesson, blocks: await withResolvedLinks(lesson.blocks) },

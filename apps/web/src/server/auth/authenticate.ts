@@ -11,7 +11,6 @@ export type Identity = {
   email: string;
   role: Role;
   emailVerified: boolean;
-  twoFactorEnabled: boolean;
 };
 
 /** Resolves the signed-in learner from the session cookie, checked against the database. */
@@ -24,7 +23,6 @@ export async function authenticate(headers: Headers): Promise<Identity> {
       email: result.user.email,
       role: RoleSchema.parse(result.user.role),
       emailVerified: result.user.emailVerified,
-      twoFactorEnabled: result.user.twoFactorEnabled === true,
     };
   }
   throw new AppError((await endedByNewerSignIn(headers)) ? 'SESSION_REPLACED' : 'UNAUTHENTICATED');

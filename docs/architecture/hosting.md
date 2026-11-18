@@ -12,7 +12,7 @@ Decision: ADR 0022. Thresholds for later stages: `scaling.md`.
 | Solver | Oracle Cloud Always Free, Arm (Ampere A1) | Card needed to sign up; capacity can run short; idle free VMs may be reclaimed | Docker image builds for arm64; `SOLVER_RUNNER=container`, gVisor; a small daily health job keeps it busy |
 | Solver fallback | Render free web service | Sleeps after 15 minutes; one process, no container per job | Testing only, never for learners |
 | DNS, TLS, WAF | Cloudflare free | Basic rules only | Admin host behind Cloudflare Access (free for small teams) |
-| Email | A free transactional plan (Resend or Brevo) | Daily send cap | Only verification, receipts and alerts |
+| Email | Resend free plan (ADR 0028); `siliconbox.in` must be verified in Resend | Daily send cap | Only verification, receipts and alerts |
 | Backups | None for now (dev data only) | Content is rebuilt from the import files | `infra/scripts/backup-mongo.sh` is kept; turn backups on before real learners' data exists |
 
 ### Redis budget (Upstash free)

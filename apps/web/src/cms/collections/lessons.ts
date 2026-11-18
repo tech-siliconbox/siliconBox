@@ -1,10 +1,11 @@
-import { ROUTES } from '@siliconbox/shared';
+import { ROUTES, SECTION_KINDS } from '@siliconbox/shared';
 import type { CollectionConfig } from 'payload';
 import { contentAccess } from '../access';
 import {
   clearLessonCacheAfterChange,
   clearLessonCacheAfterDelete,
 } from '../hooks/clear-lesson-cache';
+import { deriveLessonSections } from '../hooks/derive-lesson-sections';
 import { orderField, titleField } from '../fields/common';
 import { publicIdField } from '../fields/public-id';
 import { slugField } from '../fields/slug';
@@ -17,10 +18,11 @@ export const Lessons: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'module', 'order', 'preview', '_status'],
     // "Preview" in the admin opens the latest draft as learners will see it (admins only).
-    preview: (doc) => (typeof doc.id === 'string' ? ROUTES.lessonPreview(doc.id) : null),
+    preview: (doc) => (typeof doc.slug === 'string' ? ROUTES.lessonPreview(doc.slug) : null),
   },
   access: contentAccess,
   hooks: {
+    beforeChange: [deriveLessonSections],
     afterChange: [clearLessonCacheAfterChange],
     afterDelete: [clearLessonCacheAfterDelete],
   },
@@ -40,6 +42,22 @@ export const Lessons: CollectionConfig = {
     },
     { name: 'durationMinutes', type: 'number', min: 1, max: 600 },
     { name: 'blocks', type: 'blocks', required: true, minRows: 1, blocks: LESSON_BLOCKS },
+    {
+      name: 'sections',
+      type: 'array',
+      admin: {
+        readOnly: true,
+        description:
+          'Worked out on every save from the page: its parts (h2), what each is, and its share of the time.',
+      },
+      fields: [
+        { name: 'anchor', type: 'text', required: true },
+        { name: 'title', type: 'text', required: true },
+        { name: 'kind', type: 'select', required: true, options: [...SECTION_KINDS] },
+        { name: 'minutes', type: 'number' },
+        { name: 'hasDrill', type: 'checkbox', defaultValue: false },
+      ],
+    },
     publicIdField,
   ],
 };

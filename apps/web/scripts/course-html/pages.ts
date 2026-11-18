@@ -1,11 +1,10 @@
 import type { LessonBlock } from '@siliconbox/shared';
-import render from 'dom-serializer';
 import { type ChildNode, type Document, type Element, isTag } from 'domhandler';
 import { findAll, findOne, removeElement, textContent } from 'domutils';
-import { parseDocument } from 'htmlparser2';
 import type { Notes } from './notes';
 import { readStateGraph } from './state-graph';
 import { type SvgRules, styleSvg } from './svg-styles';
+import { parseHtml, renderHtml } from '../../src/lib/html-document';
 
 // One course page (HTML file) to lesson blocks, keeping every part of the author's content
 // (ADR 0024); the site supplies the design. What changes: the interactive figure becomes a
@@ -38,10 +37,7 @@ const text = (element: Element | null) =>
 
 /** Reads a page: its <title> (up to " | "), <h1>, lead, estimated time and article. */
 export function readCoursePage(html: string): CoursePageParts {
-  const document = parseDocument(html, {
-    lowerCaseAttributeNames: false,
-    recognizeSelfClosing: true,
-  });
+  const document = parseHtml(html);
   const find = (test: (element: Element) => boolean) => findOne(test, document.children);
   const root = find((element) => element.name === 'article') ?? document;
   const hours = /Estimated time:\s*([\d.]+)/.exec(text(find((e) => hasClass(e, 'meta'))))?.[1];
@@ -77,7 +73,7 @@ function prepare(root: Element | Document, context: PageContext): void {
   }
 }
 
-const serialize = (nodes: ChildNode[]) => render(nodes, { encodeEntities: 'utf8' }).trim();
+const serialize = (nodes: ChildNode[]) => renderHtml(nodes).trim();
 
 /** The page's content as blocks: markup runs, the state graph, and Drills after the lab. */
 export function pageBlocks(root: Element | Document, context: PageContext): LessonBlock[] {

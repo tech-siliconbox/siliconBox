@@ -22,13 +22,13 @@ function getAnswersDb(): Db {
 const PUBLISHED = 'published';
 const BlocksSchema = z.object({ blocks: z.array(LessonBlockSchema) });
 
-/** The public text of a published question, or null. */
+/** The public text of a published question by its slug, or null. */
 export async function findPublishedQuestion(
-  publicId: string,
+  slug: string,
 ): Promise<{ id: unknown; text: string } | null> {
   const question = await getDb()
     .collection(COLLECTIONS.questions)
-    .findOne({ publicId, _status: PUBLISHED }, { projection: { _id: 1, text: 1 } });
+    .findOne({ slug, _status: PUBLISHED }, { projection: { _id: 1, text: 1 } });
   return question === null ? null : { id: question._id, text: String(question.text) };
 }
 
