@@ -206,3 +206,9 @@ Details are in `docs/roadmap/tool-page-plan.md`, section 7.
 - **Storage:** MongoDB grows with saved sessions and traces. The caps and the 180 days bound it.
 - **If long-lived containers prove hard to host,** option B replaces A and the page stays the
   same.
+
+## Notes
+
+- 2026-11-20 (PR 2): a closed session reopens from its last save (files, analysed sources, the
+  elaborated design and results), the way Praman restores a session after a restart, not by
+  replaying its journal. Tcl variables are not kept. The journal stays the session's script.

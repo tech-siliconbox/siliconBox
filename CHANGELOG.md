@@ -4,6 +4,14 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman, the formal tool page: the solver, ADR 0031)
+
+- Praman's engine is ported into the solver (`apps/solver/app/praman`) from formal-verify `1bfa69ba`: the session and its 40+ Tcl commands, the SystemVerilog/SVA front end on pyslang 12.0.0, the proof services and the native engines. Not ported: the Formal Agent, Certifaiger, Praman's accounts, database, routers and folder queue. Its tests come along (those built on formal-verify's agent and evaluation cases stay there).
+- Each open session runs in a process of its own, a sandboxed container in production with the job containers' flags and 1.5 GB: `python -m app.praman.host`, one request per line. A supervisor (`python -m app.supervisor`, now part of `pnpm dev`) opens waiting sessions while it has slots, relays requests through Redis, and closes a session after 15 minutes without a command while no proof runs.
+- Solver API `/v1/sessions/{id}` (scope `sessions`): open (waits in line), requests and late replies, close. Another learner's session is 404; a learner has one session at a time.
+- The learner's ceilings are enforced where engines start: settings above them are lowered with a log line, every engine process is capped at the proof ceiling and the proof time left today, and the real engine time is reported for the allowance. File system tasks are refused in Praman; its deletes go through the workspace checks.
+- The solver image gets Tcl 8.6; CI installs Tcl. Solver hardening findings 14 to 21 are fixed on the solver's side with regression and attack tests.
+
 ### Added (Praman, the formal tool page: decisions, ADR 0031)
 
 - ADR 0031 (accepted): Praman at `/tool`, ported from formal-verify, for learners with an active tool window and plan. Each open session runs in its own sandboxed container; the learner chooses top module, proof time and trace length within ceilings per level (the one exception to hard rule 6); proof minutes a day per level; saved sessions and run history kept 180 days. The confirmed plan is in `docs/roadmap/tool-page-plan.md`.
