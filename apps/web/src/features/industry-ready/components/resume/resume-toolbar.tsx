@@ -11,18 +11,47 @@ const STATUS_TEXT: Record<SaveStatus, string> = {
   error: 'Not saved',
 };
 
+/** The check panel's toggle: whether it is open and the id of the panel it opens. */
+type CheckToggle = { open: boolean; controls: string; onToggle: () => void };
+
 type ResumeToolbarProps = {
   template: Resume['template'];
   status: SaveStatus;
+  check: CheckToggle;
   onTemplate: (template: Resume['template']) => void;
   onSave: () => void;
   onDownload: () => void;
   onDelete: () => void;
 };
 
+type TemplatePickerProps = {
+  template: Resume['template'];
+  onTemplate: ResumeToolbarProps['onTemplate'];
+};
+
+function TemplatePicker({ template, onTemplate }: TemplatePickerProps) {
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      Template
+      <select
+        value={template}
+        onChange={(e) => onTemplate(e.target.value as Resume['template'])}
+        className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+      >
+        {RESUME_TEMPLATES.map((name) => (
+          <option key={name} value={name}>
+            {name === 'classic' ? 'Classic' : 'Compact'}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function ResumeToolbar({
   template,
   status,
+  check,
   onTemplate,
   onSave,
   onDownload,
@@ -30,20 +59,7 @@ export function ResumeToolbar({
 }: ResumeToolbarProps) {
   return (
     <div className="sticky top-[53px] z-40 flex flex-wrap items-center gap-3 border-b border-border bg-background py-3">
-      <label className="flex items-center gap-2 text-sm">
-        Template
-        <select
-          value={template}
-          onChange={(e) => onTemplate(e.target.value as Resume['template'])}
-          className="h-9 rounded-md border border-border bg-background px-2 text-sm"
-        >
-          {RESUME_TEMPLATES.map((name) => (
-            <option key={name} value={name}>
-              {name === 'classic' ? 'Classic' : 'Compact'}
-            </option>
-          ))}
-        </select>
-      </label>
+      <TemplatePicker template={template} onTemplate={onTemplate} />
       <p
         role="status"
         className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
@@ -56,6 +72,15 @@ export function ResumeToolbar({
         </Button>
         <Button size="sm" variant="secondary" disabled={status === 'saving'} onClick={onSave}>
           Save
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          aria-expanded={check.open}
+          aria-controls={check.controls}
+          onClick={check.onToggle}
+        >
+          Check resume
         </Button>
         <Button size="sm" disabled={status === 'saving'} onClick={onDownload}>
           Download PDF

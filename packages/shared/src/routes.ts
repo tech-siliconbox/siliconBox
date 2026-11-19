@@ -39,6 +39,7 @@ export const API_ROUTES = {
   services: '/api/v1/services',
   resume: '/api/v1/resume',
   resumePdf: '/api/v1/resume/pdf',
+  resumeCheck: '/api/v1/resume/check',
   cvScreenings: '/api/v1/cv-screenings',
   drillRuns: (drillId: string) => `/api/v1/drills/${drillId}/runs`,
   run: (runId: string) => `/api/v1/runs/${runId}`,

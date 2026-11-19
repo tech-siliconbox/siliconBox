@@ -66,7 +66,7 @@ export async function submitCapstone(
   if (hasPassed(await findSubmissions(identity.userId, publicId))) {
     throw new AppError('CAPSTONE_CLOSED', 'already passed');
   }
-  const file = await readUpload(request, CAPSTONE_MAX_BYTES, 'CAPSTONE_NOT_SUPPORTED');
+  const { file } = await readUpload(request, CAPSTONE_MAX_BYTES, 'CAPSTONE_NOT_SUPPORTED');
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (!ZIP_SIGNATURES.some((signature) => startsWith(bytes, signature))) {
     throw new AppError('CAPSTONE_NOT_SUPPORTED', 'not a zip file');

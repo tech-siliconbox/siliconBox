@@ -1,4 +1,6 @@
+import { matchJobDescription } from './job-match';
 import { FORMAL_VERIFICATION_KEYWORDS } from './keywords';
+import { BULLET, nonEmptyLines } from './lines';
 import type { CvCheck, CvReport } from './report';
 
 // Rule-based screening of a CV's text, the way an applicant tracking system (ATS) and a
@@ -26,7 +28,6 @@ const CATEGORIES = [
 const STATUS_SCORE: Record<Status, number> = { pass: 100, warn: 50, fail: 0 };
 /** Below this, the file is effectively unreadable (a scanned image or a design-tool export). */
 const MIN_READABLE_WORDS = 25;
-const BULLET = /^\s*([•\-*▪●◦‣–]|\d+[.)])\s+/;
 const ACTION_VERB =
   /^(designed|developed|verified|implemented|wrote|built|led|reduced|improved|optimi[sz]ed|automated|debugged|created|authored|proved|closed|achieved|delivered|analy[sz]ed|integrated|migrated|mentored|owned|found|identified|increased|decreased|accelerated|architected|validated|tested|modell?ed|specified|drove|managed|ran|set up|introduced)\b/i;
 const PERSONAL_DETAILS =
@@ -49,10 +50,7 @@ const length = checker('length');
 const impact = checker('impact');
 
 function parse(text: string, pages: number | null): ParsedCv {
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l !== '');
+  const lines = nonEmptyLines(text);
   const bullets = lines.filter((l) => BULLET.test(l)).map((l) => l.replace(BULLET, ''));
   const words = text.split(/\s+/).filter((w) => /[A-Za-z0-9]/.test(w)).length;
   return { text, lines, bullets, words, pages };
@@ -248,8 +246,11 @@ function areaScore(checks: CvCheck[], id: string): number {
   );
 }
 
-/** Screens a CV's extracted text; `pages` is known for PDFs only. */
-export function screenCv(text: string, pages: number | null): CvReport {
+/**
+ * Screens a CV's extracted text; `pages` is known for PDFs only. A job description adds a match
+ * against it, reported apart: the score stays the same with or without one.
+ */
+export function screenCv(text: string, pages: number | null, jobDescription?: string): CvReport {
   const cv = parse(text, pages);
   const checks = RULES.map((rule) => rule(cv));
   const keywords = keywordCoverage(text);
@@ -272,5 +273,8 @@ export function screenCv(text: string, pages: number | null): CvReport {
     keywords: { found: keywords.found, missing: keywords.missing },
     words: cv.words,
     pages,
+    ...(jobDescription === undefined
+      ? {}
+      : { jobMatch: matchJobDescription(text, jobDescription) }),
   };
 }

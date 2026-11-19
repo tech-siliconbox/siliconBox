@@ -27,7 +27,8 @@ No route returns lesson, Drill, answer or question text; those reach the browser
 | `GET /api/v1/me/export` | Signed in; the learner's own data as a JSON file, audit-logged (DPDP) | `dataExport` (5 an hour) |
 | `GET /api/v1/services` | Anyone | `read` |
 | `GET, PUT, DELETE /api/v1/resume`; `GET /api/v1/resume/pdf` | Signed in; service open and an active content entitlement (DELETE always allowed) | `read` / `write` |
-| `POST, GET, DELETE /api/v1/cv-screenings`; `DELETE /api/v1/cv-screenings/:id` | Same; uploads are multipart, PDF or .docx up to 5 MB | `cvScreen` (10 an hour) / `read` / `write` |
+| `POST /api/v1/resume/check` | Same; body `ScreeningOptionsSchema` (an optional job description). Screens the saved resume's own PDF; nothing stored | `resumeCheck` (20 an hour) |
+| `POST, GET, DELETE /api/v1/cv-screenings`; `DELETE /api/v1/cv-screenings/:id` | Same; uploads are multipart, PDF or .docx up to 5 MB, with an optional `jobDescription` field (`ScreeningOptionsSchema`). POST answers with the saved screening and the text read from the file, which is not stored | `cvScreen` (10 an hour) / `read` / `write` |
 | `POST /api/v1/progress` | Signed in; lesson must be published and readable by the learner | `write` |
 | `/cms-api/*` | Payload REST for the admin UI; every collection requires a signed-in admin (ADR 0018) | Payload's own; admin host behind Cloudflare Access later |
 | `GET, POST /api/auth/*` | Better Auth (sign-up, sign-in, Google, sign-out, session, change password, delete account) | `read` / `authWrite` |

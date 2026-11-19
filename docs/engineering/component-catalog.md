@@ -91,7 +91,10 @@ Check here before writing a component, hook or helper. Add a row when you create
 | industry-ready: ServiceCard | Open or locked service card; links only to built services | Built |
 | industry-ready: CareerToolLocked | Why a career tool is unavailable, with the next step | Built |
 | industry-ready (resume): ResumeBuilder, ResumeToolbar, ResumePreview, ListEditor, BasicsEditor, LinksEditor, SkillsEditor, ExperienceEditor, ProjectsEditor, EducationEditor, CertificationsEditor, BulletsField, MonthRange, useResumeDraft | Resume Builder editor, preview and save | Built |
-| industry-ready (cv): CvScreener, DropZone, CvReportView, ScreeningHistory, useCvScreenings | CV screening upload, report and history | Built |
+| industry-ready (cv): CvScreener, DropZone, CvReportView, ScreeningHistory, useCvScreenings | CV screening upload (with an optional job description), report (with the job match) and history | Built |
+| industry-ready: JobDescriptionField, AtsText | The optional job description box; "What an ATS reads", the text read from a file (both used by CV screening and the resume check) | Built |
+| industry-ready: ResumeCheckPanel, useResumeCheck | Resume Builder's check: its saved PDF screened like an upload, with the job match; opened from the toolbar | Built |
+| industry-ready: useApiRequest | Pending and error state around one call to our API; returns the response only when it succeeded | Built |
 | pricing: LevelCard | One level's price and windows, from shared constants | Built |
 
 ## Server helpers (`server`, `db`)
@@ -140,7 +143,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | readProfile, readPhotoUrl | A learner's profile with their photo's versioned address; the address alone for the header, once per request (`server/profile.ts`) | Built |
 | findProfile, saveProfile, findPhoto, findPhotoVersion, savePhoto, deletePhoto | Profiles (a taken handle is reported, not thrown) and photos as WebP bytes (`db/profiles.ts`) | Built |
 | toProfilePhoto | An upload checked by its bytes (JPEG, PNG, WebP), decoded with a pixel cap, turned upright and re-encoded as a 256 px WebP without EXIF (`server/profile-photo.ts`) | Built |
-| readUpload, startsWith | A multipart upload's file, size-checked before and after reading; a file signature check (`server/upload.ts`, `server/file-bytes.ts`) | Built |
+| readUpload, startsWith | A multipart upload's file, size-checked before and after reading, and its text fields for the route's schema (`parseWith`); a file signature check (`server/upload.ts`, `server/file-bytes.ts`) | Built |
 | buildDataExport | Everything held about a learner in plain fields, for the download in Settings; never tokens, Drill code or watermark codes (`server/data-export.ts`) | Built |
 | deleteLearnerData | Empties a learner's own collections when they delete the account; the audit log and security alerts stay (`db/learner-data.ts`) | Built |
 | findSignIns, findAllScreenings | A learner's sign-ins (when, country); all their CV reports (`db/audit-log.ts`, `db/cv-screenings.ts`) | Built |
@@ -155,7 +158,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | raiseAlert, recordAlert | Records a security alert for review (`server/alerts.ts`, `db/security-alerts.ts`) | Built |
 | findLastSignInCountry | Country of the learner's previous sign-in (`db/audit-log.ts`) | Built |
 | findServices, isServiceOpen | Industry Ready services and their status (`db/services.ts`) | Built |
-| findResume, saveResume, deleteResume | Resume storage (`db/resumes.ts`) | Built |
+| findResume, findResumeOrBlank, saveResume, deleteResume | Resume storage; the saved resume or a blank one from the account (`db/resumes.ts`) | Built |
 | saveScreening, listScreenings, deleteScreenings | Screening reports, never files (`db/cv-screenings.ts`) | Built |
 | assertCareerTool, careerToolState | Service open plus active content entitlement (`server/career-services.ts`) | Built |
 | extractCvText | PDF or .docx text, type checked by file bytes (`server/cv-text.ts`) | Built |
@@ -221,3 +224,6 @@ Check here before writing a component, hook or helper. Add a row when you create
 | AlertKindSchema, ServiceStatusSchema | Alert kinds; service status | Built |
 | ResumeSchema, emptyResume, formatResumePeriod | Resume data, blank resume, date display | Built |
 | screenCv, CvReportSchema, CvScreeningSchema | Pure CV screening rules and report shapes | Built |
+| matchJobDescription, JobMatchSchema, HARDWARE_KEYWORDS | A CV against a pasted job description on known terms, requirements weighted, offer part skipped (`cv-screening/job-match.ts`) | Built |
+| ScreeningOptionsSchema, screeningOptions, NewScreeningSchema, ResumeCheckSchema | The optional job description (blank box: none); the answers of a new screening and of the resume check (`cv-screening/report.ts`) | Built |
+| BULLET, nonEmptyLines | Reading CV and job description text line by line (`cv-screening/lines.ts`) | Built |

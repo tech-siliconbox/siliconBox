@@ -47,6 +47,13 @@ describe('resume PDF', () => {
     const report = screenCv(text, pages);
     expect(report.keywords.found).toEqual(expect.arrayContaining(['SVA', 'JasperGold', 'AXI']));
     expect(report.checks.find((check) => check.id === 'experience')?.status).toBe('pass');
+
+    const posting = 'Requirements\n- SVA and JasperGold\n- UVM';
+    expect(screenCv(text, pages, posting).jobMatch).toEqual({
+      score: 67,
+      found: ['SVA', 'JasperGold'],
+      missing: ['UVM'],
+    });
   }, 20_000);
 
   it.each([

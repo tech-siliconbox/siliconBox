@@ -21,14 +21,14 @@ export async function parseInput<S extends InputSchemas>(
 ): Promise<ParsedInput<S>> {
   const query = Object.fromEntries(new URL(request.url).searchParams);
   return {
-    params: parseWith(schemas.params, params),
-    query: parseWith(schemas.query, query),
+    params: schemas.params === undefined ? undefined : parseWith(schemas.params, params),
+    query: schemas.query === undefined ? undefined : parseWith(schemas.query, query),
     body: schemas.body === undefined ? undefined : parseWith(schemas.body, await readJson(request)),
   } as ParsedInput<S>; // Each field was parsed by the schema it is typed from.
 }
 
-function parseWith(schema: z.ZodType | undefined, value: unknown): unknown {
-  if (schema === undefined) return undefined;
+/** One value through its schema; a mismatch is a 400. Routes use it for multipart text fields. */
+export function parseWith<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
   const result = schema.safeParse(value);
   if (!result.success) throw new AppError('VALIDATION_FAILED', result.error.message);
   return result.data;

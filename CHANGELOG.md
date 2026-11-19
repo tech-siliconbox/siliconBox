@@ -4,6 +4,13 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Industry Ready: job match and resume check)
+
+- CV screening takes an optional job description and adds a job match: the share of the posting's formal verification and hardware terms the CV shows (requirements weighted up, pay and perks skipped), with the missing terms most-wanted first. The CV score itself is unchanged. The job description is not stored; the match is saved with the report.
+- "What an ATS reads": the text read from an uploaded CV is shown after screening, never stored.
+- Resume Builder: "Check resume" screens the saved resume's own PDF the same way, optionally against a job description (`POST /api/v1/resume/check`, 20 an hour). Nothing is stored.
+- Draft ADR 0030 (proposed): AI feedback on CVs and resumes through Claude, for the later phases.
+
 ### Added (graded course work, ADR 0029)
 
 - Assessments: a course's multiple-choice assessment is answered in its module page and scored on the server against a hidden key (`assessment_keys`, read only by the grader database user). At most 3 attempts, no waiting; the review with right answers and explanations appears only once the learner passed or used every attempt. The Basic course's 30-question assessment (pass 24) was converted; its answer key is no longer printed in the page.

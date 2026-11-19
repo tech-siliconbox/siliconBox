@@ -1,47 +1,48 @@
 'use client';
 
-import { API_ROUTES, type CvScreening, CvScreeningSchema } from '@siliconbox/shared';
+import {
+  API_ROUTES,
+  type CvScreening,
+  NewScreeningSchema,
+  screeningOptions,
+} from '@siliconbox/shared';
 import { useState } from 'react';
-import { errorMessage } from '@/lib/api-error';
+import { useApiRequest } from './use-api-request';
+
+/** The report on show; the text read from the file comes only with a screening just made. */
+export type ShownScreening = { screening: CvScreening; atsText: string | null };
+
+const fromHistory = (screening: CvScreening): ShownScreening => ({ screening, atsText: null });
 
 /** Screening a file, the report on show, and the learner's saved reports with delete. */
 export function useCvScreenings(initial: CvScreening[]) {
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { pending, error, request } = useApiRequest();
   const [history, setHistory] = useState(initial);
-  const [shown, setShown] = useState<CvScreening | null>(initial[0] ?? null);
+  const [shown, setShown] = useState(initial[0] === undefined ? null : fromHistory(initial[0]));
 
-  async function screen(file: File): Promise<void> {
-    setPending(true);
-    setError(null);
+  async function screen(file: File, jobDescription: string): Promise<void> {
     const form = new FormData();
     form.set('file', file);
-    const response = await fetch(API_ROUTES.cvScreenings, { method: 'POST', body: form }).catch(
-      () => null,
-    );
-    setPending(false);
-    if (response?.status !== 201) {
-      setError(await errorMessage(response));
-      return;
-    }
-    const screening = CvScreeningSchema.parse(await response.json());
-    setHistory([screening, ...history]);
-    setShown(screening);
+    const options = screeningOptions(jobDescription);
+    if (options.jobDescription !== undefined) form.set('jobDescription', options.jobDescription);
+    const response = await request(API_ROUTES.cvScreenings, { method: 'POST', body: form });
+    if (response === null) return;
+    const created = NewScreeningSchema.parse(await response.json());
+    setHistory([created.screening, ...history]);
+    setShown(created);
   }
 
   /** Deletes one report, or all of them when `publicId` is omitted. */
   async function remove(publicId?: string): Promise<void> {
     const url =
       publicId === undefined ? API_ROUTES.cvScreenings : `${API_ROUTES.cvScreenings}/${publicId}`;
-    const response = await fetch(url, { method: 'DELETE' }).catch(() => null);
-    if (response?.ok !== true) {
-      setError(await errorMessage(response));
-      return;
-    }
+    if ((await request(url, { method: 'DELETE' })) === null) return;
     const left = publicId === undefined ? [] : history.filter((s) => s.publicId !== publicId);
     setHistory(left);
-    if (shown !== null && !left.includes(shown)) setShown(null);
+    if (shown !== null && !left.includes(shown.screening)) setShown(null);
   }
 
-  return { pending, error, history, shown, setShown, screen, remove };
+  const view = (screening: CvScreening) => setShown(fromHistory(screening));
+
+  return { pending, error, history, shown, view, screen, remove };
 }

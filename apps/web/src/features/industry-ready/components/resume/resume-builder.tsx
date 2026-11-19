@@ -1,7 +1,7 @@
 'use client';
 
 import { API_ROUTES, type Resume, emptyResume } from '@siliconbox/shared';
-import type { ReactNode } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 import { TextAreaField } from '@/components/ui/text-area-field';
 import { useResumeDraft } from '../../hooks/use-resume-draft';
 import { BasicsEditor } from './basics-editor';
@@ -9,6 +9,7 @@ import { CertificationsEditor } from './certifications-editor';
 import { EducationEditor } from './education-editor';
 import { ExperienceEditor } from './experience-editor';
 import { ProjectsEditor } from './projects-editor';
+import { ResumeCheckPanel } from './resume-check-panel';
 import { ResumePreview } from './resume-preview';
 import { ResumeToolbar } from './resume-toolbar';
 import { SkillsEditor } from './skills-editor';
@@ -22,14 +23,20 @@ function EditorSection({ title, children }: { title: string; children: ReactNode
   );
 }
 
-/** Editor on the left, live preview on the right; the PDF is built on the server from the saved resume. */
+/**
+ * Editor on the left, live preview on the right, and an optional check panel. The PDF and the
+ * check are built on the server from the saved resume.
+ */
 export function ResumeBuilder({ initial }: { initial: Resume }) {
   const { resume, update, save, status, problem } = useResumeDraft(initial);
+  const [checkOpen, setCheckOpen] = useState(false);
+  const checkId = useId();
   const set = (patch: Partial<Resume>) => update({ ...resume, ...patch });
+  /** True once the server holds what the learner sees. */
+  const saveFirst = async () => status === 'saved' || (await save());
 
   async function download() {
-    if (status !== 'saved' && !(await save())) return;
-    window.location.assign(API_ROUTES.resumePdf);
+    if (await saveFirst()) window.location.assign(API_ROUTES.resumePdf);
   }
 
   async function remove() {
@@ -43,11 +50,13 @@ export function ResumeBuilder({ initial }: { initial: Resume }) {
       <ResumeToolbar
         template={resume.template}
         status={status}
+        check={{ open: checkOpen, controls: checkId, onToggle: () => setCheckOpen(!checkOpen) }}
         onTemplate={(template) => set({ template })}
         onSave={() => void save()}
         onDownload={() => void download()}
         onDelete={() => void remove()}
       />
+      {checkOpen && <ResumeCheckPanel id={checkId} saveFirst={saveFirst} />}
       {problem !== null && (
         <p role="alert" className="text-sm text-destructive">
           {problem}

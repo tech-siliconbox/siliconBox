@@ -7,6 +7,8 @@ import { expect, failOnCspViolation, newLearner, signUp, submitSignIn, test } fr
 
 const learner = newLearner();
 let pdfPath = '';
+/** An invented posting: the resume shows SVA and JasperGold, not UVM (2 of 3, all requirements). */
+const POSTING = 'Requirements\n- SVA and JasperGold\n- UVM';
 
 async function signIn(page: Page): Promise<void> {
   await submitSignIn(page, learner);
@@ -58,7 +60,23 @@ test('an entitled learner builds, saves and downloads an ATS-friendly resume', a
   expect(readFileSync(pdfPath).subarray(0, 5).toString()).toBe('%PDF-');
 });
 
-test('CV screening reads the resume PDF, refuses other files, and deletes reports', async ({
+test('Resume Builder checks its own PDF against a job description', async ({ page }) => {
+  failOnCspViolation(page);
+  await signIn(page);
+  await page.goto(ROUTES.resumeBuilder);
+
+  await page.getByRole('button', { name: 'Check resume' }).click();
+  const panel = page.getByRole('region', { name: 'Check this resume' });
+  await panel.getByLabel('Job description (optional)').fill(POSTING);
+  await panel.getByRole('button', { name: 'Run the check' }).click();
+  const report = panel.getByRole('article', { name: 'CV screening report' });
+  await expect(report).toContainText('Match with the job description');
+  await expect(report).toContainText('67%');
+  await panel.getByText('What an ATS reads').click();
+  await expect(panel.locator('pre')).toContainText('Invented Chips');
+});
+
+test('CV screening reads the resume PDF, matches a job, refuses other files, deletes reports', async ({
   page,
 }) => {
   failOnCspViolation(page);
@@ -74,10 +92,14 @@ test('CV screening reads the resume PDF, refuses other files, and deletes report
   await expect(page.getByRole('alert').filter({ hasText: 'Upload a PDF or Word' })).toBeVisible();
 
   await page.locator('input[type=file]').setInputFiles(pdfPath);
+  await page.getByLabel('Job description (optional)').fill(POSTING);
   await page.getByRole('button', { name: 'Screen my CV' }).click();
   const report = page.getByRole('article', { name: 'CV screening report' });
   await expect(report).toContainText('Formal verification keywords');
   await expect(report).toContainText('SVA');
+  await expect(report).toContainText('67%');
+  await page.getByText('What an ATS reads').click();
+  await expect(page.locator('pre')).toContainText('Invented Chips');
 
   await page.getByRole('button', { name: /Delete report for/ }).click();
   await expect(report).toHaveCount(0);
