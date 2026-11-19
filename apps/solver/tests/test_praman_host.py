@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from app.praman import ceilings
-from app.praman.host import Host, parse
+from app.praman.host import Host, parse, scrub
 from app.praman.protocol import Envelope
 from app.praman.services.proc import run_tree
 from app.praman.store import use_outbox
@@ -162,6 +162,20 @@ def test_a_closed_session_opens_again_from_its_save(host: Host) -> None:
     assert reopened.session.files["a.sv"] == "module a; endmodule"
     assert "reopened" in texts(reopened.session.events)
     answer(reopened, "close")
+
+
+def test_replies_carry_no_server_paths(tmp_path: Path) -> None:
+    # Hardening finding 9: Praman's trace payloads name their file, tool output quotes the folder.
+    reply = {
+        "trace": {"vcd_path": f"{tmp_path}/run/trace.vcd", "assertion": "ap_bad"},
+        "events": [{"text": f"read {tmp_path}/run/va_monitors.sv:42"}],
+    }
+    clean = scrub(reply, tmp_path)
+    assert str(tmp_path) not in json.dumps(clean)
+    assert clean == {
+        "trace": {"assertion": "ap_bad"},
+        "events": [{"text": "read run/va_monitors.sv:42"}],
+    }
 
 
 def test_engines_count_once_however_many_run_together() -> None:

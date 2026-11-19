@@ -18,6 +18,7 @@ import tempfile
 import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from typing import IO, Any
 
 from pydantic import ValidationError
@@ -25,12 +26,14 @@ from pydantic import ValidationError
 from app.praman import ceilings
 from app.praman.protocol import Envelope, Open, Request
 from app.praman.store import Outbox, get_store, use_outbox
+from app.workspace import strip_folder
 
 logger = logging.getLogger("praman.host")
 
 MAX_REQUEST_BYTES = 3 * 1024 * 1024  # a saved session: 1 MB of files, its log, JSON escaping
 WATCH_SECONDS = 1.0
 WORKERS = 4  # requests answered at once (a what-if, a report, polls)
+PATH_KEYS = frozenset({"vcd_path"})  # Praman's trace payloads name the trace file
 IN_ORDER = ("open", "close")
 
 
@@ -129,6 +132,18 @@ class Host:
                 stopped_for = proof.job_id
 
 
+def scrub(value: object, folder: Path) -> object:
+    """A reply without server paths (hardening finding 9): the work folder is cut from every text
+    and trace payloads lose their file path."""
+    if isinstance(value, str):
+        return strip_folder(value, folder)
+    if isinstance(value, list):
+        return [scrub(item, folder) for item in value]
+    if isinstance(value, dict):
+        return {key: scrub(item, folder) for key, item in value.items() if key not in PATH_KEYS}
+    return value
+
+
 def parse(line: str) -> Envelope | dict[str, Any]:
     """The envelope on a line, or the error reply (with no id) when there is none."""
     if len(line.encode()) > MAX_REQUEST_BYTES:
@@ -142,7 +157,8 @@ def parse(line: str) -> Envelope | dict[str, Any]:
 class Replies:
     """Stdout for replies only: file descriptor 1 is pointed at stderr for everything else."""
 
-    def __init__(self) -> None:
+    def __init__(self, folder: Path) -> None:
+        self._folder = folder
         self._stream: IO[str] = os.fdopen(os.dup(1), "w", encoding="utf-8")
         self._lock = threading.Lock()
         os.dup2(2, 1)
@@ -150,7 +166,8 @@ class Replies:
 
     def send(self, request_id: str, reply: dict[str, Any]) -> None:
         with self._lock:
-            self._stream.write(json.dumps({"id": request_id, "reply": reply}) + "\n")
+            clean = scrub(reply, self._folder)
+            self._stream.write(json.dumps({"id": request_id, "reply": clean}) + "\n")
             self._stream.flush()
 
 
@@ -174,7 +191,7 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
     # Praman reads its work folder when its modules load: set it first (the container sets it).
     os.environ.setdefault("FORMAL_WORK_DIR", tempfile.mkdtemp(prefix="praman-"))
-    serve(Host(), Replies(), sys.stdin)
+    serve(Host(), Replies(Path(os.environ["FORMAL_WORK_DIR"])), sys.stdin)
     return 0
 
 

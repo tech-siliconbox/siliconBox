@@ -50,6 +50,13 @@ def job_folder(work_root: Path) -> Iterator[Path]:
         remove_inside(folder, work_root)
 
 
+def strip_folder(text: str, folder: Path) -> str:
+    """Removes the server's folder names from tool output (hardening finding 9)."""
+    for prefix in {str(folder.resolve()), str(folder)}:
+        text = text.replace(prefix + "/", "").replace(prefix, ".")
+    return text
+
+
 def check_folder(job_dir: Path, index: int) -> Path:
     """Where check number `index` of a job is staged; created by the stager."""
     return job_dir / f"check-{index:03d}"

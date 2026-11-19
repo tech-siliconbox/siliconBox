@@ -127,6 +127,7 @@ class Container:
     def __init__(self, process: SessionProcess) -> None:
         self.process = process
         self._replies = process.replies()
+        self.records: list[dict] = []  # every save and run record the polls handed over
 
     def ask(self, op: str, **fields) -> dict:
         request_id = uuid.uuid4().hex
@@ -134,6 +135,8 @@ class Container:
         for line in self._replies:
             message = json.loads(line)
             if message["id"] == request_id:
+                if "records" in message["reply"]:
+                    self.records.append(message["reply"]["records"])
                 return message["reply"]
         raise AssertionError("the session ended")
 
@@ -175,6 +178,16 @@ def test_a_proof_runs_in_a_session_container(container: Container) -> None:
     statuses = {prop["id"]: prop["status"] for prop in state["properties"]}
     assert statuses["ap_bad"] == "cex"
     assert statuses["ap_in_range"] == "proven"
+    # Hardening finding 9: neither the trace nor the run records name a server path.
+    trace = container.ask("trace", property="ap_bad")
+    assert trace["ok"]
+    assert trace["trace"]["vcd_data"]
+    runs = [run for records in container.records for run in records["runs"]]
+    kept_traces = [run["traces"] for run in runs if run["type"] == "runFinished"]
+    assert any("ap_bad" in traces for traces in kept_traces)
+    for reply in (trace, container.records):
+        assert "/work" not in json.dumps(reply)
+        assert "vcd_path" not in json.dumps(reply)
 
 
 @needs_image
