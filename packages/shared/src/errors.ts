@@ -1,3 +1,5 @@
+import { AI_FEEDBACK_LIMITS } from './ai/notice';
+
 /**
  * Stable error codes with their HTTP status and the only message a client ever sees.
  * Detail stays in the server log.
@@ -36,6 +38,19 @@ export const ERRORS = {
   CAPSTONE_CLOSED: { status: 409, message: 'Your capstone has already passed.' },
   HANDLE_TAKEN: { status: 409, message: 'That handle is taken. Try another.' },
   RATE_LIMITED: { status: 429, message: 'Too many requests. Please wait a moment and try again.' },
+  AI_QUOTA_REACHED: {
+    status: 429,
+    message: `You have used your AI feedback for now: ${AI_FEEDBACK_LIMITS.perDay} a day and ${AI_FEEDBACK_LIMITS.perMonth} a month.`,
+  },
+  AI_UNAVAILABLE: {
+    status: 503,
+    message:
+      'AI feedback is not available right now, and this did not use your allowance. Please try again later.',
+  },
+  CV_FILE_NOT_KEPT: {
+    status: 409,
+    message: 'We no longer keep the file for this report. Upload the CV again.',
+  },
   RUN_QUOTA_REACHED: {
     status: 429,
     message: "You have used all of today's Drill runs. They reset tomorrow.",

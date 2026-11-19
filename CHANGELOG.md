@@ -4,6 +4,12 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Industry Ready: CVs kept, and AI feedback, ADR 0030)
+
+- CVs are stored per user (founder, 2026-11-19): each upload is kept with its report for the learner's newest 5 CVs, downloadable from the report list (`GET /api/v1/cv-screenings/:id/file`), and deleted with its report, all reports or the account. The data download lists the files without their bytes.
+- AI feedback on a saved report through Claude (`POST /api/v1/cv-screenings/:id/feedback`): the learner reads the notice and ticks their agreement each time; the CV's text goes without their name, contact details, links and personal details; the answer (summary, line rewrites, strengths, job fit and gaps, never a score) is checked on the server before it is kept with the report. 5 a day and 30 a month per learner; a failure gives the use back. Hidden until `ANTHROPIC_API_KEY` is set. `@anthropic-ai/sdk` 1.10.0 is a new dependency (server only).
+- Shared: `IdParamsSchema` replaces five inline `:id` schemas; `DAY_MS` replaces two copies; `fileDownload` serves both the resume PDF and kept CVs.
+
 ### Added (Industry Ready: job match and resume check)
 
 - CV screening takes an optional job description and adds a job match: the share of the posting's formal verification and hardware terms the CV shows (requirements weighted up, pay and perks skipped), with the missing terms most-wanted first. The CV score itself is unchanged. The job description is not stored; the match is saved with the report.

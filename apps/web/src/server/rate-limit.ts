@@ -16,6 +16,8 @@ export const RATE_LIMITS = {
   cvScreen: { name: 'cv-screen', limit: 10, windowMs: 60 * 60 * 1000 },
   // Checking a resume builds its PDF and reads it back; learners re-check while they edit.
   resumeCheck: { name: 'resume-check', limit: 20, windowMs: 60 * 60 * 1000 },
+  // Asking for AI feedback: a burst limit; the learner's daily and monthly allowance sits on top.
+  aiFeedback: { name: 'ai-feedback', limit: 10, windowMs: 60 * 60 * 1000 },
   // Starting a Drill run queues solver work; the daily quota per level sits on top of this.
   runStart: { name: 'run-start', limit: 6, windowMs: 60_000 },
   // docs/architecture/content-delivery.md: about a dozen lesson reads a minute per account.
@@ -52,12 +54,25 @@ if count == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end
 return { count, redis.call('PTTL', KEYS[1]) }
 `;
 const ScriptResultSchema = z.tuple([z.number(), z.number()]);
+const windowKey = (key: string, policy: RateLimitPolicy) => `rl:${policy.name}:${key}`;
+
+// Gives one use back, never below zero and never to a window that has already ended.
+const RELEASE_SCRIPT = `
+local count = tonumber(redis.call('GET', KEYS[1]) or '0')
+if count > 0 then return redis.call('DECR', KEYS[1]) end
+return 0
+`;
+
+/** Gives back one use of `policy` for `key`, when the work it paid for failed. */
+export async function releaseRateLimit(key: string, policy: RateLimitPolicy): Promise<void> {
+  await getRedis().eval(RELEASE_SCRIPT, 1, windowKey(key, policy));
+}
 
 export const redisRateLimiter: RateLimiter = async (key, policy) => {
   const raw = await getRedis().eval(
     FIXED_WINDOW_SCRIPT,
     1,
-    `rl:${policy.name}:${key}`,
+    windowKey(key, policy),
     policy.windowMs,
   );
   const [count, ttlMs] = ScriptResultSchema.parse(raw);

@@ -22,13 +22,15 @@ provider.
 - Model `claude-opus-5-5`. Effort `medium`, set explicitly; thinking is adaptive (Opus 5.5
   always thinks). `max_tokens` 8,000. The model id is one server constant, so a change is a
   one-line, reviewed edit.
-- Anthropic's server-side refusal fallback (`fallbacks: "default"`, a beta API feature) is on,
-  as Anthropic advises for this model. Without it, a refusal simply means no AI feedback.
+- No beta API features, like our dependencies (stable only): Anthropic's server-side refusal
+  fallback is not used. A refusal simply means no AI feedback this time.
 
 ### What the AI does, and what it never does
 
 - The rule-based report stays the base and the only score. The AI adds judgement on top: how
   the CV fits a pasted job description, the gaps between them, and rewrites of specific bullets.
+  In CV screening the learner asks for it on a saved report (`POST
+  /api/v1/cv-screenings/:id/feedback`); the server reads that report's kept CV file.
   In the Resume Builder it proposes edits that the learner accepts or rejects one by one;
   nothing changes without a click.
 - It never gives a score or percentage, never invents employers, dates, tools or numbers, and
@@ -44,10 +46,11 @@ provider.
   numbers, links, the learner's name and personal-detail lines (date of birth and the like) are
   replaced with placeholders first. The Resume Builder sends its sections without the contact
   block.
-- **Store no files.** As today, the upload is read in memory and discarded. The AI feedback is
-  saved with its screening report under the learner's account, is in their data download, and
-  goes with Delete (one report, all reports, or the account). Job descriptions are not stored,
-  only the match results.
+- **CVs stored per learner** (founder, 2026-11-19, as ADR 0016 asks). The uploaded file is kept
+  with its screening report under the learner's account, for their newest 5 CVs (older reports
+  keep the report only), and only they can download it. It goes with Delete (one report, all
+  reports, or the account). The data download lists it without its bytes. AI feedback is kept
+  with its report the same way. Job descriptions are not stored, only the match results.
 - **Processor terms.** Anthropic acts as our processor under its Commercial Terms and data
   processing addendum. Under those terms API inputs and outputs are not used to train models,
   and are deleted within 30 days (kept up to 2 years only if flagged for a usage-policy breach).

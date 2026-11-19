@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { AI_NOTICE_VERSION } from '../ai/notice';
+import { StoredCvFeedbackSchema } from './feedback';
 
 export const CheckStatusSchema = z.enum(['pass', 'warn', 'fail']);
 
@@ -32,12 +34,23 @@ export const CvReportSchema = z.object({
 export type CvReport = z.infer<typeof CvReportSchema>;
 export type CvCheck = CvReport['checks'][number];
 
-/** One saved screening: the report only, never the uploaded file. */
+export const CV_FILE_KINDS = ['pdf', 'docx'] as const;
+export type CvFileKind = (typeof CV_FILE_KINDS)[number];
+
+/** Uploaded CV files kept per learner; an older screening keeps its report without its file. */
+export const CV_FILES_KEPT = 5;
+
+/** The kept file of a screening, without its bytes (those are only sent as a download). */
+export const CvFileInfoSchema = z.object({ kind: z.enum(CV_FILE_KINDS), size: z.number().int() });
+
+/** One saved screening: the report, the file while it is kept, and AI feedback once asked for. */
 export const CvScreeningSchema = z.object({
   publicId: z.string(),
   fileName: z.string(),
   createdAt: z.coerce.date(),
   report: CvReportSchema,
+  file: CvFileInfoSchema.optional(),
+  feedback: StoredCvFeedbackSchema.optional(),
 });
 export type CvScreening = z.infer<typeof CvScreeningSchema>;
 
@@ -49,6 +62,11 @@ export const ScreeningOptionsSchema = z.strictObject({
   jobDescription: z.string().trim().min(1).max(JOB_DESCRIPTION_MAX_CHARS).optional(),
 });
 export type ScreeningOptions = z.infer<typeof ScreeningOptionsSchema>;
+
+/** Asking for AI feedback on a saved screening: the notice version the learner agreed to. */
+export const CvFeedbackRequestSchema = ScreeningOptionsSchema.extend({
+  consentedNotice: z.literal(AI_NOTICE_VERSION),
+});
 
 /** The options from the job description box: none when it is blank. */
 export function screeningOptions(jobDescription: string): ScreeningOptions {

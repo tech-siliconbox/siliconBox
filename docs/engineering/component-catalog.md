@@ -91,7 +91,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | industry-ready: ServiceCard | Open or locked service card; links only to built services | Built |
 | industry-ready: CareerToolLocked | Why a career tool is unavailable, with the next step | Built |
 | industry-ready (resume): ResumeBuilder, ResumeToolbar, ResumePreview, ListEditor, BasicsEditor, LinksEditor, SkillsEditor, ExperienceEditor, ProjectsEditor, EducationEditor, CertificationsEditor, BulletsField, MonthRange, useResumeDraft | Resume Builder editor, preview and save | Built |
-| industry-ready (cv): CvScreener, DropZone, CvReportView, ScreeningHistory, useCvScreenings | CV screening upload (with an optional job description), report (with the job match) and history | Built |
+| industry-ready (cv): CvScreener, DropZone, CvReportView, ScreeningHistory, useCvScreenings | CV screening upload (with an optional job description), report (with the job match), AI feedback, and history with the kept files to download | Built |
+| industry-ready (cv): AiFeedbackPanel, AiFeedbackView, useCvFeedback | AI feedback on a saved report: the notice, an unticked agreement, the request; the feedback as plain text (ADR 0030) | Built |
 | industry-ready: JobDescriptionField, AtsText | The optional job description box; "What an ATS reads", the text read from a file (both used by CV screening and the resume check) | Built |
 | industry-ready: ResumeCheckPanel, useResumeCheck | Resume Builder's check: its saved PDF screened like an upload, with the job match; opened from the toolbar | Built |
 | industry-ready: useApiRequest | Pending and error state around one call to our API; returns the response only when it succeeded | Built |
@@ -159,9 +160,13 @@ Check here before writing a component, hook or helper. Add a row when you create
 | findLastSignInCountry | Country of the learner's previous sign-in (`db/audit-log.ts`) | Built |
 | findServices, isServiceOpen | Industry Ready services and their status (`db/services.ts`) | Built |
 | findResume, findResumeOrBlank, saveResume, deleteResume | Resume storage; the saved resume or a blank one from the account (`db/resumes.ts`) | Built |
-| saveScreening, listScreenings, deleteScreenings | Screening reports, never files (`db/cv-screenings.ts`) | Built |
+| saveScreening, listScreenings, deleteScreenings, findScreeningFile, saveFeedback | Screening reports with the learner's newest 5 CV files (lists never read the bytes) and their AI feedback (`db/cv-screenings.ts`) | Built |
+| askClaude, isAiConfigured, assertAiConfigured, AI_MODEL | The one way to Claude: server only, one structured answer, no tools, failures as `AI_UNAVAILABLE`, no text logged (`server/ai/claude.ts`, ADR 0030) | Built |
+| spendAiAllowance, refundAiAllowance | Each learner's AI allowance across tools, taken before a call and given back when it fails (`server/ai/allowance.ts`) | Built |
+| giveCvFeedback, reviewCvText, CV_FEEDBACK_SYSTEM, cvFeedbackContent | AI feedback on a saved screening: allowance, redacted text as marked data, checked answer kept and audit-logged (`server/cv-feedback.ts`, `server/ai/cv-feedback-prompt.ts`) | Built |
+| fileDownload | A PDF or .docx sent as a download with a safe name (resume PDF, kept CVs) (`server/download.ts`) | Built |
 | assertCareerTool, careerToolState | Service open plus active content entitlement (`server/career-services.ts`) | Built |
-| extractCvText | PDF or .docx text, type checked by file bytes (`server/cv-text.ts`) | Built |
+| extractCvText | PDF or .docx text, page count and type, the type checked by file bytes (`server/cv-text.ts`) | Built |
 | renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
 | assertEntitled, isEntitled | The one entitlement check used by every route; the same as a yes or no for what a page may offer | Built |
 | errorMessage, sendToApi | Message from an API error body, for client hooks; a form's call to our API as its result (`lib/api-error.ts`) | Built |
@@ -169,7 +174,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | countOf | A number with its noun, plural unless one: "1 day", "3 Drills" (`lib/count-of.ts`) | Built |
 | MEMBER_PAGES | The learner's own pages in order, for the avatar menu and the sidebar (`lib/member-pages.ts`) | Built |
 | visibleMark | Builds the visible watermark text per user (`server/watermark.ts`) | Built |
-| redisRateLimiter, RATE_LIMITS | Fixed-window limiter (one Redis command a request) and per-route budgets | Built |
+| redisRateLimiter, RATE_LIMITS, releaseRateLimit | Fixed-window limiter (one Redis command a request), per-route budgets, and giving one use back | Built |
 | AppError, toResponse | Typed errors and the single error-to-response mapper | Built |
 | getConfig | Validated environment configuration | Built |
 | log | The one structured logger | Built |
@@ -227,3 +232,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | matchJobDescription, JobMatchSchema, HARDWARE_KEYWORDS | A CV against a pasted job description on known terms, requirements weighted, offer part skipped (`cv-screening/job-match.ts`) | Built |
 | ScreeningOptionsSchema, screeningOptions, NewScreeningSchema, ResumeCheckSchema | The optional job description (blank box: none); the answers of a new screening and of the resume check (`cv-screening/report.ts`) | Built |
 | BULLET, nonEmptyLines | Reading CV and job description text line by line (`cv-screening/lines.ts`) | Built |
+| EMAIL, WEB_LINK, PERSONAL_DETAILS, phoneNumbers | Contact and personal details in a CV: checked by the screener, removed before AI (`cv-screening/personal-data.ts`) | Built |
+| redactCv, cvPassages, REDACTED | A CV's text without the learner's name, contact details, links and personal details; its lines worth rewriting, numbered (`cv-screening/redact.ts`) | Built |
+| CvFeedbackAnswerSchema, CvFeedbackSchema, StoredCvFeedbackSchema, fitCvFeedback, CV_FEEDBACK_LIMITS | The model's answer, the checks it must pass and the feedback kept (`cv-screening/feedback.ts`, ADR 0030) | Built |
+| CV_FILES_KEPT, CvFileInfoSchema, CvFeedbackRequestSchema | Files kept per learner; a kept file's type and size; asking for AI feedback with the agreed notice (`cv-screening/report.ts`) | Built |
+| AI_NOTICE, AI_NOTICE_VERSION, AI_FEEDBACK_LIMITS | What a learner agrees to before AI, its version, and the allowance (5 a day, 30 a month) (`ai/notice.ts`) | Built |
+| IdParamsSchema, DAY_MS | The `:id` of an API path (a UUID); a day in milliseconds | Built |

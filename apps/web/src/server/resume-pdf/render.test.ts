@@ -39,7 +39,9 @@ describe('resume PDF', () => {
     const pdf = await renderResumePdf(resume);
     expect(pdf.subarray(0, 5).toString()).toBe('%PDF-');
 
-    const { text, pages } = await extractCvText('resume.pdf', new Uint8Array(pdf));
+    const bytes = new Uint8Array(pdf);
+    const { text, pages } = await extractCvText('resume.pdf', bytes);
+    expect(bytes.byteLength).toBe(pdf.byteLength); // still readable, to be stored after reading
     expect(pages).toBe(1);
     expect(text).toContain('Invented Learner');
     expect(text).toMatch(/^EXPERIENCE$/m);

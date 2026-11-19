@@ -41,6 +41,8 @@ export const API_ROUTES = {
   resumePdf: '/api/v1/resume/pdf',
   resumeCheck: '/api/v1/resume/check',
   cvScreenings: '/api/v1/cv-screenings',
+  cvScreeningFile: (screeningId: string) => `/api/v1/cv-screenings/${screeningId}/file`,
+  cvScreeningFeedback: (screeningId: string) => `/api/v1/cv-screenings/${screeningId}/feedback`,
   drillRuns: (drillId: string) => `/api/v1/drills/${drillId}/runs`,
   run: (runId: string) => `/api/v1/runs/${runId}`,
 } as const;

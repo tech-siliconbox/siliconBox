@@ -37,7 +37,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `assessment_attempts` | One per learner and assessment: every attempt (answers, score, when), at most 3 | Owner |
 | `capstone_submissions` | Uploads: file name and size, when, status (`submitted`, `graded`), the expert's scores, feedback and who graded; one waiting per learner and capstone | Owner; experts grade |
 | `capstone_files` | Each submission's .zip, apart from the list, until object storage exists | Owner; experts download |
-| `cv_screenings` | CV screening reports only (score, checks, keywords, file name, and the job match's score and terms when a job description was pasted); uploaded files and job descriptions are never stored | Owner, with delete |
+| `cv_screenings` | CV screening reports (score, checks, keywords, file name, the job match's score and terms when a job description was pasted), the uploaded CV file for the learner's newest 5 (then unset; the report stays), and AI feedback once asked for (ADR 0030). Job descriptions are never stored. Lists never read the file's bytes | Owner, with delete and download |
 | `audit_log` | Append-only: sign-ins, purchases, admin edits, entitlement changes | Owner role |
 | `watermark_codes` | Invisible watermark code to learner, for tracing leaks; `{ code, userId }` unique | Server |
 

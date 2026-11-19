@@ -30,3 +30,11 @@ Phase A of the upgrade planned with ADR 0030 (rule-based, no AI, no new vendor):
 - **Job match:** CV screening takes an optional pasted job description and shows how much of what it asks for the CV shows, as a separate percentage beside the unchanged score. It matches on a fixed list of formal verification and hardware terms, counts terms under the posting's requirements for more, skips its offer part (pay, perks), and lists the missing terms most-wanted first. The job description is not stored; the match result is, with the report.
 - **What an ATS reads:** after a screening, the text read from the file is shown once (not stored), so the learner can see missing or out-of-order words.
 - **Check this resume:** the Resume Builder's "Check resume" screens the saved resume's own PDF the same way, with the same optional job match. Nothing is stored.
+
+## CVs kept, and AI feedback (2026-11-19)
+
+Phase B (ADR 0030):
+
+- **CVs stored per user** (founder, 2026-11-19): each uploaded CV is kept with its report for the learner's newest 5 CVs, downloadable from the report list, and deleted with its report or the account.
+- **AI feedback:** on a saved report, the learner reads a notice (what is sent, to whom, where, for how long, not used for training), ticks their agreement and asks. Claude returns a summary, rewrites of specific lines, strengths and, with a job description, fit and gaps. It never scores. The answer is checked on the server before it is kept with the report. Each learner may ask 5 times a day and 30 a month; failures do not count.
+- **Off until switched on:** without `ANTHROPIC_API_KEY` the AI option is hidden. It is set only after the privacy notice names Anthropic.

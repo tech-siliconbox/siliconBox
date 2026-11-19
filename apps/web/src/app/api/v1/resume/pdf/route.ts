@@ -1,6 +1,7 @@
 import { findResumeOrBlank } from '@/db/resumes';
 import { withApiGate } from '@/server/api/with-api-gate';
 import { CAREER_SERVICES, assertCareerTool } from '@/server/career-services';
+import { fileDownload } from '@/server/download';
 import { RATE_LIMITS } from '@/server/rate-limit';
 import { renderResumePdf } from '@/server/resume-pdf/render';
 
@@ -11,12 +12,6 @@ export const GET = withApiGate(
     await assertCareerTool(identity, CAREER_SERVICES.resumeBuilder);
     const resume = await findResumeOrBlank(identity);
     const pdf = await renderResumePdf(resume);
-    const fileName = `${resume.basics.fullName.replace(/[^A-Za-z0-9]+/g, '-')}-resume.pdf`;
-    return new Response(new Uint8Array(pdf), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-      },
-    });
+    return fileDownload(pdf, `${resume.basics.fullName}-resume`, 'pdf');
   },
 );

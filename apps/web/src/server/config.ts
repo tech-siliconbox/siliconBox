@@ -34,6 +34,8 @@ export const ConfigSchema = z
     EMAIL_FROM: optional,
     // Where learners' replies go (the sender must be on a verified domain; this need not be).
     EMAIL_REPLY_TO: optional,
+    // AI feedback through Claude (ADR 0030). Without it the AI options are hidden.
+    ANTHROPIC_API_KEY: optional,
   })
   .superRefine((env, context) => {
     for (const [first, second] of PAIRED) {

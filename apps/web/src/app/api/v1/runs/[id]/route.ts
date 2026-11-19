@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { IdParamsSchema } from '@siliconbox/shared';
 import { withApiGate } from '@/server/api/with-api-gate';
 import { RATE_LIMITS } from '@/server/rate-limit';
 import { readRun } from '@/server/runs';
@@ -8,7 +8,7 @@ export const GET = withApiGate(
   {
     access: { kind: 'signedIn' },
     rateLimit: RATE_LIMITS.read,
-    schemas: { params: z.strictObject({ id: z.uuid() }) },
+    schemas: { params: IdParamsSchema },
   },
   async ({ identity, input }) => Response.json(await readRun(identity, input.params.id)),
 );

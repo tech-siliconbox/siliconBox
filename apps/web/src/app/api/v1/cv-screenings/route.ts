@@ -11,9 +11,9 @@ const SCREENING = CAREER_SERVICES.cvScreening;
 
 /**
  * Screens an uploaded CV (PDF or .docx), against a pasted job description when one is sent.
- * The file is read in memory and discarded, and the job description is not kept; only the
- * report is, under the learner's account, until they delete it. The text read from the file
- * comes back once so the learner can see what an ATS reads.
+ * The report and the file are kept under the learner's account (the newest files only) until
+ * they delete them; the job description is not kept. The text read from the file comes back
+ * once so the learner can see what an ATS reads.
  */
 export const POST = withApiGate(
   { access: { kind: 'signedIn' }, rateLimit: RATE_LIMITS.cvScreen, schemas: {} },
@@ -21,13 +21,11 @@ export const POST = withApiGate(
     await assertCareerTool(identity, SCREENING);
     const { file, fields } = await readUpload(request, MAX_CV_BYTES, 'FILE_NOT_SUPPORTED');
     const { jobDescription } = parseWith(ScreeningOptionsSchema, fields);
-    const { text, pages } = await extractCvText(
-      file.name,
-      new Uint8Array(await file.arrayBuffer()),
-    );
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const { text, pages, kind } = await extractCvText(file.name, bytes);
     const screening = await saveScreening(
       identity.userId,
-      file.name.slice(0, 120),
+      { fileName: file.name.slice(0, 120), kind, bytes },
       screenCv(text, pages, jobDescription),
     );
     return Response.json({ screening, atsText: text }, { status: 201 });
@@ -42,7 +40,7 @@ export const GET = withApiGate(
   },
 );
 
-/** Deletes every saved screening report (personal data, DPDP). */
+/** Deletes every saved screening with its file (personal data, DPDP). */
 export const DELETE = withApiGate(
   { access: { kind: 'signedIn' }, rateLimit: RATE_LIMITS.write, schemas: {} },
   async ({ identity }) => Response.json({ deleted: await deleteScreenings(identity.userId) }),

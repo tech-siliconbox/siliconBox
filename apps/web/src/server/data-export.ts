@@ -22,7 +22,7 @@ const SIGN_IN_METHODS: Readonly<Record<string, string>> = {
 const NOT_INCLUDED =
   'Not included: your Drill code, which starts from our copyrighted starter files; watermark ' +
   'codes and security alerts, which protect your account and our content; your capstone files, ' +
-  'which you uploaded and keep.';
+  'which you uploaded and keep; your CV files, which you can download from CV screening.';
 
 /** Who the learner is, how they sign in, the device signed in now, and past sign-ins. */
 async function accountPart(identity: Identity, headers: Headers) {

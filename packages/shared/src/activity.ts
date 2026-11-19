@@ -1,9 +1,10 @@
 // A learner's activity by day: streaks and the year graph. Days are counted on India time, where
 // the learners are, so a late-evening session counts for that evening, not the next UTC day.
 
+import { DAY_MS } from './constants';
+
 /** Dates and days on the site are India time (ICU's canonical name for the zone). */
 export const SITE_TIME_ZONE = 'Asia/Calcutta';
-const DAY_MS = 24 * 60 * 60 * 1000;
 const dayFormat = new Intl.DateTimeFormat('en-CA', {
   timeZone: SITE_TIME_ZONE,
   year: 'numeric',

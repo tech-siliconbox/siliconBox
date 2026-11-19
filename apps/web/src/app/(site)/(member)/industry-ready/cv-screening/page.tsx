@@ -3,6 +3,7 @@ import { Eyebrow } from '@/components/ui/eyebrow';
 import { listScreenings } from '@/db/cv-screenings';
 import { CareerToolLocked } from '@/features/industry-ready/components/career-tool-locked';
 import { CvScreener } from '@/features/industry-ready/components/cv/cv-screener';
+import { isAiConfigured } from '@/server/ai/claude';
 import { requirePageIdentity } from '@/server/auth/page-identity';
 import { CAREER_SERVICES, careerToolState } from '@/server/career-services';
 
@@ -23,10 +24,10 @@ export default async function CvScreeningPage() {
         <h1 className="text-4xl font-bold tracking-tighter">CV screening</h1>
         <p className="text-sm text-muted-foreground">
           See your CV the way an applicant tracking system and a formal verification recruiter
-          would. Your file is read once and never stored.
+          would. Your CV is kept under your account, with its report, until you delete it.
         </p>
       </header>
-      <CvScreener initial={screenings} />
+      <CvScreener initial={screenings} aiAvailable={isAiConfigured()} />
     </div>
   );
 }

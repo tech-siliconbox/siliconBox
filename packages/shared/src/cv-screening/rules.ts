@@ -1,6 +1,7 @@
 import { matchJobDescription } from './job-match';
 import { FORMAL_VERIFICATION_KEYWORDS } from './keywords';
 import { BULLET, nonEmptyLines } from './lines';
+import { EMAIL, PERSONAL_DETAILS, phoneNumbers } from './personal-data';
 import type { CvCheck, CvReport } from './report';
 
 // Rule-based screening of a CV's text, the way an applicant tracking system (ATS) and a
@@ -30,8 +31,6 @@ const STATUS_SCORE: Record<Status, number> = { pass: 100, warn: 50, fail: 0 };
 const MIN_READABLE_WORDS = 25;
 const ACTION_VERB =
   /^(designed|developed|verified|implemented|wrote|built|led|reduced|improved|optimi[sz]ed|automated|debugged|created|authored|proved|closed|achieved|delivered|analy[sz]ed|integrated|migrated|mentored|owned|found|identified|increased|decreased|accelerated|architected|validated|tested|modell?ed|specified|drove|managed|ran|set up|introduced)\b/i;
-const PERSONAL_DETAILS =
-  /\b(date of birth|d\.?o\.?b\.?|marital status|religion|caste|father'?s name|mother'?s name|nationality|gender)\b/i;
 
 /** A check builder bound to one report area. */
 function checker(category: string) {
@@ -83,11 +82,11 @@ const RULES: Rule[] = [
           'If this is a scanned image or a design-tool export, an ATS cannot read it either. Export a text-based PDF.',
         ),
   (cv) =>
-    /[\w.+-]+@[\w-]+\.[\w.]+/.test(cv.text)
+    EMAIL.test(cv.text)
       ? contact('email', 'pass', 'Email address found', 'Use a professional address.')
       : contact('email', 'fail', 'No email address', 'Put your email at the top.'),
   (cv) =>
-    hasPhoneNumber(cv.text)
+    phoneNumbers(cv.text).length > 0
       ? contact('phone', 'pass', 'Phone number found', 'Include the country code, for example +91.')
       : contact(
           'phone',
@@ -206,13 +205,6 @@ function wordCountRule(cv: ParsedCv): CvCheck {
 }
 
 type RatioRule = { id: string; pattern: RegExp; wanted: number; titles: [string, string] };
-
-/** A run of digits, spaces and dashes holding at least 10 digits, so dates do not count. */
-function hasPhoneNumber(text: string): boolean {
-  return (text.match(/\+?\d[\d\s-]{8,}\d/g) ?? []).some(
-    (run) => run.replace(/\D/g, '').length >= 10,
-  );
-}
 
 /** Passes when at least `wanted` of the bullets match `pattern`. */
 function ratioRule(cv: ParsedCv, { id, pattern, wanted, titles }: RatioRule): CvCheck {

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { API_ROUTES, ROUTES } from '@siliconbox/shared';
+import { BASE_URL } from './base-url';
 import { grantAccess, signInAsAdmin } from './cms/publish';
 import { withAdminDb } from './db';
 import type { Page } from '@playwright/test';
@@ -76,7 +77,7 @@ test('Resume Builder checks its own PDF against a job description', async ({ pag
   await expect(panel.locator('pre')).toContainText('Invented Chips');
 });
 
-test('CV screening reads the resume PDF, matches a job, refuses other files, deletes reports', async ({
+test('CV screening reads the resume PDF, matches a job, keeps the file, deletes both', async ({
   page,
 }) => {
   failOnCspViolation(page);
@@ -101,8 +102,28 @@ test('CV screening reads the resume PDF, matches a job, refuses other files, del
   await page.getByText('What an ATS reads').click();
   await expect(page.locator('pre')).toContainText('Invented Chips');
 
+  // The CV is kept with its report and comes back as a download.
+  const fileLink = page.getByRole('link', { name: /^Download / });
+  const fileUrl = (await fileLink.getAttribute('href')) ?? '';
+  const download = page.waitForEvent('download');
+  await fileLink.click();
+  expect(
+    readFileSync(await (await download).path())
+      .subarray(0, 5)
+      .toString(),
+  ).toBe('%PDF-');
+
+  // AI feedback is refused without the learner's agreement to the current notice.
+  const feedbackUrl = fileUrl.replace(/\/file$/, '/feedback');
+  const unagreed = await page.request.post(feedbackUrl, {
+    data: {},
+    headers: { origin: BASE_URL },
+  });
+  expect(unagreed.status()).toBe(400);
+
   await page.getByRole('button', { name: /Delete report for/ }).click();
   await expect(report).toHaveCount(0);
+  expect((await page.request.get(fileUrl)).status()).toBe(404);
 });
 
 test('a service locked in the admin refuses every call', async ({ page }) => {

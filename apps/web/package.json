@@ -15,6 +15,7 @@
     "content:convert": "payload run scripts/content-convert.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.10.0",
     "@payloadcms/db-mongodb": "3.94.0",
     "@payloadcms/next": "3.94.0",
     "@payloadcms/ui": "3.94.0",

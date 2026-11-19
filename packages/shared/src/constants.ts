@@ -33,3 +33,5 @@ export const MIN_PASSWORD_LENGTH = 10;
 
 /** The longest name an account may have (sign-up, Settings, Google). */
 export const MAX_NAME_LENGTH = 100;
+
+export const DAY_MS = 24 * 60 * 60 * 1000;

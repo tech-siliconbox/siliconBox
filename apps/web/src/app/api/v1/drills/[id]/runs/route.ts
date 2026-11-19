@@ -1,5 +1,4 @@
-import { RunInputSchema } from '@siliconbox/shared';
-import { z } from 'zod';
+import { IdParamsSchema, RunInputSchema } from '@siliconbox/shared';
 import { withApiGate } from '@/server/api/with-api-gate';
 import { RATE_LIMITS } from '@/server/rate-limit';
 import { startRun } from '@/server/runs';
@@ -13,7 +12,7 @@ export const POST = withApiGate(
   {
     access: { kind: 'signedIn' },
     rateLimit: RATE_LIMITS.runStart,
-    schemas: { params: z.strictObject({ id: z.uuid() }), body: RunInputSchema },
+    schemas: { params: IdParamsSchema, body: RunInputSchema },
   },
   async ({ identity, input }) => {
     const run = await startRun(identity, input.params.id, input.body);

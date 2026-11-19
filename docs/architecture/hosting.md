@@ -30,7 +30,8 @@ of the cap, move to pay-as-you-go (a few dollars at this size).
 
 ### Atlas M0 watch list
 
-- Storage above 400 MB, or operations above 70 a second: move to M10.
+- Storage above 400 MB, or operations above 70 a second: move to M10. CV files count here: up to
+  5 per learner, each at most 5 MB (most are under 300 KB).
 - A cluster paused for inactivity shows as `querySrv ENOTFOUND`: resume it in Atlas.
 
 ## Stage 1: launch (first paying learner)

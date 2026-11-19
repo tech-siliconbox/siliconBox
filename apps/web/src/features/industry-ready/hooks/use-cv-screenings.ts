@@ -4,6 +4,7 @@ import {
   API_ROUTES,
   type CvScreening,
   NewScreeningSchema,
+  type StoredCvFeedback,
   screeningOptions,
 } from '@siliconbox/shared';
 import { useState } from 'react';
@@ -39,10 +40,19 @@ export function useCvScreenings(initial: CvScreening[]) {
     if ((await request(url, { method: 'DELETE' })) === null) return;
     const left = publicId === undefined ? [] : history.filter((s) => s.publicId !== publicId);
     setHistory(left);
-    if (shown !== null && !left.includes(shown.screening)) setShown(null);
+    if (shown !== null && !left.some((s) => s.publicId === shown.screening.publicId)) {
+      setShown(null);
+    }
+  }
+
+  /** Shows AI feedback on its screening, in the list and in the report on show. */
+  function attachFeedback(publicId: string, feedback: StoredCvFeedback): void {
+    const withFeedback = (s: CvScreening) => (s.publicId === publicId ? { ...s, feedback } : s);
+    setHistory(history.map(withFeedback));
+    if (shown !== null) setShown({ ...shown, screening: withFeedback(shown.screening) });
   }
 
   const view = (screening: CvScreening) => setShown(fromHistory(screening));
 
-  return { pending, error, history, shown, view, screen, remove };
+  return { pending, error, history, shown, view, screen, remove, attachFeedback };
 }
