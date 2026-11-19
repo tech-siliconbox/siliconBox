@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { BrandMark } from '@/components/shared/brand-mark';
 import { Card } from '@/components/ui/card';
 import { PAGE_SPACING } from '@/components/shared/page-shell';
 
@@ -13,7 +12,11 @@ type AuthPanelProps = {
   children: ReactNode;
 };
 
-/** The centred card for signing in, signing up and resetting a password. */
+/**
+ * The centred card for signing in, signing up and resetting a password. The site header above
+ * already shows the logo, so the card starts at its heading and the sign-up form fits a
+ * 1280x720 window.
+ */
 export function AuthPanel({
   title,
   subtitle,
@@ -24,9 +27,8 @@ export function AuthPanel({
 }: AuthPanelProps) {
   return (
     <div className={`mx-auto w-full max-w-md px-4 sm:px-0 ${PAGE_SPACING}`}>
-      <Card className="flex flex-col gap-4 sm:px-8 sm:py-7">
-        <header className="flex flex-col items-center gap-3 text-center">
-          <BrandMark />
+      <Card className="flex flex-col gap-4 sm:px-8 sm:py-6">
+        <header className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </header>

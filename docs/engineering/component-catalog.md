@@ -59,7 +59,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | --- | --- | --- |
 | ActionForm, useFormAction, FormError | A form whose submit calls an action (auth or our API): pending state, its error, then where to go; used by account, assessment and capstone forms (`components/shared/action-form.tsx`, `hooks/use-form-action.ts`, `components/ui/form-error.tsx`) | Built |
 | FileInput | A file picker in the site's button style (photo, capstone upload) (`components/ui/file-input.tsx`) | Built |
-| auth: AuthPanel, formValue | The sign-in and sign-up frame; a form field's text | Built |
+| auth: AuthPanel, formValue | The sign-in and sign-up frame (no logo of its own: the site header shows it, so sign-up fits a 1280x720 window); a form field's text | Built |
 | auth: SignInForm, SignUpForm, GoogleButton | The auth actions (email and password, Google; ADR 0025) | Built |
 | auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset, Settings); a new password carries the length rule | Built |
 | auth: NameField, NameForm, ChangePasswordForm | The name input (sign-up, Settings); change the name; change the password, signing other devices out | Built |

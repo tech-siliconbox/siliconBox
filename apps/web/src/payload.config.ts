@@ -34,7 +34,11 @@ export default buildConfig({
   admin: {
     user: 'admins',
     theme: 'light',
-    meta: { titleSuffix: ' · SiliconBox admin' },
+    meta: {
+      titleSuffix: ' · SiliconBox admin',
+      // None of Payload's own icons: Next adds the site's src/app/favicon.ico to every page.
+      icons: [],
+    },
     importMap: { baseDir: dirname },
   },
   // Payload's REST API lives apart from the gated /api/v1 and /api/auth routes.
