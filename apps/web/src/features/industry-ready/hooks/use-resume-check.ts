@@ -9,13 +9,13 @@ import {
 import { useState } from 'react';
 import { useApiRequest } from './use-api-request';
 
-/** Screens the saved resume's PDF on the server, against a job description when one is given. */
+/** Screens a saved resume's PDF on the server, against a job description when one is given. */
 export function useResumeCheck() {
   const { pending, error, request } = useApiRequest();
   const [result, setResult] = useState<ResumeCheck | null>(null);
 
-  async function check(jobDescription: string): Promise<void> {
-    const response = await request(API_ROUTES.resumeCheck, {
+  async function check(publicId: string, jobDescription: string): Promise<void> {
+    const response = await request(API_ROUTES.resumeCheck(publicId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(screeningOptions(jobDescription)),

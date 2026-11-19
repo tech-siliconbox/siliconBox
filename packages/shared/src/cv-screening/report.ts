@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AI_NOTICE_VERSION } from '../ai/notice';
+import { AiConsentSchema } from '../ai/notice';
 import { StoredCvFeedbackSchema } from './feedback';
 
 export const CheckStatusSchema = z.enum(['pass', 'warn', 'fail']);
@@ -57,16 +57,17 @@ export type CvScreening = z.infer<typeof CvScreeningSchema>;
 /** Longest job description we match against; real postings are well under this. */
 export const JOB_DESCRIPTION_MAX_CHARS = 8000;
 
+/** A pasted job posting. */
+export const JobDescriptionSchema = z.string().trim().min(1).max(JOB_DESCRIPTION_MAX_CHARS);
+
 /** What a learner may add to a screening: a job description to match the CV against. */
 export const ScreeningOptionsSchema = z.strictObject({
-  jobDescription: z.string().trim().min(1).max(JOB_DESCRIPTION_MAX_CHARS).optional(),
+  jobDescription: JobDescriptionSchema.optional(),
 });
 export type ScreeningOptions = z.infer<typeof ScreeningOptionsSchema>;
 
 /** Asking for AI feedback on a saved screening: the notice version the learner agreed to. */
-export const CvFeedbackRequestSchema = ScreeningOptionsSchema.extend({
-  consentedNotice: z.literal(AI_NOTICE_VERSION),
-});
+export const CvFeedbackRequestSchema = ScreeningOptionsSchema.extend(AiConsentSchema.shape);
 
 /** The options from the job description box: none when it is blank. */
 export function screeningOptions(jobDescription: string): ScreeningOptions {

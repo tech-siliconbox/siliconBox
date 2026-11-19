@@ -16,8 +16,10 @@ export const RATE_LIMITS = {
   cvScreen: { name: 'cv-screen', limit: 10, windowMs: 60 * 60 * 1000 },
   // Checking a resume builds its PDF and reads it back; learners re-check while they edit.
   resumeCheck: { name: 'resume-check', limit: 20, windowMs: 60 * 60 * 1000 },
-  // Asking for AI feedback: a burst limit; the learner's daily and monthly allowance sits on top.
-  aiFeedback: { name: 'ai-feedback', limit: 10, windowMs: 60 * 60 * 1000 },
+  // Asking for AI help: a burst limit; the learner's daily and monthly allowance sits on top.
+  aiRequest: { name: 'ai-request', limit: 10, windowMs: 60 * 60 * 1000 },
+  // Importing a resume reads a file (a LinkedIn export is a zip); a few an hour is plenty.
+  resumeImport: { name: 'resume-import', limit: 10, windowMs: 60 * 60 * 1000 },
   // Starting a Drill run queues solver work; the daily quota per level sits on top of this.
   runStart: { name: 'run-start', limit: 6, windowMs: 60_000 },
   // docs/architecture/content-delivery.md: about a dozen lesson reads a minute per account.

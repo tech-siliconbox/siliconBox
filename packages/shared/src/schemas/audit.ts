@@ -15,8 +15,9 @@ export const AuditActionSchema = z.enum([
   'account_deleted',
   // An expert graded a learner's capstone project (ADR 0029).
   'capstone_graded',
-  // A learner sent a CV for AI feedback, having agreed to the notice (ADR 0030).
-  'ai_feedback',
+  // A learner sent their text for AI help (CV feedback, tailoring, import), having agreed to the
+  // notice (ADR 0030); the metadata names the feature and the outcome, never the text.
+  'ai_request',
 ]);
 export type AuditAction = z.infer<typeof AuditActionSchema>;
 

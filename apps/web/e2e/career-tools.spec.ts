@@ -24,12 +24,12 @@ test('a learner without active access is shown the way forward, and the API refu
   await signUp(page, learner);
   await page.goto(ROUTES.resumeBuilder);
   await expect(page.getByText('Free for learners with an active course')).toBeVisible();
-  const refused = await page.request.get(API_ROUTES.resume);
+  const refused = await page.request.get(API_ROUTES.resumes);
   expect(refused.status()).toBe(403);
   expect(await refused.json()).toMatchObject({ error: { code: 'NOT_ENTITLED' } });
 });
 
-test('an entitled learner builds, saves and downloads an ATS-friendly resume', async ({
+test('an entitled learner builds a resume that saves itself and downloads as PDF and Word', async ({
   page,
 }, info) => {
   failOnCspViolation(page);
@@ -45,8 +45,9 @@ test('an entitled learner builds, saves and downloads an ATS-friendly resume', a
   await page
     .getByLabel(/^Achievements/)
     .fill('Wrote 42 SVA properties for an AXI4 bridge with JasperGold.');
-  await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'All changes saved' })).toBeVisible();
+  const status = page.getByRole('status');
+  await expect(status).toHaveText('Unsaved changes');
+  await expect(status).toHaveText('All changes saved', { timeout: 10_000 });
 
   await page.reload();
   await expect(page.getByLabel('Company')).toHaveValue('Invented Chips');
@@ -54,11 +55,59 @@ test('an entitled learner builds, saves and downloads an ATS-friendly resume', a
     'Verification Intern, Invented Chips',
   );
 
-  const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Download PDF' }).click();
+  const downloadAs = async (label: string, name: string) => {
+    await page.getByText('Download', { exact: true }).click();
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: label }).click();
+    const path = info.outputPath(name);
+    await (await download).saveAs(path);
+    return readFileSync(path);
+  };
   pdfPath = info.outputPath('resume.pdf');
-  await (await download).saveAs(pdfPath);
-  expect(readFileSync(pdfPath).subarray(0, 5).toString()).toBe('%PDF-');
+  expect((await downloadAs('PDF (send this)', 'resume.pdf')).subarray(0, 5).toString()).toBe(
+    '%PDF-',
+  );
+  expect((await downloadAs('Word (.docx)', 'resume.docx')).subarray(0, 2).toString()).toBe('PK');
+});
+
+test('Resume Builder keeps several resumes, with sections, design, undo and imports', async ({
+  page,
+}) => {
+  failOnCspViolation(page);
+  await signIn(page);
+  await page.goto(ROUTES.resumeBuilder);
+  const preview = page.getByLabel('Resume preview');
+  const status = page.getByRole('status');
+
+  await page.getByRole('button', { name: 'Sections', exact: true }).click();
+  await page.getByLabel('Heading (Skills)').fill('Technical skills');
+  await page.getByRole('button', { name: '+ Add your own section' }).click();
+  await page.getByRole('button', { name: 'Design', exact: true }).click();
+  await page.getByText('Modern', { exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Modern' })).toBeChecked();
+  await expect(status).toHaveText('All changes saved', { timeout: 10_000 });
+
+  await page.getByLabel(/^Two or three lines/).fill('Proves **AXI** bridges.');
+  await expect(preview).toContainText('Proves AXI bridges.');
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(preview).not.toContainText('Proves AXI bridges.');
+
+  await page.getByRole('button', { name: 'Duplicate', exact: true }).click();
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue(/\(copy\)$/);
+  await expect(page.getByLabel('Resume', { exact: true }).locator('option')).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Tailor with AI' }).click();
+  await expect(page.getByText('Coming soon')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Import', exact: true }).click();
+  await page.getByLabel('JSON Resume file').setInputFiles({
+    name: 'resume.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ basics: { name: 'Imported Person' }, work: [] })),
+  });
+  await expect(page.getByText('Imported as a new resume')).toBeVisible();
+  await expect(preview).toContainText('Imported Person');
+  await expect(page.getByLabel('Resume', { exact: true }).locator('option')).toHaveCount(3);
 });
 
 test('Resume Builder checks its own PDF against a job description', async ({ page }) => {
@@ -66,7 +115,8 @@ test('Resume Builder checks its own PDF against a job description', async ({ pag
   await signIn(page);
   await page.goto(ROUTES.resumeBuilder);
 
-  await page.getByRole('button', { name: 'Check resume' }).click();
+  await page.getByLabel('Resume', { exact: true }).selectOption({ label: 'My resume' });
+  await page.getByRole('button', { name: 'Check', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Check this resume' });
   await panel.getByLabel('Job description (optional)').fill(POSTING);
   await panel.getByRole('button', { name: 'Run the check' }).click();

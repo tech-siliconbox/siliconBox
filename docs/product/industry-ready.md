@@ -19,7 +19,7 @@ A separate tab listing career services as cards. Each service is a document with
 
 ## Built (2026-10-02)
 
-- **Resume Builder:** structured editor with live preview; Classic and Compact single-column templates; text PDF generated on the server so applicant tracking systems can read it; save and delete.
+- **Resume Builder:** structured editor with live preview; Classic and Compact single-column templates; text PDF generated on the server so applicant tracking systems can read it; save and delete. (Extended in Phase C, below.)
 - **CV screening:** upload a PDF or Word file; the text is read in memory and the file discarded; a rule-based report scores ATS readability, contact details, sections, length, impact and formal verification keywords, with specific fixes; reports are kept until the learner deletes them.
 - Both are open in the admin's Services list; switching one to locked refuses every call at once.
 
@@ -37,4 +37,16 @@ Phase B (ADR 0030):
 
 - **CVs stored per user** (founder, 2026-11-19): each uploaded CV is kept with its report for the learner's newest 5 CVs, downloadable from the report list, and deleted with its report or the account.
 - **AI feedback:** on a saved report, the learner reads a notice (what is sent, to whom, where, for how long, not used for training), ticks their agreement and asks. Claude returns a summary, rewrites of specific lines, strengths and, with a job description, fit and gaps. It never scores. The answer is checked on the server before it is kept with the report. Each learner may ask 5 times a day and 30 a month; failures do not count.
-- **Off until switched on:** without `ANTHROPIC_API_KEY` the AI option is hidden. It is set only after the privacy notice names Anthropic.
+- **Off until switched on:** without `ANTHROPIC_API_KEY` the AI option shows as "Coming soon". The key is set only after the privacy notice names Anthropic.
+
+## Resume Builder, industry feature set (2026-11-19)
+
+Phase C, modelled on the feature set of Reactive Resume (MIT), the most-used open-source builder; no code was copied. Everything works without AI:
+
+- **Several resumes** per learner (up to 5), for different kinds of role: switch, rename, new, duplicate, delete. Saves itself a moment after typing stops and on Ctrl/Cmd+S, with undo and redo and a warning before leaving unsaved edits.
+- **Sections:** summary, skills, experience, projects, education, certifications, awards and achievements, publications, languages, and up to 3 of the learner's own (such as positions of responsibility). Each can be renamed, hidden and reordered. Bullets and the summary take **bold** and *italic*.
+- **Design:** four single-column, ATS-safe templates (Classic, Compact, Modern, Minimal), sans or serif, 9 to 12 pt, spacing, margins, six dark accent colours, A4 or US Letter. Preview, PDF and Word follow the same settings.
+- **Download:** PDF (text, for applying), Word (.docx, for recruiters who ask), JSON Resume (backup, and portable to other tools) and Markdown.
+- **Import:** a JSON Resume file, or a LinkedIn data export (.zip); each becomes a new resume.
+- **Check:** the resume's own PDF screened like an uploaded CV, with the job match.
+- **AI (built, shown as "Coming soon" until the key is set):** tailor a resume to a job (proposals the learner accepts one by one; skills only if the resume already shows them; gaps from the posting), and read a PDF or Word CV into the builder.

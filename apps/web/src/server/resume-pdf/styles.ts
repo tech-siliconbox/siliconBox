@@ -1,50 +1,76 @@
 import 'server-only';
-import type { Resume } from '@siliconbox/shared';
+import {
+  RESUME_ACCENTS,
+  RESUME_MARGIN_POINTS,
+  RESUME_SPACING_SCALE,
+  RESUME_TEMPLATE_STYLES,
+  type Resume,
+} from '@siliconbox/shared';
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Built-in Helvetica: every ATS extracts it cleanly. Single column, no tables or images.
-const SIZES = {
-  classic: { name: 20, body: 10, heading: 10.5, gap: 10 },
-  compact: { name: 16, body: 9, heading: 9.5, gap: 7 },
+// The PDF's built-in fonts: every ATS extracts them cleanly and nothing has to be embedded.
+const PDF_FONTS = {
+  sans: {
+    regular: 'Helvetica',
+    bold: 'Helvetica-Bold',
+    italic: 'Helvetica-Oblique',
+    boldItalic: 'Helvetica-BoldOblique',
+  },
+  serif: {
+    regular: 'Times-Roman',
+    bold: 'Times-Bold',
+    italic: 'Times-Italic',
+    boldItalic: 'Times-BoldItalic',
+  },
 } as const;
 
-export function resumeStyles(template: Resume['template']) {
-  const size = SIZES[template];
+const INK = '#121212';
+const MUTED = '#3f3f46';
+
+/** The styles for a resume's template and design settings. */
+export function resumeStyles({ template, design }: Pick<Resume, 'template' | 'design'>) {
+  const look = RESUME_TEMPLATE_STYLES[template];
+  const fonts = PDF_FONTS[design.font];
+  const accent = RESUME_ACCENTS[design.accent];
+  const gap = RESUME_SPACING_SCALE[design.spacing];
+  const [marginY, marginX] = RESUME_MARGIN_POINTS[design.margins];
+  const body = design.fontSize;
   return StyleSheet.create({
     page: {
-      paddingVertical: 36,
-      paddingHorizontal: 42,
-      fontFamily: 'Helvetica',
-      fontSize: size.body,
+      paddingVertical: marginY,
+      paddingHorizontal: marginX,
+      fontFamily: fonts.regular,
+      fontSize: body,
       lineHeight: 1.35,
-      color: '#121212',
+      color: INK,
     },
     name: {
-      fontFamily: 'Helvetica-Bold',
-      fontSize: size.name,
-      textAlign: template === 'classic' ? 'center' : 'left',
+      fontFamily: fonts.bold,
+      fontSize: body * look.nameScale,
+      textAlign: look.align,
+      color: look.accentName ? accent : INK,
     },
-    headline: { marginTop: 2, textAlign: template === 'classic' ? 'center' : 'left' },
-    contact: {
-      marginTop: 4,
-      color: '#3f3f46',
-      textAlign: template === 'classic' ? 'center' : 'left',
-    },
-    section: { marginTop: size.gap },
+    headline: { marginTop: 2, textAlign: look.align },
+    contact: { marginTop: 4, color: MUTED, textAlign: look.align },
+    section: { marginTop: 10 * gap },
     heading: {
-      fontFamily: 'Helvetica-Bold',
-      fontSize: size.heading,
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      borderBottomWidth: 0.75,
-      borderBottomColor: '#121212',
-      paddingBottom: 2,
-      marginBottom: 4,
+      fontFamily: fonts.bold,
+      fontSize: body + 0.5,
+      color: accent,
+      textTransform: look.uppercaseHeadings ? 'uppercase' : 'none',
+      letterSpacing: look.uppercaseHeadings ? 0.8 : 0,
+      ...(look.rule
+        ? { borderBottomWidth: 0.75, borderBottomColor: accent, paddingBottom: 2 }
+        : {}),
+      marginBottom: 4 * gap,
     },
     row: { flexDirection: 'row', justifyContent: 'space-between' },
-    strong: { fontFamily: 'Helvetica-Bold' },
-    muted: { color: '#3f3f46' },
-    entry: { marginBottom: 5 },
+    regular: { fontFamily: fonts.regular },
+    strong: { fontFamily: fonts.bold },
+    italic: { fontFamily: fonts.italic },
+    boldItalic: { fontFamily: fonts.boldItalic },
+    muted: { color: MUTED },
+    entry: { marginBottom: 5 * gap },
     bullet: { flexDirection: 'row', marginLeft: 6 },
     bulletMark: { width: 8 },
     bulletText: { flex: 1 },

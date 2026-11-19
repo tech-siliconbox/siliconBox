@@ -15,7 +15,7 @@ export const maxDuration = 150;
 export const POST = withApiGate(
   {
     access: { kind: 'signedIn' },
-    rateLimit: RATE_LIMITS.aiFeedback,
+    rateLimit: RATE_LIMITS.aiRequest,
     schemas: { params: IdParamsSchema, body: CvFeedbackRequestSchema },
   },
   async ({ identity, input }) => {

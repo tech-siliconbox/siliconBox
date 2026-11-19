@@ -1,14 +1,13 @@
 'use client';
 
-import {
-  AI_FEEDBACK_LIMITS,
-  AI_NOTICE,
-  type CvScreening,
-  type StoredCvFeedback,
-} from '@siliconbox/shared';
-import { useId, useState } from 'react';
+import type { CvScreening, StoredCvFeedback } from '@siliconbox/shared';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { FormError } from '@/components/ui/form-error';
 import { useCvFeedback } from '../../hooks/use-cv-feedback';
+import { AiComingSoon } from '../ai-coming-soon';
+import { AiConsent } from '../ai-consent';
+import { PanelFrame } from '../panel-frame';
 import { AiFeedbackView } from './ai-feedback-view';
 
 type AskProps = {
@@ -19,49 +18,30 @@ type AskProps = {
 
 /** The notice, the learner's agreement (unticked by default) and the request. */
 function AskForFeedback({ screening, jobDescription, onGiven }: AskProps) {
-  const consentId = useId();
   const [agreed, setAgreed] = useState(false);
   const { pending, error, ask } = useCvFeedback(onGiven);
-  const again = screening.feedback !== undefined;
+  const label = screening.feedback === undefined ? 'Get AI feedback' : 'Ask again';
   return (
     <div className="flex flex-col gap-3 border-t border-border pt-4">
-      <ul className="flex list-disc flex-col gap-1 pl-5 text-[13px] text-muted-foreground">
-        {AI_NOTICE.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-        <li>
-          {jobDescription.trim() === ''
+      <AiConsent
+        feature="cvFeedback"
+        agreed={agreed}
+        onAgreed={setAgreed}
+        disabled={pending}
+        note={
+          jobDescription.trim() === ''
             ? 'Paste a job description above to also hear how well you fit that job.'
-            : 'It also judges your fit for the job description above.'}
-        </li>
-      </ul>
-      <label htmlFor={consentId} className="flex items-start gap-2 text-sm">
-        <input
-          id={consentId}
-          type="checkbox"
-          checked={agreed}
-          disabled={pending}
-          onChange={(event) => setAgreed(event.target.checked)}
-          className="mt-1"
-        />
-        I agree to send this CV&apos;s text to Anthropic as described above.
-      </label>
+            : 'It also judges your fit for the job description above.'
+        }
+      />
       <Button
         className="w-fit"
         disabled={!agreed || pending}
         onClick={() => void ask(screening.publicId, jobDescription)}
       >
-        {pending ? 'Writing feedback… up to a minute' : again ? 'Ask again' : 'Get AI feedback'}
+        {pending ? 'Writing feedback… up to a minute' : label}
       </Button>
-      <p className="text-[12px] text-muted-foreground">
-        You can ask {AI_FEEDBACK_LIMITS.perDay} times a day and {AI_FEEDBACK_LIMITS.perMonth} a
-        month. A failed attempt does not count.
-      </p>
-      {error !== null && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </div>
   );
 }
@@ -70,24 +50,17 @@ type AiFeedbackPanelProps = AskProps & { available: boolean };
 
 /** Feedback already given on this screening, and the way to ask for it while AI is on. */
 export function AiFeedbackPanel({ available, ...ask }: AiFeedbackPanelProps) {
-  const headingId = useId();
   const { feedback, file } = ask.screening;
-  if (feedback === undefined && !available) return null;
   return (
-    <section
-      aria-labelledby={headingId}
-      className="flex flex-col gap-4 rounded-card border border-border p-6"
-    >
-      <h2 id={headingId} className="text-base font-bold tracking-tight">
-        AI feedback
-      </h2>
+    <PanelFrame title="AI feedback">
       {feedback !== undefined && <AiFeedbackView feedback={feedback} />}
       {available && file !== undefined && <AskForFeedback {...ask} />}
+      {!available && feedback === undefined && <AiComingSoon feature="Feedback on your CV" />}
       {available && file === undefined && (
         <p className="text-sm text-muted-foreground">
           We no longer keep this CV&apos;s file. Upload it again to get AI feedback.
         </p>
       )}
-    </section>
+    </PanelFrame>
   );
 }

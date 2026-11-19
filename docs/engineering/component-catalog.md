@@ -90,7 +90,11 @@ Check here before writing a component, hook or helper. Add a row when you create
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
 | industry-ready: ServiceCard | Open or locked service card; links only to built services | Built |
 | industry-ready: CareerToolLocked | Why a career tool is unavailable, with the next step | Built |
-| industry-ready (resume): ResumeBuilder, ResumeToolbar, ResumePreview, ListEditor, BasicsEditor, LinksEditor, SkillsEditor, ExperienceEditor, ProjectsEditor, EducationEditor, CertificationsEditor, BulletsField, MonthRange, useResumeDraft | Resume Builder editor, preview and save | Built |
+| industry-ready (resume): ResumeBuilder, ResumeLibraryBar, ResumeToolbar, ExportMenu, ResumePreview | The builder: which resume is open (switch, rename, new, duplicate, delete), save state, undo and redo, the panels and downloads (PDF, Word, JSON Resume, Markdown); the preview in the chosen design (`preview-classes.ts`, CSP-safe classes tested against the PDF colours) | Built |
+| industry-ready (resume): ListEditor, EntryControls, BasicsEditor, LinksEditor, SkillsEditor, ExperienceEditor, ProjectsEditor, EducationEditor, CertificationsEditor, AwardsEditor, PublicationsEditor, LanguagesEditor, CustomSectionEditor, BulletsField, MonthRange | Section editors; ListEditor adds, removes and reorders entries with EntryControls (also used by the Sections panel) | Built |
+| industry-ready (resume): SectionsPanel, DesignPanel, ImportPanel, TailorPanel | Section order, visibility and headings, custom sections; template and design settings; imports (JSON Resume, LinkedIn, AI); tailoring to a job with AI | Built |
+| industry-ready: PanelFrame, AiConsent, AiComingSoon | A bordered panel with a heading; an AI feature's notice, unticked agreement and allowance; "Coming soon" while AI is off (CV feedback, tailoring, AI import) | Built |
+| industry-ready: useResumeWorkspace, useResumeDraft, useUndoHistory, useResumeImport, useResumeTailor | The learner's resumes and the open one; autosave, Ctrl/Cmd+S and undo; imports; tailoring proposals | Built |
 | industry-ready (cv): CvScreener, DropZone, CvReportView, ScreeningHistory, useCvScreenings | CV screening upload (with an optional job description), report (with the job match), AI feedback, and history with the kept files to download | Built |
 | industry-ready (cv): AiFeedbackPanel, AiFeedbackView, useCvFeedback | AI feedback on a saved report: the notice, an unticked agreement, the request; the feedback as plain text (ADR 0030) | Built |
 | industry-ready: JobDescriptionField, AtsText | The optional job description box; "What an ATS reads", the text read from a file (both used by CV screening and the resume check) | Built |
@@ -159,7 +163,11 @@ Check here before writing a component, hook or helper. Add a row when you create
 | raiseAlert, recordAlert | Records a security alert for review (`server/alerts.ts`, `db/security-alerts.ts`) | Built |
 | findLastSignInCountry | Country of the learner's previous sign-in (`db/audit-log.ts`) | Built |
 | findServices, isServiceOpen | Industry Ready services and their status (`db/services.ts`) | Built |
-| findResume, findResumeOrBlank, saveResume, deleteResume | Resume storage; the saved resume or a blank one from the account (`db/resumes.ts`) | Built |
+| listResumes, findResume, findLatestResume, findAllResumes, hasRoomForResume, createResume, saveResume, deleteResume | A learner's resumes, up to `RESUMES_MAX` (`db/resumes.ts`) | Built |
+| ownResume, addResume, assertRoomForResume, resumeDownloadRoute | The learner's resume or not found; adding within the limit; the gated PDF and Word download route (`server/resumes.ts`, `server/resume-download.ts`) | Built |
+| renderResumeDocx | The resume as a Word file from the same document model (`server/resume-docx/`) | Built |
+| readLinkedInExport | The known CSV files of a LinkedIn export, declared sizes capped (`server/linkedin-export.ts`) | Built |
+| runAiTask, tailorResume, importCvWithAi, TAILOR_SYSTEM, IMPORT_SYSTEM, dataBlock | One AI task on the allowance with refund and audit; tailoring and AI import; prompts and the one way learner text enters a prompt (`server/ai/task.ts`, `server/resume-ai.ts`, `server/ai/resume-prompts.ts`, `server/ai/prompt-parts.ts`) | Built |
 | saveScreening, listScreenings, deleteScreenings, findScreeningFile, saveFeedback | Screening reports with the learner's newest 5 CV files (lists never read the bytes) and their AI feedback (`db/cv-screenings.ts`) | Built |
 | askClaude, isAiConfigured, assertAiConfigured, AI_MODEL | The one way to Claude: server only, one structured answer, no tools, failures as `AI_UNAVAILABLE`, no text logged (`server/ai/claude.ts`, ADR 0030) | Built |
 | spendAiAllowance, refundAiAllowance | Each learner's AI allowance across tools, taken before a call and given back when it fails (`server/ai/allowance.ts`) | Built |
@@ -167,7 +175,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | fileDownload | A PDF or .docx sent as a download with a safe name (resume PDF, kept CVs) (`server/download.ts`) | Built |
 | assertCareerTool, careerToolState | Service open plus active content entitlement (`server/career-services.ts`) | Built |
 | extractCvText | PDF or .docx text, page count and type, the type checked by file bytes (`server/cv-text.ts`) | Built |
-| renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
+| renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF in the chosen template and design, **bold** and *italic* kept (`server/resume-pdf/`) | Built |
 | assertEntitled, isEntitled | The one entitlement check used by every route; the same as a yes or no for what a page may offer | Built |
 | errorMessage, sendToApi | Message from an API error body, for client hooks; a form's call to our API as its result (`lib/api-error.ts`) | Built |
 | formatDate, formatMonth, formatTimeAgo | "18 Feb 2027", "Feb" and "3 hours ago", in India time (`lib/format-date.ts`) | Built |
@@ -227,7 +235,13 @@ Check here before writing a component, hook or helper. Add a row when you create
 | solver-client (`submitJob`, `readJob`) | The only code that calls the solver; signs a one-minute token per learner and scope (`server/solver-client.ts`) | Built |
 | startRun, readRun | Run service: Drill access, cache, quota, solver, status refresh (`server/runs.ts`) | Built |
 | AlertKindSchema, ServiceStatusSchema | Alert kinds; service status | Built |
-| ResumeSchema, emptyResume, formatResumePeriod | Resume data, blank resume, date display | Built |
+| ResumeSchema, ResumeDocumentInputSchema, SavedResumeSchema, ResumeImportResultSchema, emptyResume, formatResumePeriod, RESUME_LIST_LIMITS, RESUMES_MAX | Resume data (with design, sections and custom sections), saving and listing resumes, limits | Built |
+| resumeDocument, sectionOrder, sectionTitle | The resume as printed: header and sections in order; rendered by the preview, PDF, Word and Markdown (`resume/document.ts`) | Built |
+| moveItem, moveSection, toggleSection, renameSection, addCustomSection, removeCustomSection | Edits to a resume's sections (`resume/sections.ts`) | Built |
+| RESUME_TEMPLATE_STYLES, RESUME_SPACING_SCALE, RESUME_MARGIN_POINTS, RESUME_ACCENTS | How each template and design setting looks (`resume/design.ts`, `schemas/resume.ts`) | Built |
+| toJsonResume, fromJsonResume, resumeMarkdown, resumeFromLinkedIn, parseCsv, csvRecords, fitResume | Exports and non-AI imports (`resume/`) | Built |
+| TailorRequestSchema, fitTailoring, applyProposal, tailorPassages, ImportAnswerSchema, fitImport, contactFromCv | AI tailoring and AI import: answers, checks and applying a proposal (`resume/tailor.ts`, `resume/ai-import.ts`) | Built |
+| hasPersonalData, addsNumbers, inPosting, clip, AI_NOTICES, AiConsentSchema, AI_ALLOWANCE | Checks every AI answer passes; each feature's notice and the consent its request carries (`ai/`) | Built |
 | screenCv, CvReportSchema, CvScreeningSchema | Pure CV screening rules and report shapes | Built |
 | matchJobDescription, JobMatchSchema, HARDWARE_KEYWORDS | A CV against a pasted job description on known terms, requirements weighted, offer part skipped (`cv-screening/job-match.ts`) | Built |
 | ScreeningOptionsSchema, screeningOptions, NewScreeningSchema, ResumeCheckSchema | The optional job description (blank box: none); the answers of a new screening and of the resume check (`cv-screening/report.ts`) | Built |
@@ -236,5 +250,5 @@ Check here before writing a component, hook or helper. Add a row when you create
 | redactCv, cvPassages, REDACTED | A CV's text without the learner's name, contact details, links and personal details; its lines worth rewriting, numbered (`cv-screening/redact.ts`) | Built |
 | CvFeedbackAnswerSchema, CvFeedbackSchema, StoredCvFeedbackSchema, fitCvFeedback, CV_FEEDBACK_LIMITS | The model's answer, the checks it must pass and the feedback kept (`cv-screening/feedback.ts`, ADR 0030) | Built |
 | CV_FILES_KEPT, CvFileInfoSchema, CvFeedbackRequestSchema | Files kept per learner; a kept file's type and size; asking for AI feedback with the agreed notice (`cv-screening/report.ts`) | Built |
-| AI_NOTICE, AI_NOTICE_VERSION, AI_FEEDBACK_LIMITS | What a learner agrees to before AI, its version, and the allowance (5 a day, 30 a month) (`ai/notice.ts`) | Built |
+| AI_NOTICE_VERSION | The version of the AI notices each consent names (`ai/notice.ts`) | Built |
 | IdParamsSchema, DAY_MS | The `:id` of an API path (a UUID); a day in milliseconds | Built |

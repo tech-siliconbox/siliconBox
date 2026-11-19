@@ -3,12 +3,11 @@ import type { CvFileKind } from '@siliconbox/shared';
 import mammoth from 'mammoth';
 import { extractText, getDocumentProxy } from 'unpdf';
 import { AppError } from './errors';
-import { startsWith } from './file-bytes';
+import { ZIP_MAGIC, startsWith } from './file-bytes';
 
 export const MAX_CV_BYTES = 5 * 1024 * 1024;
 
 const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d]; // "%PDF-"
-const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // "PK..", the container of a .docx
 
 /** Decides the type from the file's own bytes, never from the name or browser-supplied type alone. */
 function fileKind(name: string, bytes: Uint8Array): CvFileKind | null {

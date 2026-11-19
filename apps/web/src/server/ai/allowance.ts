@@ -1,5 +1,5 @@
 import 'server-only';
-import { AI_FEEDBACK_LIMITS, DAY_MS } from '@siliconbox/shared';
+import { AI_ALLOWANCE, DAY_MS } from '@siliconbox/shared';
 import { AppError } from '../errors';
 import { type RateLimitPolicy, redisRateLimiter, releaseRateLimit } from '../rate-limit';
 
@@ -7,8 +7,8 @@ import { type RateLimitPolicy, redisRateLimiter, releaseRateLimit } from '../rat
 // call to the provider and given back when the call fails.
 
 const POLICIES: readonly RateLimitPolicy[] = [
-  { name: 'ai-allowance-day', limit: AI_FEEDBACK_LIMITS.perDay, windowMs: DAY_MS },
-  { name: 'ai-allowance-30d', limit: AI_FEEDBACK_LIMITS.perMonth, windowMs: 30 * DAY_MS },
+  { name: 'ai-allowance-day', limit: AI_ALLOWANCE.perDay, windowMs: DAY_MS },
+  { name: 'ai-allowance-30d', limit: AI_ALLOWANCE.perMonth, windowMs: 30 * DAY_MS },
 ];
 
 const keyOf = (userId: string) => `user:${userId}`;

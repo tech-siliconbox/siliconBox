@@ -29,7 +29,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `services` | Industry Ready service cards and status (`open` or `locked`), locked reason, order | Public list |
 | `faqs` | Help page questions and answers, order; written by Payload with drafts | Public (published only) |
 | `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
-| `resumes` | One saved Resume Builder resume per learner | Owner, with delete |
+| `resumes` | Up to 5 Resume Builder resumes per learner, each with a public id, a name, its content (sections, design, section order and custom sections) and its dates; `{ userId, updatedAt }` index (migration `20261011000000-many-resumes`) | Owner, with delete |
 | `profiles` | One per learner: handle (unique once set), bio, links | Owner, with delete |
 | `avatars` | One photo per learner: a 256 px WebP (no EXIF) and when it changed, until object storage exists | Owner, with delete |
 | `assessments`, `capstones` | Graded course work (ADR 0029): questions and options; rubric and pass mark. Written by Payload with drafts | Server reads published only |

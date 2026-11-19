@@ -1,7 +1,6 @@
 import 'server-only';
 import {
   AI_NOTICE_VERSION,
-  type AuditEntry,
   type CvFeedback,
   CvFeedbackAnswerSchema,
   type CvReport,
@@ -10,11 +9,10 @@ import {
   fitCvFeedback,
   redactCv,
 } from '@siliconbox/shared';
-import { appendAudit } from '@/db/audit-log';
 import { findScreeningFile, saveFeedback } from '@/db/cv-screenings';
-import { refundAiAllowance, spendAiAllowance } from './ai/allowance';
 import { AI_MODEL, type AskClaude, askClaude } from './ai/claude';
 import { CV_FEEDBACK_SYSTEM, cvFeedbackContent } from './ai/cv-feedback-prompt';
+import { type AiTaskDeps, LIVE_TASK_DEPS, runAiTask } from './ai/task';
 import type { Identity } from './auth/authenticate';
 import { extractCvText } from './cv-text';
 import { AppError } from './errors';
@@ -56,13 +54,10 @@ export async function reviewCvText(input: ReviewInput, ask: AskClaude): Promise<
 }
 
 /** What giving feedback depends on; tests replace each part. */
-export type FeedbackDeps = {
+export type FeedbackDeps = AiTaskDeps & {
   findCvText: (userId: string, screeningId: string) => Promise<{ report: CvReport; text: string }>;
   saveFeedback: (userId: string, screeningId: string, feedback: StoredCvFeedback) => Promise<void>;
   ask: AskClaude;
-  spend: (userId: string) => Promise<void>;
-  refund: (userId: string) => Promise<void>;
-  audit: (entry: AuditEntry) => Promise<void>;
 };
 
 /** The learner's screening and its CV's text; not found, or the file no longer kept, refuse. */
@@ -74,19 +69,9 @@ async function findCvText(userId: string, screeningId: string) {
   return { report: found.report, text };
 }
 
-const LIVE: FeedbackDeps = {
-  findCvText,
-  saveFeedback,
-  ask: askClaude,
-  spend: spendAiAllowance,
-  refund: refundAiAllowance,
-  audit: appendAudit,
-};
+const LIVE: FeedbackDeps = { ...LIVE_TASK_DEPS, findCvText, saveFeedback, ask: askClaude };
 
-/**
- * Gives AI feedback on one of the learner's saved screenings and keeps it with the report. A
- * failure gives the allowance back. Each use is audit-logged with the notice agreed to, no text.
- */
+/** Gives AI feedback on one of the learner's saved screenings and keeps it with the report. */
 export async function giveCvFeedback(
   identity: Identity,
   screeningId: string,
@@ -94,16 +79,7 @@ export async function giveCvFeedback(
   deps: FeedbackDeps = LIVE,
 ): Promise<StoredCvFeedback> {
   const { report, text } = await deps.findCvText(identity.userId, screeningId);
-  await deps.spend(identity.userId);
-  const audit = (outcome: 'given' | 'failed') =>
-    deps.audit({
-      action: 'ai_feedback',
-      actorId: identity.userId,
-      subjectId: identity.userId,
-      metadata: { screening: screeningId, outcome, model: AI_MODEL, notice: AI_NOTICE_VERSION },
-      createdAt: new Date(),
-    });
-  try {
+  return runAiTask(identity.userId, 'cvFeedback', deps, async () => {
     const review = await reviewCvText(
       { text, learnerName: identity.name, report, jobDescription },
       deps.ask,
@@ -115,11 +91,6 @@ export async function giveCvFeedback(
       review,
     };
     await deps.saveFeedback(identity.userId, screeningId, feedback);
-    await audit('given');
     return feedback;
-  } catch (error) {
-    await deps.refund(identity.userId);
-    await audit('failed');
-    throw error;
-  }
+  });
 }

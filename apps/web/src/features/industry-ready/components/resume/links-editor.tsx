@@ -1,6 +1,6 @@
 'use client';
 
-import type { Resume } from '@siliconbox/shared';
+import { RESUME_LIST_LIMITS, type Resume } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { ListEditor } from './list-editor';
 
@@ -17,7 +17,7 @@ export function LinksEditor({
     <ListEditor
       label="Link"
       items={links}
-      max={4}
+      max={RESUME_LIST_LIMITS.links}
       create={() => ({ label: 'LinkedIn', url: 'https://' })}
       onChange={onChange}
       render={(link, setLink) => (

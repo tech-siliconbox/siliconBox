@@ -12,7 +12,7 @@ export function BulletsField({
 }) {
   return (
     <TextAreaField
-      label="Achievements (one per line; start with a verb, add numbers)"
+      label="Achievements: one per line, start with a verb, add numbers (**bold** for emphasis)"
       value={bullets.join('\n')}
       onChange={(event) => onChange(event.target.value.split('\n'))}
       rows={4}

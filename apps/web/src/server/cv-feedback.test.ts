@@ -113,7 +113,10 @@ describe('giveCvFeedback', () => {
     expect(feedback.review.suggestions[0]?.passage).toContain('AXI4 bridge');
     expect(calls).toMatchObject({ spent: 1, refunded: 0 });
     expect(calls.saved).toEqual([feedback]);
-    expect(calls.audit[0]).toMatchObject({ action: 'ai_feedback', metadata: { outcome: 'given' } });
+    expect(calls.audit[0]).toMatchObject({
+      action: 'ai_request',
+      metadata: { feature: 'cvFeedback', outcome: 'given' },
+    });
     expect(JSON.stringify(calls.audit)).not.toContain('AXI4');
   });
 

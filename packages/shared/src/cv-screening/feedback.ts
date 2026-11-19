@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { EMAIL, WEB_LINK, phoneNumbers } from './personal-data';
-import { REDACTED } from './redact';
+import { addsNumbers, clip, hasPersonalData, inPosting } from '../ai/checks';
 
 // AI feedback on a CV (ADR 0030): the answer the model must give, the checks it must pass, and
 // the feedback we keep. The model never scores; the rule-based report holds the only number.
@@ -82,43 +81,6 @@ export type FeedbackContext = {
 };
 
 export type FittedFeedback = { ok: true; feedback: CvFeedback } | { ok: false; reason: string };
-
-/** Contact details, links or our own placeholders: none may appear in feedback. */
-function hasPersonalData(value: string): boolean {
-  return (
-    EMAIL.test(value) ||
-    WEB_LINK.test(value) ||
-    phoneNumbers(value).length > 0 ||
-    Object.values(REDACTED).some((mark) => value.includes(mark))
-  );
-}
-
-/** A rewrite may not bring a number its passage does not have: that would invent a result. */
-function addsNumbers(rewrite: string, passage: string): boolean {
-  return (rewrite.match(/\d+(?:[.,]\d+)?/g) ?? []).some((number) => !passage.includes(number));
-}
-
-const GENERIC_WORDS = new Set(
-  'and the for with experience strong good solid knowledge skills skill ability understanding familiarity working using hands-on exposure of in to a an or on'.split(
-    ' ',
-  ),
-);
-const wordsOf = (value: string) =>
-  value.toLowerCase().match(/[a-z0-9+#]+(?:[-.][a-z0-9+#]+)*/g) ?? [];
-
-/** A gap must name something the posting itself asks for, not a skill the model came up with. */
-function inPosting(need: string, posting: string): boolean {
-  const postingWords = new Set(wordsOf(posting));
-  return wordsOf(need).some((word) => !GENERIC_WORDS.has(word) && postingWords.has(word));
-}
-
-/** At most `max` characters, cut at a word with an ellipsis. */
-function clip(value: string, max: number): string {
-  const trimmed = value.trim();
-  if (trimmed.length <= max) return trimmed;
-  const cut = trimmed.slice(0, max - 1);
-  return `${cut.slice(0, Math.max(cut.lastIndexOf(' '), 1))}…`;
-}
 
 const points = (items: string[], max: number) =>
   items

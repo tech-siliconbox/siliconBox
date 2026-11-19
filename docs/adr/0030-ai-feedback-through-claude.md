@@ -31,17 +31,21 @@ provider.
   the CV fits a pasted job description, the gaps between them, and rewrites of specific bullets.
   In CV screening the learner asks for it on a saved report (`POST
   /api/v1/cv-screenings/:id/feedback`); the server reads that report's kept CV file.
-  In the Resume Builder it proposes edits that the learner accepts or rejects one by one;
-  nothing changes without a click.
+  In the Resume Builder it tailors a saved resume to a job (`POST /api/v1/resumes/:id/tailor`):
+  rewrites of the summary and bullets, skills the resume already shows elsewhere, and gaps from
+  the posting, which the learner accepts or dismisses one by one; nothing changes without a click
+  and nothing is stored. It also reads a PDF or Word CV into the builder's sections
+  (`POST /api/v1/resumes/import/ai`); contact details are read from the file here and never sent,
+  and only text the CV itself says is kept.
 - It never gives a score or percentage, never invents employers, dates, tools or numbers, and
   never receives course content.
 
 ### Personal data (DPDP)
 
-- **Consent per use.** An unticked box beside the upload names Anthropic and says what is sent,
-  where it is processed, how long Anthropic keeps it and that it is not used for training.
-  Nothing is sent without the tick. Each use is written to the audit log: learner, time, notice
-  version and outcome, never the text.
+- **Consent per use.** An unticked box beside each AI feature names Anthropic and says what is
+  sent, where it is processed, how long Anthropic keeps it and that it is not used for training
+  (`AI_NOTICES`, one per feature). Nothing is sent without the tick. Each use is written to the
+  audit log (`ai_request`): learner, time, feature, notice version and outcome, never the text.
 - **Send the least.** Only the extracted text goes, never the file. Email addresses, phone
   numbers, links, the learner's name and personal-detail lines (date of birth and the like) are
   replaced with placeholders first. The Resume Builder sends its sections without the contact

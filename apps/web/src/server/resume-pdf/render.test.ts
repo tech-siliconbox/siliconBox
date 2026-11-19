@@ -1,4 +1,5 @@
-import { ResumeSchema, screenCv } from '@siliconbox/shared';
+import { RESUME_TEMPLATES, ResumeSchema, screenCv } from '@siliconbox/shared';
+import { fullResume } from '@siliconbox/shared/testing/resume';
 import { describe, expect, it } from 'vitest';
 import { extractCvText } from '../cv-text';
 import { renderResumePdf } from './render';
@@ -32,6 +33,28 @@ const resume = ResumeSchema.parse({
   education: [
     { degree: 'B.Tech ECE', institution: 'Invented Institute', start: '2021-08', end: '2025-05' },
   ],
+});
+
+describe('every template and design', () => {
+  it.each(RESUME_TEMPLATES)(
+    '%s prints every section as text an ATS reads',
+    async (template) => {
+      const resume = { ...fullResume(), template };
+      const { text } = await extractCvText(
+        'resume.pdf',
+        new Uint8Array(await renderResumePdf(resume)),
+      );
+      for (const expected of [
+        'Invented Learner',
+        'Positions of responsibility',
+        'SVA and closing proofs',
+      ]) {
+        expect(text.toLowerCase()).toContain(expected.toLowerCase());
+      }
+      expect(text).not.toContain('**');
+    },
+    20_000,
+  );
 });
 
 describe('resume PDF', () => {

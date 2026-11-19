@@ -29,7 +29,7 @@ function namePattern(learnerName: string): RegExp | null {
 }
 
 /** A CV usually opens with the person's name: one to four words of letters, nothing else. */
-const looksLikeName = (line: string) =>
+export const looksLikeName = (line: string) =>
   /^\p{Lu}[\p{L}.'’-]*(\s+\p{Lu}[\p{L}.'’-]*){0,3}$/u.test(line);
 
 /** The CV's text with the learner's name, contact details, links and personal details removed. */

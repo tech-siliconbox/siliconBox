@@ -8,7 +8,7 @@ import { findAllScreenings } from '@/db/cv-screenings';
 import { findEntitlements } from '@/db/entitlements';
 import { findPhoto, findProfile } from '@/db/profiles';
 import { findCompletions } from '@/db/progress';
-import { findResume } from '@/db/resumes';
+import { findAllResumes } from '@/db/resumes';
 import { findRunOutcomes } from '@/db/runs';
 import { getAuth } from './auth/auth';
 import type { Identity } from './auth/authenticate';
@@ -127,12 +127,12 @@ async function profilePart(userId: string) {
 
 /** Everything we hold about a learner, in plain fields, for the download in Settings (DPDP). */
 export async function buildDataExport(identity: Identity, headers: Headers, now: Date) {
-  const [account, profile, learning, courseWork, resume, cvScreenings] = await Promise.all([
+  const [account, profile, learning, courseWork, resumes, cvScreenings] = await Promise.all([
     accountPart(identity, headers),
     profilePart(identity.userId),
     learningPart(identity.userId),
     courseWorkPart(identity.userId),
-    findResume(identity.userId),
+    findAllResumes(identity.userId),
     findAllScreenings(identity.userId),
   ]);
   return {
@@ -142,7 +142,7 @@ export async function buildDataExport(identity: Identity, headers: Headers, now:
     profile,
     ...learning,
     ...courseWork,
-    resume,
+    resumes,
     cvScreenings,
   };
 }
