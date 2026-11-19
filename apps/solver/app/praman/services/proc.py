@@ -185,6 +185,18 @@ def run_tree(cmd, timeout=None, cancel=None, **kwargs) -> subprocess.CompletedPr
 
 
 # ── sby ───────────────────────────────────────────────────────
+# SiliconBox: sby runs at most `-j` processes at once, by default as many as
+# there are CPUs.  A proof races several engines, two processes each; with
+# fewer CPUs than processes, sby (OSS CAD Suite 2026-10-01) can decide and
+# then wait forever for processes it never started (a FAIL found in 0 s became
+# a TIMEOUT on CI's 4 CPUs; a session container has 1).  Every process gets a
+# job; the container's CPU limit shares the time.
+SBY_JOBS = 16
+
+
+def sby_command(sby_file: str) -> list[str]:
+    return ["sby", "-j", str(SBY_JOBS), "-f", sby_file]
+
 # sby is a Python script run by whichever `python3` is first on PATH.  When
 # the server was started without its environment on PATH (venv/bin/python -m
 # uvicorn ...), that python3 may lack sby's modules (click) and every run

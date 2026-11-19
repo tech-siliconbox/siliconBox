@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from app.praman import ceilings
-from app.praman.services.proc import run_tree, sby_environment
+from app.praman.services.proc import run_tree, sby_command, sby_environment
 from app.praman.services.compile_worker import run_isolated
 from app.praman.services.sby_generator import FORMAL_WORK_DIR, generate_files_project
 from app.praman.services.sva.pipeline import PreparedDesign, prepare_checked
@@ -269,7 +269,7 @@ def _equivalent(prepared: PreparedDesign, sources: dict[str, str], command: str,
         (work / "eq.sby").write_text(f"[options]\nmode bmc\ndepth {depth}\n\n[engines]\nsmtbmc yices\n\n"
                                      f"[script]\nread_rtlil miter.il\nprep -top miter\n\n[files]\nmiter.il\n")
         env = sby_environment()[0]
-        run = run_tree(["sby", "-f", "eq.sby"], cwd=work, timeout=timeout, **({"env": env} if env else {}))
+        run = run_tree(sby_command("eq.sby"), cwd=work, timeout=timeout, **({"env": env} if env else {}))
         return run.returncode == 0 and "DONE (PASS" in run.stdout
     except (OSError, subprocess.TimeoutExpired):
         return False

@@ -308,8 +308,8 @@ def check(prepared, cut: list[str], without: list[str], depth: int, timeout: int
             (work / "reach.sby").write_text(
                 f"[options]\nmode cover\ndepth {depth}\n\n[engines]\nsmtbmc yices\n\n"
                 f"[script]\nread_rtlil reach.il\nhierarchy -top {top}\n\n[files]\nreach.il\n")
-            from app.praman.services.proc import sby_environment
-            done = run_tree(["sby", "-f", "reach.sby"], timeout=timeout * 2 + 60, cwd=str(work),
+            from app.praman.services.proc import sby_command, sby_environment
+            done = run_tree(sby_command("reach.sby"), timeout=timeout * 2 + 60, cwd=str(work),
                             env=sby_environment()[0])
             log = (work / "reach" / "logfile.txt")
             text = log.read_text() if log.exists() else done.stdout

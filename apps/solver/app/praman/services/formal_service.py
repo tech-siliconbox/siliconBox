@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from app.praman import ceilings
-from app.praman.services.proc import MemoryLimitExceeded, run_tree, sby_environment
+from app.praman.services.proc import MemoryLimitExceeded, run_tree, sby_command, sby_environment
 from app.workspace import clear_inside, remove_inside
 from app.praman.services.compile_worker import run_isolated
 from app.praman.services.sv_preprocessor import preprocess
@@ -579,7 +579,7 @@ class FormalService:
                                  error_message=f"The proof engine cannot be started: {problem}")
             follow = self._follow_engines(Path(sby_file).parent)
             try:
-                proc = run_tree(["sby", "-f", sby_file], timeout=timeout, cancel=self.cancel,
+                proc = run_tree(sby_command(sby_file), timeout=timeout, cancel=self.cancel,
                                 cwd=os.path.dirname(sby_file), **({"env": env} if env else {}))
             finally:
                 follow()
