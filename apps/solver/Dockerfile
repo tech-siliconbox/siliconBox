@@ -32,7 +32,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=tools /opt/oss-cad-suite /opt/oss-cad-suite
 # Tcl for Praman's console: a safe interpreter in its own process (ADR 0031).
 RUN apt-get update \
- && apt-get install -y --no-install-recommends tcl8.6 \
+ && apt-get install -y --no-install-recommends tcl \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY pyproject.toml constraints.txt ./
