@@ -1,145 +1,102 @@
 'use client';
 
-import { type Resume, formatResumePeriod } from '@siliconbox/shared';
-import type { ReactNode } from 'react';
+import {
+  RESUME_TEMPLATE_STYLES,
+  type Resume,
+  type ResumeBlock,
+  type ResumeEntry,
+  resumeDocument,
+} from '@siliconbox/shared';
+import { Prose } from '@/components/lesson/prose';
+import { cn } from '@/lib/cn';
+import {
+  ACCENT_CLASSES,
+  FONT_CLASSES,
+  FONT_SIZE_CLASSES,
+  PAGE_PADDING_CLASSES,
+  SECTION_GAP_CLASSES,
+} from './preview-classes';
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="mt-3">
-      <h3 className="mb-1 border-b border-foreground pb-0.5 text-[11px] font-bold uppercase tracking-wider">
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-function Entry({
-  title,
-  right,
-  subtitle,
-  bullets,
-}: {
-  title: string;
-  right: string;
-  subtitle?: string;
-  bullets?: string[];
-}) {
+function Entry({ entry }: { entry: ResumeEntry }) {
   return (
     <div className="mb-1.5">
       <div className="flex justify-between gap-2">
-        <span className="font-semibold">{title}</span>
-        <span className="text-muted-foreground">{right}</span>
+        <span className="font-semibold">{entry.title}</span>
+        <span className="text-muted-foreground">{entry.meta}</span>
       </div>
-      {subtitle !== undefined && subtitle !== '' && (
-        <p className="text-muted-foreground">{subtitle}</p>
+      {entry.subtitle !== '' && <p className="text-muted-foreground">{entry.subtitle}</p>}
+      {entry.description !== '' && (
+        <p>
+          <Prose text={entry.description} />
+        </p>
       )}
-      {bullets !== undefined && (
+      {entry.bullets.length > 0 && (
         <ul className="ml-3 list-disc">
-          {bullets
-            .filter((b) => b.trim() !== '')
-            .map((bullet, index) => (
-              <li key={index}>{bullet}</li>
-            ))}
+          {entry.bullets.map((bullet, index) => (
+            <li key={index}>
+              <Prose text={bullet} />
+            </li>
+          ))}
         </ul>
       )}
     </div>
   );
 }
 
-/** An on-screen approximation of the PDF, updated as the learner types. */
+function BlockBody({ block }: { block: ResumeBlock }) {
+  if (block.kind === 'text') {
+    return (
+      <p>
+        <Prose text={block.text} />
+      </p>
+    );
+  }
+  if (block.kind === 'lines') {
+    return block.lines.map(({ label, text }) => (
+      <p key={label}>
+        <strong>{label}:</strong> {text}
+      </p>
+    ));
+  }
+  return block.entries.map((entry, index) => <Entry key={index} entry={entry} />);
+}
+
+/** An on-screen likeness of the PDF, updated as the learner types, in the chosen design. */
 export function ResumePreview({ resume }: { resume: Resume }) {
+  const model = resumeDocument(resume);
+  const { design } = resume;
+  const look = RESUME_TEMPLATE_STYLES[resume.template];
+  const accent = ACCENT_CLASSES[design.accent];
   return (
     <article
       aria-label="Resume preview"
-      className="rounded-md border border-border bg-background p-6 text-[11px] leading-snug"
+      className={cn(
+        'rounded-md border border-border bg-background leading-snug',
+        FONT_CLASSES[design.font],
+        FONT_SIZE_CLASSES[design.fontSize],
+        PAGE_PADDING_CLASSES[design.margins],
+      )}
     >
-      <PreviewHeader basics={resume.basics} centered={resume.template === 'classic'} />
-      <PreviewMain resume={resume} />
-      <PreviewRest resume={resume} />
+      <header className={look.align === 'center' ? 'text-center' : ''}>
+        <h2 className={cn('text-xl font-bold', look.accentName && accent.text)}>{model.name}</h2>
+        {model.headline !== '' && <p>{model.headline}</p>}
+        <p className="mt-1 text-muted-foreground">{model.contact.join('  |  ')}</p>
+      </header>
+      {model.blocks.map((block) => (
+        <section key={block.id} className={SECTION_GAP_CLASSES[design.spacing]}>
+          <h3
+            className={cn(
+              'mb-1 pb-0.5 font-bold',
+              accent.text,
+              look.uppercaseHeadings ? 'text-[0.95em] uppercase tracking-wider' : 'text-[1.05em]',
+              look.rule && cn('border-b', accent.border),
+            )}
+          >
+            {block.heading}
+          </h3>
+          <BlockBody block={block} />
+        </section>
+      ))}
     </article>
-  );
-}
-
-function PreviewHeader({ basics, centered }: { basics: Resume['basics']; centered: boolean }) {
-  const contact = [
-    basics.email,
-    basics.phone,
-    basics.location,
-    ...basics.links.map((link) => link.url),
-  ].filter(Boolean);
-  return (
-    <header className={centered ? 'text-center' : ''}>
-      <h2 className="text-xl font-bold">{basics.fullName}</h2>
-      {basics.headline !== '' && <p>{basics.headline}</p>}
-      <p className="mt-1 text-muted-foreground">{contact.join('  |  ')}</p>
-    </header>
-  );
-}
-
-function PreviewMain({ resume }: { resume: Resume }) {
-  return (
-    <>
-      {resume.summary !== '' && (
-        <Section title="Summary">
-          <p>{resume.summary}</p>
-        </Section>
-      )}
-      {resume.skills.length > 0 && (
-        <Section title="Skills">
-          {resume.skills.map((skill) => (
-            <p key={skill.category}>
-              <strong>{skill.category}:</strong> {skill.items.join(', ')}
-            </p>
-          ))}
-        </Section>
-      )}
-      {resume.experience.length > 0 && (
-        <Section title="Experience">
-          {resume.experience.map((job, i) => (
-            <Entry
-              key={i}
-              title={`${job.role}, ${job.company}`}
-              right={formatResumePeriod(job.start, job.end)}
-              subtitle={job.location}
-              bullets={job.bullets}
-            />
-          ))}
-        </Section>
-      )}
-    </>
-  );
-}
-
-function PreviewRest({ resume }: { resume: Resume }) {
-  return (
-    <>
-      {resume.projects.length > 0 && (
-        <Section title="Projects">
-          {resume.projects.map((p, i) => (
-            <Entry key={i} title={p.name} right={p.link} bullets={p.bullets} />
-          ))}
-        </Section>
-      )}
-      {resume.education.length > 0 && (
-        <Section title="Education">
-          {resume.education.map((s, i) => (
-            <Entry
-              key={i}
-              title={s.degree}
-              right={formatResumePeriod(s.start, s.end)}
-              subtitle={[s.institution, s.score].filter(Boolean).join(' · ')}
-            />
-          ))}
-        </Section>
-      )}
-      {resume.certifications.length > 0 && (
-        <Section title="Certifications">
-          {resume.certifications.map((c, i) => (
-            <Entry key={i} title={c.name} right={String(c.year)} subtitle={c.issuer} />
-          ))}
-        </Section>
-      )}
-    </>
   );
 }

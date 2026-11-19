@@ -1,160 +1,113 @@
 import 'server-only';
-import { type Resume, formatResumePeriod } from '@siliconbox/shared';
+import {
+  type InlineNode,
+  type Resume,
+  type ResumeBlock,
+  type ResumeDocumentModel,
+  type ResumeEntry,
+  parseInlineText,
+  resumeDocument,
+} from '@siliconbox/shared';
 import { Document, Page, Text, View } from '@react-pdf/renderer';
 import type { ReactNode } from 'react';
 import { type ResumeStyles, resumeStyles } from './styles';
 
 type Styled = { styles: ResumeStyles };
+type Emphasis = { bold: boolean; italic: boolean };
 
-function Section({ title, styles, children }: Styled & { title: string; children: ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.heading}>{title}</Text>
-      {children}
-    </View>
-  );
+function fontOf({ bold, italic }: Emphasis, styles: ResumeStyles) {
+  if (bold && italic) return styles.boldItalic;
+  if (bold) return styles.strong;
+  return italic ? styles.italic : styles.regular;
 }
 
-function Bullets({ items, styles }: Styled & { items: string[] }) {
-  return items.map((item, index) => (
-    <View key={index} style={styles.bullet}>
-      <Text style={styles.bulletMark}>•</Text>
-      <Text style={styles.bulletText}>{item}</Text>
-    </View>
-  ));
+function runsOf(nodes: InlineNode[], styles: ResumeStyles, emphasis: Emphasis): ReactNode[] {
+  return nodes.map((node, index) => {
+    if (node.kind === 'text' || node.kind === 'code') {
+      return (
+        <Text key={index} style={fontOf(emphasis, styles)}>
+          {node.text}
+        </Text>
+      );
+    }
+    const inner = {
+      bold: emphasis.bold || node.kind === 'strong',
+      italic: emphasis.italic || node.kind === 'em',
+    };
+    return runsOf(node.children, styles, inner);
+  });
 }
 
-function Entry({
-  title,
-  right,
-  subtitle,
-  bullets,
-  styles,
-}: Styled & { title: string; right: string; subtitle?: string; bullets?: string[] }) {
+/** Text the learner may mark with **bold** and *italic*. */
+function Rich({ text, styles }: Styled & { text: string }) {
+  return <Text>{runsOf(parseInlineText(text), styles, { bold: false, italic: false })}</Text>;
+}
+
+function Entry({ entry, styles }: Styled & { entry: ResumeEntry }) {
   return (
     <View style={styles.entry} wrap={false}>
       <View style={styles.row}>
-        <Text style={styles.strong}>{title}</Text>
-        <Text style={styles.muted}>{right}</Text>
+        <Text style={styles.strong}>{entry.title}</Text>
+        <Text style={styles.muted}>{entry.meta}</Text>
       </View>
-      {subtitle !== undefined && subtitle !== '' && <Text style={styles.muted}>{subtitle}</Text>}
-      {bullets !== undefined && <Bullets items={bullets} styles={styles} />}
+      {entry.subtitle !== '' && <Text style={styles.muted}>{entry.subtitle}</Text>}
+      {entry.description !== '' && <Rich text={entry.description} styles={styles} />}
+      {entry.bullets.map((bullet, index) => (
+        <View key={index} style={styles.bullet}>
+          <Text style={styles.bulletMark}>•</Text>
+          <View style={styles.bulletText}>
+            <Rich text={bullet} styles={styles} />
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
 
-function Header({ basics, styles }: Styled & { basics: Resume['basics'] }) {
-  const contact = [
-    basics.email,
-    basics.phone,
-    basics.location,
-    ...basics.links.map((link) => link.url),
-  ].filter(Boolean);
+function Block({ block, styles }: Styled & { block: ResumeBlock }) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.heading}>{block.heading}</Text>
+      {block.kind === 'text' && <Rich text={block.text} styles={styles} />}
+      {block.kind === 'lines' &&
+        block.lines.map(({ label, text }) => (
+          <Text key={label}>
+            <Text style={styles.strong}>{label}: </Text>
+            {text}
+          </Text>
+        ))}
+      {block.kind === 'entries' &&
+        block.entries.map((entry, index) => <Entry key={index} entry={entry} styles={styles} />)}
+    </View>
+  );
+}
+
+function Header({ model, styles }: Styled & { model: ResumeDocumentModel }) {
   return (
     <View>
-      <Text style={styles.name}>{basics.fullName}</Text>
-      {basics.headline !== '' && <Text style={styles.headline}>{basics.headline}</Text>}
-      <Text style={styles.contact}>{contact.join('  |  ')}</Text>
+      <Text style={styles.name}>{model.name}</Text>
+      {model.headline !== '' && <Text style={styles.headline}>{model.headline}</Text>}
+      <Text style={styles.contact}>{model.contact.join('  |  ')}</Text>
     </View>
   );
 }
 
-function Body({ resume, styles }: Styled & { resume: Resume }) {
-  return (
-    <>
-      {resume.summary !== '' && (
-        <Section title="Summary" styles={styles}>
-          <Text>{resume.summary}</Text>
-        </Section>
-      )}
-      {resume.skills.length > 0 && (
-        <Section title="Skills" styles={styles}>
-          {resume.skills.map((skill) => (
-            <Text key={skill.category}>
-              <Text style={styles.strong}>{skill.category}: </Text>
-              {skill.items.join(', ')}
-            </Text>
-          ))}
-        </Section>
-      )}
-      {resume.experience.length > 0 && (
-        <Section title="Experience" styles={styles}>
-          {resume.experience.map((job, index) => (
-            <Entry
-              key={index}
-              title={`${job.role}, ${job.company}`}
-              right={formatResumePeriod(job.start, job.end)}
-              subtitle={job.location}
-              bullets={job.bullets}
-              styles={styles}
-            />
-          ))}
-        </Section>
-      )}
-      {resume.projects.length > 0 && (
-        <Section title="Projects" styles={styles}>
-          {resume.projects.map((project, index) => (
-            <Entry
-              key={index}
-              title={project.name}
-              right={project.link}
-              bullets={project.bullets}
-              styles={styles}
-            />
-          ))}
-        </Section>
-      )}
-      <Footer resume={resume} styles={styles} />
-    </>
-  );
-}
-
-function Footer({ resume, styles }: Styled & { resume: Resume }) {
-  return (
-    <>
-      {resume.education.length > 0 && (
-        <Section title="Education" styles={styles}>
-          {resume.education.map((school, index) => (
-            <Entry
-              key={index}
-              title={school.degree}
-              right={formatResumePeriod(school.start, school.end)}
-              subtitle={[school.institution, school.score].filter(Boolean).join(' · ')}
-              styles={styles}
-            />
-          ))}
-        </Section>
-      )}
-      {resume.certifications.length > 0 && (
-        <Section title="Certifications" styles={styles}>
-          {resume.certifications.map((cert, index) => (
-            <Entry
-              key={index}
-              title={cert.name}
-              right={String(cert.year)}
-              subtitle={cert.issuer}
-              styles={styles}
-            />
-          ))}
-        </Section>
-      )}
-    </>
-  );
-}
-
-/** The resume as an A4, single-column, text-based PDF that applicant tracking systems can parse. */
+/** The resume as a single-column, text-based PDF that applicant tracking systems can parse. */
 export function ResumeDocument({ resume }: { resume: Resume }) {
-  const styles = resumeStyles(resume.template);
+  const model = resumeDocument(resume);
+  const styles = resumeStyles(resume);
   return (
     <Document
-      title={`${resume.basics.fullName} - Resume`}
-      author={resume.basics.fullName}
+      title={`${model.name} - Resume`}
+      author={model.name}
       creator="SiliconBox"
       producer="SiliconBox"
     >
-      <Page size="A4" style={styles.page}>
-        <Header basics={resume.basics} styles={styles} />
-        <Body resume={resume} styles={styles} />
+      <Page size={resume.design.pageSize} style={styles.page}>
+        <Header model={model} styles={styles} />
+        {model.blocks.map((block) => (
+          <Block key={block.id} block={block} styles={styles} />
+        ))}
       </Page>
     </Document>
   );

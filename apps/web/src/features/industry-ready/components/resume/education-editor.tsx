@@ -1,6 +1,6 @@
 'use client';
 
-import type { Resume } from '@siliconbox/shared';
+import { RESUME_LIST_LIMITS, type Resume } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { ListEditor } from './list-editor';
 import { MonthRange } from './month-range';
@@ -18,7 +18,7 @@ export function EducationEditor({
     <ListEditor
       label="Degree"
       items={items}
-      max={5}
+      max={RESUME_LIST_LIMITS.education}
       create={() => ({ degree: '', institution: '', start: '', end: '', score: '' })}
       onChange={onChange}
       render={(school, set) => (

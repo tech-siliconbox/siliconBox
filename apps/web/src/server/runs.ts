@@ -1,5 +1,6 @@
 import 'server-only';
 import {
+  DAY_MS,
   PublicIdSchema,
   type RunInput,
   type RunView,
@@ -28,8 +29,6 @@ import { AppError } from './errors';
 import { advanceGrading, gradingView, startGrading } from './grading';
 import { redisRateLimiter } from './rate-limit';
 import { readJob, submitJob } from './solver-client';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Whether a run solves its Drill (its target, then the hidden designs); null while grading. */
 export const runSolved = (run: Pick<RunOutcome, 'target' | 'status' | 'grading'>) =>

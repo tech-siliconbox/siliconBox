@@ -1,65 +1,65 @@
 'use client';
 
-import { RESUME_TEMPLATES, type Resume } from '@siliconbox/shared';
 import { Button } from '@/components/ui/button';
 import type { SaveStatus } from '../../hooks/use-resume-draft';
+import type { ResumeWorkspace } from '../../hooks/use-resume-workspace';
+import { ExportMenu } from './export-menu';
 
 const STATUS_TEXT: Record<SaveStatus, string> = {
   saved: 'All changes saved',
   unsaved: 'Unsaved changes',
   saving: 'Saving…',
+  invalid: 'Not saved: fix the field named below',
   error: 'Not saved',
 };
 
+const PANELS = {
+  sections: 'Sections',
+  design: 'Design',
+  check: 'Check',
+  import: 'Import',
+  tailor: 'Tailor with AI',
+} as const;
+export type PanelName = keyof typeof PANELS;
+
 type ResumeToolbarProps = {
-  template: Resume['template'];
-  status: SaveStatus;
-  onTemplate: (template: Resume['template']) => void;
-  onSave: () => void;
-  onDownload: () => void;
-  onDelete: () => void;
+  workspace: ResumeWorkspace;
+  panel: PanelName | null;
+  panelId: string;
+  onPanel: (panel: PanelName) => void;
 };
 
-export function ResumeToolbar({
-  template,
-  status,
-  onTemplate,
-  onSave,
-  onDownload,
-  onDelete,
-}: ResumeToolbarProps) {
+/** Save state, undo and redo, the panels, and downloads; stays in view while scrolling. */
+export function ResumeToolbar({ workspace, panel, panelId, onPanel }: ResumeToolbarProps) {
+  const { editor } = workspace;
   return (
-    <div className="sticky top-[53px] z-40 flex flex-wrap items-center gap-3 border-b border-border bg-background py-3">
-      <label className="flex items-center gap-2 text-sm">
-        Template
-        <select
-          value={template}
-          onChange={(e) => onTemplate(e.target.value as Resume['template'])}
-          className="h-9 rounded-md border border-border bg-background px-2 text-sm"
-        >
-          {RESUME_TEMPLATES.map((name) => (
-            <option key={name} value={name}>
-              {name === 'classic' ? 'Classic' : 'Compact'}
-            </option>
-          ))}
-        </select>
-      </label>
+    <div className="sticky top-[53px] z-40 flex flex-wrap items-center gap-2 border-b border-border bg-background py-3">
       <p
         role="status"
-        className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+        className="mr-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
       >
-        {STATUS_TEXT[status]}
+        {STATUS_TEXT[editor.status]}
       </p>
-      <div className="ml-auto flex gap-2">
-        <Button size="sm" variant="secondary" onClick={onDelete}>
-          Delete resume
-        </Button>
-        <Button size="sm" variant="secondary" disabled={status === 'saving'} onClick={onSave}>
-          Save
-        </Button>
-        <Button size="sm" disabled={status === 'saving'} onClick={onDownload}>
-          Download PDF
-        </Button>
+      <Button size="sm" variant="secondary" disabled={!editor.canUndo} onClick={editor.undo}>
+        Undo
+      </Button>
+      <Button size="sm" variant="secondary" disabled={!editor.canRedo} onClick={editor.redo}>
+        Redo
+      </Button>
+      <div className="flex flex-wrap gap-2 sm:ml-auto">
+        {(Object.keys(PANELS) as PanelName[]).map((name) => (
+          <Button
+            key={name}
+            size="sm"
+            variant="secondary"
+            aria-expanded={panel === name}
+            aria-controls={panelId}
+            onClick={() => onPanel(name)}
+          >
+            {PANELS[name]}
+          </Button>
+        ))}
+        <ExportMenu resume={editor.draft.resume} settle={workspace.settle} />
       </div>
     </div>
   );

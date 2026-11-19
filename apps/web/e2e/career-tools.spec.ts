@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { API_ROUTES, ROUTES } from '@siliconbox/shared';
+import { BASE_URL } from './base-url';
 import { grantAccess, signInAsAdmin } from './cms/publish';
 import { withAdminDb } from './db';
 import type { Page } from '@playwright/test';
@@ -7,6 +8,8 @@ import { expect, failOnCspViolation, newLearner, signUp, submitSignIn, test } fr
 
 const learner = newLearner();
 let pdfPath = '';
+/** An invented posting: the resume shows SVA and JasperGold, not UVM (2 of 3, all requirements). */
+const POSTING = 'Requirements\n- SVA and JasperGold\n- UVM';
 
 async function signIn(page: Page): Promise<void> {
   await submitSignIn(page, learner);
@@ -21,12 +24,12 @@ test('a learner without active access is shown the way forward, and the API refu
   await signUp(page, learner);
   await page.goto(ROUTES.resumeBuilder);
   await expect(page.getByText('Free for learners with an active course')).toBeVisible();
-  const refused = await page.request.get(API_ROUTES.resume);
+  const refused = await page.request.get(API_ROUTES.resumes);
   expect(refused.status()).toBe(403);
   expect(await refused.json()).toMatchObject({ error: { code: 'NOT_ENTITLED' } });
 });
 
-test('an entitled learner builds, saves and downloads an ATS-friendly resume', async ({
+test('an entitled learner builds a resume that saves itself and downloads as PDF and Word', async ({
   page,
 }, info) => {
   failOnCspViolation(page);
@@ -42,8 +45,9 @@ test('an entitled learner builds, saves and downloads an ATS-friendly resume', a
   await page
     .getByLabel(/^Achievements/)
     .fill('Wrote 42 SVA properties for an AXI4 bridge with JasperGold.');
-  await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'All changes saved' })).toBeVisible();
+  const status = page.getByRole('status');
+  await expect(status).toHaveText('Unsaved changes');
+  await expect(status).toHaveText('All changes saved', { timeout: 10_000 });
 
   await page.reload();
   await expect(page.getByLabel('Company')).toHaveValue('Invented Chips');
@@ -51,14 +55,80 @@ test('an entitled learner builds, saves and downloads an ATS-friendly resume', a
     'Verification Intern, Invented Chips',
   );
 
-  const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Download PDF' }).click();
+  const downloadAs = async (label: string, name: string) => {
+    await page.getByText('Download', { exact: true }).click();
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: label }).click();
+    const path = info.outputPath(name);
+    await (await download).saveAs(path);
+    return readFileSync(path);
+  };
   pdfPath = info.outputPath('resume.pdf');
-  await (await download).saveAs(pdfPath);
-  expect(readFileSync(pdfPath).subarray(0, 5).toString()).toBe('%PDF-');
+  expect((await downloadAs('PDF (send this)', 'resume.pdf')).subarray(0, 5).toString()).toBe(
+    '%PDF-',
+  );
+  expect((await downloadAs('Word (.docx)', 'resume.docx')).subarray(0, 2).toString()).toBe('PK');
 });
 
-test('CV screening reads the resume PDF, refuses other files, and deletes reports', async ({
+test('Resume Builder keeps several resumes, with sections, design, undo and imports', async ({
+  page,
+}) => {
+  failOnCspViolation(page);
+  await signIn(page);
+  await page.goto(ROUTES.resumeBuilder);
+  const preview = page.getByLabel('Resume preview');
+  const status = page.getByRole('status');
+
+  await page.getByRole('button', { name: 'Sections', exact: true }).click();
+  await page.getByLabel('Heading (Skills)').fill('Technical skills');
+  await page.getByRole('button', { name: '+ Add your own section' }).click();
+  await page.getByRole('button', { name: 'Design', exact: true }).click();
+  await page.getByText('Modern', { exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Modern' })).toBeChecked();
+  await expect(status).toHaveText('All changes saved', { timeout: 10_000 });
+
+  await page.getByLabel(/^Two or three lines/).fill('Proves **AXI** bridges.');
+  await expect(preview).toContainText('Proves AXI bridges.');
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(preview).not.toContainText('Proves AXI bridges.');
+
+  await page.getByRole('button', { name: 'Duplicate', exact: true }).click();
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue(/\(copy\)$/);
+  await expect(page.getByLabel('Resume', { exact: true }).locator('option')).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Tailor with AI' }).click();
+  await expect(page.getByText('Coming soon', { exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Import', exact: true }).click();
+  await page.getByLabel('JSON Resume file').setInputFiles({
+    name: 'resume.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ basics: { name: 'Imported Person' }, work: [] })),
+  });
+  await expect(page.getByText('Imported as a new resume')).toBeVisible();
+  await expect(preview).toContainText('Imported Person');
+  await expect(page.getByLabel('Resume', { exact: true }).locator('option')).toHaveCount(3);
+});
+
+test('Resume Builder checks its own PDF against a job description', async ({ page }) => {
+  failOnCspViolation(page);
+  await signIn(page);
+  await page.goto(ROUTES.resumeBuilder);
+
+  await page.getByLabel('Resume', { exact: true }).selectOption({ label: 'My resume' });
+  await expect(page.getByLabel('Company')).toHaveValue('Invented Chips');
+  await page.getByRole('button', { name: 'Check', exact: true }).click();
+  const panel = page.getByRole('region', { name: 'Check this resume' });
+  await panel.getByLabel('Job description (optional)').fill(POSTING);
+  await panel.getByRole('button', { name: 'Run the check' }).click();
+  const report = panel.getByRole('article', { name: 'CV screening report' });
+  await expect(report).toContainText('Match with the job description');
+  await expect(report).toContainText('67%');
+  await panel.getByText('What an ATS reads').click();
+  await expect(panel.locator('pre')).toContainText('Invented Chips');
+});
+
+test('CV screening reads the resume PDF, matches a job, keeps the file, deletes both', async ({
   page,
 }) => {
   failOnCspViolation(page);
@@ -74,13 +144,37 @@ test('CV screening reads the resume PDF, refuses other files, and deletes report
   await expect(page.getByRole('alert').filter({ hasText: 'Upload a PDF or Word' })).toBeVisible();
 
   await page.locator('input[type=file]').setInputFiles(pdfPath);
+  await page.getByLabel('Job description (optional)').fill(POSTING);
   await page.getByRole('button', { name: 'Screen my CV' }).click();
   const report = page.getByRole('article', { name: 'CV screening report' });
   await expect(report).toContainText('Formal verification keywords');
   await expect(report).toContainText('SVA');
+  await expect(report).toContainText('67%');
+  await page.getByText('What an ATS reads').click();
+  await expect(page.locator('pre')).toContainText('Invented Chips');
+
+  // The CV is kept with its report and comes back as a download.
+  const fileLink = page.getByRole('link', { name: /^Download / });
+  const fileUrl = (await fileLink.getAttribute('href')) ?? '';
+  const download = page.waitForEvent('download');
+  await fileLink.click();
+  expect(
+    readFileSync(await (await download).path())
+      .subarray(0, 5)
+      .toString(),
+  ).toBe('%PDF-');
+
+  // AI feedback is refused without the learner's agreement to the current notice.
+  const feedbackUrl = fileUrl.replace(/\/file$/, '/feedback');
+  const unagreed = await page.request.post(feedbackUrl, {
+    data: {},
+    headers: { origin: BASE_URL },
+  });
+  expect(unagreed.status()).toBe(400);
 
   await page.getByRole('button', { name: /Delete report for/ }).click();
   await expect(report).toHaveCount(0);
+  expect((await page.request.get(fileUrl)).status()).toBe(404);
 });
 
 test('a service locked in the admin refuses every call', async ({ page }) => {

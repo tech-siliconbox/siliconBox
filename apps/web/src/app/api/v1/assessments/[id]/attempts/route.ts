@@ -1,5 +1,4 @@
-import { AttemptInputSchema } from '@siliconbox/shared';
-import { z } from 'zod';
+import { AttemptInputSchema, IdParamsSchema } from '@siliconbox/shared';
 import { withApiGate } from '@/server/api/with-api-gate';
 import { submitAttempt } from '@/server/assessments';
 import { RATE_LIMITS } from '@/server/rate-limit';
@@ -13,7 +12,7 @@ export const POST = withApiGate(
   {
     access: { kind: 'signedIn' },
     rateLimit: RATE_LIMITS.write,
-    schemas: { params: z.strictObject({ id: z.uuid() }), body: AttemptInputSchema },
+    schemas: { params: IdParamsSchema, body: AttemptInputSchema },
   },
   async ({ identity, input }) =>
     Response.json(await submitAttempt(identity, input.params.id, input.body.answers), {

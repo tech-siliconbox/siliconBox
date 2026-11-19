@@ -4,6 +4,29 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Industry Ready: Resume Builder with the industry feature set)
+
+- Several resumes per learner (up to 5): switch, rename, new, duplicate, delete. Resumes save themselves a moment after typing stops (and on Ctrl/Cmd+S), with undo and redo and a warning before leaving unsaved edits. Migration `20261011000000-many-resumes` gives existing resumes an id and a name; run `pnpm db:migrate`.
+- New sections: awards and achievements, publications, languages, and up to 3 of the learner's own; every section can be renamed, hidden and reordered. Bullets and the summary take **bold** and *italic*.
+- Design: four single-column ATS-safe templates (Classic, Compact, Modern, Minimal), sans or serif, 9 to 12 pt, spacing, margins, six accent colours, A4 or US Letter; the preview, PDF and Word file follow one shared document model.
+- Downloads: PDF, Word (.docx), JSON Resume and Markdown. Imports: JSON Resume, and a LinkedIn data export (.zip).
+- AI tailoring to a job and AI import of a PDF or Word CV are built and show "Coming soon" until `ANTHROPIC_API_KEY` is set; CV screening's AI feedback shows "Coming soon" the same way.
+- API: `/api/v1/resumes` and `/api/v1/resumes/:id` (with `/pdf`, `/docx`, `/check`, `/tailor`) and `/api/v1/resumes/import/{linkedin,ai}` replace `/api/v1/resume`. The audit action for AI use is now `ai_request`, naming the feature.
+- New dependencies: `docx` 9.15.4 (Word files, MIT) and `fflate` 0.8.3 (LinkedIn zip, MIT); `fflate` is overridden to 0.8.3 everywhere (GHSA-px8p-9vwx-vf98, also reached through `@react-pdf/renderer`).
+
+### Added (Industry Ready: CVs kept, and AI feedback, ADR 0030)
+
+- CVs are stored per user (founder, 2026-11-19): each upload is kept with its report for the learner's newest 5 CVs, downloadable from the report list (`GET /api/v1/cv-screenings/:id/file`), and deleted with its report, all reports or the account. The data download lists the files without their bytes.
+- AI feedback on a saved report through Claude (`POST /api/v1/cv-screenings/:id/feedback`): the learner reads the notice and ticks their agreement each time; the CV's text goes without their name, contact details, links and personal details; the answer (summary, line rewrites, strengths, job fit and gaps, never a score) is checked on the server before it is kept with the report. 5 a day and 30 a month per learner; a failure gives the use back. Hidden until `ANTHROPIC_API_KEY` is set. `@anthropic-ai/sdk` 1.10.0 is a new dependency (server only).
+- Shared: `IdParamsSchema` replaces five inline `:id` schemas; `DAY_MS` replaces two copies; `fileDownload` serves both the resume PDF and kept CVs.
+
+### Added (Industry Ready: job match and resume check)
+
+- CV screening takes an optional job description and adds a job match: the share of the posting's formal verification and hardware terms the CV shows (requirements weighted up, pay and perks skipped), with the missing terms most-wanted first. The CV score itself is unchanged. The job description is not stored; the match is saved with the report.
+- "What an ATS reads": the text read from an uploaded CV is shown after screening, never stored.
+- Resume Builder: "Check resume" screens the saved resume's own PDF the same way, optionally against a job description (`POST /api/v1/resume/check`, 20 an hour; now `/api/v1/resumes/:id/check`). Nothing is stored.
+- Draft ADR 0030 (proposed): AI feedback on CVs and resumes through Claude, for the later phases.
+
 ### Added (graded course work, ADR 0029)
 
 - Assessments: a course's multiple-choice assessment is answered in its module page and scored on the server against a hidden key (`assessment_keys`, read only by the grader database user). At most 3 attempts, no waiting; the review with right answers and explanations appears only once the learner passed or used every attempt. The Basic course's 30-question assessment (pass 24) was converted; its answer key is no longer printed in the page.

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { IdParamsSchema } from '@siliconbox/shared';
 import { withApiGate } from '@/server/api/with-api-gate';
 import { submitCapstone } from '@/server/capstones';
 import { RATE_LIMITS } from '@/server/rate-limit';
@@ -12,7 +12,7 @@ export const PUT = withApiGate(
   {
     access: { kind: 'signedIn' },
     rateLimit: RATE_LIMITS.capstoneUpload,
-    schemas: { params: z.strictObject({ id: z.uuid() }) },
+    schemas: { params: IdParamsSchema },
   },
   async ({ identity, input, request }) => {
     await submitCapstone(identity, input.params.id, request);

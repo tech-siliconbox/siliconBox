@@ -1,6 +1,6 @@
 'use client';
 
-import type { Resume } from '@siliconbox/shared';
+import { RESUME_LIST_LIMITS, type Resume } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { ListEditor } from './list-editor';
 
@@ -17,7 +17,7 @@ export function CertificationsEditor({
     <ListEditor
       label="Certification"
       items={items}
-      max={10}
+      max={RESUME_LIST_LIMITS.certifications}
       create={() => ({ name: '', issuer: '', year: new Date().getFullYear() })}
       onChange={onChange}
       render={(cert, set) => (

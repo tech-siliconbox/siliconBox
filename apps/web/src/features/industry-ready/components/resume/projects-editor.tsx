@@ -1,6 +1,6 @@
 'use client';
 
-import type { Resume } from '@siliconbox/shared';
+import { RESUME_LIST_LIMITS, type Resume } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { BulletsField } from './bullets-field';
 import { ListEditor } from './list-editor';
@@ -18,7 +18,7 @@ export function ProjectsEditor({
     <ListEditor
       label="Project"
       items={items}
-      max={8}
+      max={RESUME_LIST_LIMITS.projects}
       create={() => ({ name: '', link: '', bullets: [] })}
       onChange={onChange}
       render={(project, set) => (

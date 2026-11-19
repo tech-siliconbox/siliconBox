@@ -29,7 +29,7 @@ export const GET = withApiGate(
 export const PUT = withApiGate(
   { access: { kind: 'signedIn' }, rateLimit: RATE_LIMITS.photoUpload, schemas: {} },
   async ({ identity, request }) => {
-    const file = await readUpload(request, MAX_PHOTO_BYTES, 'PHOTO_NOT_SUPPORTED');
+    const { file } = await readUpload(request, MAX_PHOTO_BYTES, 'PHOTO_NOT_SUPPORTED');
     await savePhoto(
       identity.userId,
       await toProfilePhoto(new Uint8Array(await file.arrayBuffer())),

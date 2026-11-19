@@ -1,3 +1,6 @@
+import { AI_ALLOWANCE } from './ai/notice';
+import { RESUMES_MAX } from './schemas/resume';
+
 /**
  * Stable error codes with their HTTP status and the only message a client ever sees.
  * Detail stays in the server log.
@@ -36,6 +39,27 @@ export const ERRORS = {
   CAPSTONE_CLOSED: { status: 409, message: 'Your capstone has already passed.' },
   HANDLE_TAKEN: { status: 409, message: 'That handle is taken. Try another.' },
   RATE_LIMITED: { status: 429, message: 'Too many requests. Please wait a moment and try again.' },
+  AI_QUOTA_REACHED: {
+    status: 429,
+    message: `You have used your AI help for now: ${AI_ALLOWANCE.perDay} a day and ${AI_ALLOWANCE.perMonth} a month.`,
+  },
+  AI_UNAVAILABLE: {
+    status: 503,
+    message:
+      'AI help is not available right now, and this did not use your allowance. Please try again later.',
+  },
+  RESUME_LIMIT_REACHED: {
+    status: 409,
+    message: `You have ${RESUMES_MAX} resumes, the most you can keep. Delete one to add another.`,
+  },
+  LINKEDIN_EXPORT_NOT_SUPPORTED: {
+    status: 415,
+    message: 'Upload the .zip file LinkedIn sends you (Get a copy of your data), of up to 10 MB.',
+  },
+  CV_FILE_NOT_KEPT: {
+    status: 409,
+    message: 'We no longer keep the file for this report. Upload the CV again.',
+  },
   RUN_QUOTA_REACHED: {
     status: 429,
     message: "You have used all of today's Drill runs. They reset tomorrow.",

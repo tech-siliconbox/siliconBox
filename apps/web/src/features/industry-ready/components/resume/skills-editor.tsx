@@ -1,6 +1,6 @@
 'use client';
 
-import type { Resume } from '@siliconbox/shared';
+import { RESUME_LIST_LIMITS, type Resume } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { ListEditor } from './list-editor';
 
@@ -18,7 +18,7 @@ export function SkillsEditor({
     <ListEditor
       label="Skill group"
       items={skills}
-      max={8}
+      max={RESUME_LIST_LIMITS.skills}
       create={() => ({ category: 'Formal verification', items: [] })}
       onChange={onChange}
       render={(group, set) => (

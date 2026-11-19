@@ -1,6 +1,6 @@
 'use client';
 
-import type { Resume } from '@siliconbox/shared';
+import { RESUME_LIST_LIMITS, type Resume } from '@siliconbox/shared';
 import { TextField } from '@/components/ui/text-field';
 import { BulletsField } from './bullets-field';
 import { ListEditor } from './list-editor';
@@ -19,7 +19,7 @@ export function ExperienceEditor({
     <ListEditor
       label="Role"
       items={items}
-      max={10}
+      max={RESUME_LIST_LIMITS.experience}
       create={() => ({
         role: '',
         company: '',

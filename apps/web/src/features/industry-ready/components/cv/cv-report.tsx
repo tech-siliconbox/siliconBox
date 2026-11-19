@@ -1,8 +1,10 @@
 'use client';
 
-import type { CvReport } from '@siliconbox/shared';
+import type { CvReport, JobMatch } from '@siliconbox/shared';
 import { Badge } from '@/components/ui/badge';
+import { EYEBROW_CLASS } from '@/components/ui/eyebrow';
 import { cn } from '@/lib/cn';
+import { countOf } from '@/lib/count-of';
 
 function verdict(score: number): { label: string; tone: string } {
   if (score >= 80) return { label: 'Strong', tone: 'text-success' };
@@ -49,9 +51,7 @@ function Checks({ report }: { report: CvReport }) {
     if (checks.length === 0) return null;
     return (
       <section key={status} className="flex flex-col gap-2">
-        <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-          {STATUS[status].label}
-        </h3>
+        <h3 className={EYEBROW_CLASS}>{STATUS[status].label}</h3>
         <ul className="flex flex-col gap-2">
           {checks.map((check) => (
             <li key={check.id} className="flex gap-3 text-sm">
@@ -70,22 +70,27 @@ function Checks({ report }: { report: CvReport }) {
   });
 }
 
+/** Terms found in the CV (filled) and those it lacks (outlined). */
+function KeywordChips({ found, missing }: { found: string[]; missing: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {found.map((word) => (
+        <Badge key={word} variant="inverted">
+          {word}
+        </Badge>
+      ))}
+      {missing.map((word) => (
+        <Badge key={word}>{word}</Badge>
+      ))}
+    </div>
+  );
+}
+
 function Keywords({ report }: { report: CvReport }) {
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-        Formal verification keywords
-      </h3>
-      <div className="flex flex-wrap gap-1.5">
-        {report.keywords.found.map((word) => (
-          <Badge key={word} variant="inverted">
-            {word}
-          </Badge>
-        ))}
-        {report.keywords.missing.map((word) => (
-          <Badge key={word}>{word}</Badge>
-        ))}
-      </div>
+      <h3 className={EYEBROW_CLASS}>Formal verification keywords</h3>
+      <KeywordChips found={report.keywords.found} missing={report.keywords.missing} />
       <p className="text-[12px] text-muted-foreground">
         Filled: found in your CV. Outlined: consider adding, only where true for your work.
       </p>
@@ -93,7 +98,37 @@ function Keywords({ report }: { report: CvReport }) {
   );
 }
 
-/** The screening result: overall score, area scores, what to fix, and keyword coverage. */
+function JobMatchView({ match }: { match: JobMatch }) {
+  const asked = match.found.length + match.missing.length;
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className={EYEBROW_CLASS}>Match with the job description</h3>
+      {asked === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          That job description names none of the formal verification or hardware terms we know, so
+          there is no match to show.
+        </p>
+      ) : (
+        <>
+          <p className="flex items-baseline gap-3">
+            <span className="font-mono text-3xl font-bold">{match.score}%</span>
+            <span className="text-sm text-muted-foreground">
+              You show {match.found.length} of the {countOf(asked, 'term')} it asks for; those under
+              its requirements count for more.
+            </span>
+          </p>
+          <KeywordChips found={match.found} missing={match.missing} />
+          <p className="text-[12px] text-muted-foreground">
+            Filled: in your CV. Outlined: the job asks for it; add it only where it is true for your
+            work.
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
+
+/** The screening result: score, the job match when one was asked for, areas, fixes, keywords. */
 export function CvReportView({ report }: { report: CvReport }) {
   const { label, tone } = verdict(report.score);
   return (
@@ -110,6 +145,7 @@ export function CvReportView({ report }: { report: CvReport }) {
           </p>
         </div>
       </header>
+      {report.jobMatch !== undefined && <JobMatchView match={report.jobMatch} />}
       <ScoreBars report={report} />
       <Checks report={report} />
       <Keywords report={report} />

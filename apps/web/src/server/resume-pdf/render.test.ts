@@ -1,4 +1,5 @@
-import { ResumeSchema, screenCv } from '@siliconbox/shared';
+import { RESUME_TEMPLATES, ResumeSchema, screenCv } from '@siliconbox/shared';
+import { fullResume } from '@siliconbox/shared/testing/resume';
 import { describe, expect, it } from 'vitest';
 import { extractCvText } from '../cv-text';
 import { renderResumePdf } from './render';
@@ -34,12 +35,36 @@ const resume = ResumeSchema.parse({
   ],
 });
 
+describe('every template and design', () => {
+  it.each(RESUME_TEMPLATES)(
+    '%s prints every section as text an ATS reads',
+    async (template) => {
+      const resume = { ...fullResume(), template };
+      const { text } = await extractCvText(
+        'resume.pdf',
+        new Uint8Array(await renderResumePdf(resume)),
+      );
+      for (const expected of [
+        'Invented Learner',
+        'Positions of responsibility',
+        'SVA and closing proofs',
+      ]) {
+        expect(text.toLowerCase()).toContain(expected.toLowerCase());
+      }
+      expect(text).not.toContain('**');
+    },
+    20_000,
+  );
+});
+
 describe('resume PDF', () => {
   it('renders a text PDF that the CV screener can read, heading by heading', async () => {
     const pdf = await renderResumePdf(resume);
     expect(pdf.subarray(0, 5).toString()).toBe('%PDF-');
 
-    const { text, pages } = await extractCvText('resume.pdf', new Uint8Array(pdf));
+    const bytes = new Uint8Array(pdf);
+    const { text, pages } = await extractCvText('resume.pdf', bytes);
+    expect(bytes.byteLength).toBe(pdf.byteLength); // still readable, to be stored after reading
     expect(pages).toBe(1);
     expect(text).toContain('Invented Learner');
     expect(text).toMatch(/^EXPERIENCE$/m);
@@ -47,6 +72,13 @@ describe('resume PDF', () => {
     const report = screenCv(text, pages);
     expect(report.keywords.found).toEqual(expect.arrayContaining(['SVA', 'JasperGold', 'AXI']));
     expect(report.checks.find((check) => check.id === 'experience')?.status).toBe('pass');
+
+    const posting = 'Requirements\n- SVA and JasperGold\n- UVM';
+    expect(screenCv(text, pages, posting).jobMatch).toEqual({
+      score: 67,
+      found: ['SVA', 'JasperGold'],
+      missing: ['UVM'],
+    });
   }, 20_000);
 
   it.each([
