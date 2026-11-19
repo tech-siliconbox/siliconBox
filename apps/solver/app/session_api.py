@@ -1,9 +1,10 @@
 """Routes for Praman sessions (ADR 0031): thin, behind a signed token with scope `sessions`.
 
 The web app opens a session (it waits in line for a slot), sends requests and reads replies,
-and closes it. A session belongs to the learner in the token; another learner's looks exactly
-like a missing one (hardening finding 19). Replies that take longer than REPLY_WAIT_SECONDS
-(a what-if runs a proof) come back as pending and are read later by request id.
+closes it, and takes a closed session's last records once. A session belongs to the learner in
+the token; another learner's looks exactly like a missing one (hardening finding 19). Replies
+that take longer than REPLY_WAIT_SECONDS (a what-if runs a proof) come back as pending and are
+read later by request id.
 """
 
 import uuid
@@ -45,7 +46,12 @@ class SessionView(WireModel):
     state: SessionState
     position: int | None = None
     reason: str = ""
-    final: dict[str, Any] | None = None  # a closed session's last records
+
+
+class Final(WireModel):
+    """A closed session's last records (its host's answer to closing), or None once taken."""
+
+    final: dict[str, Any] | None
 
 
 class RequestReply(WireModel):
@@ -67,7 +73,6 @@ def _view(store: SessionStore, record: SessionRecord) -> SessionView:
         state=record.state,
         position=store.position(record.id) if record.state == "waiting" else None,
         reason=record.reason,
-        final=store.final(record.id) if record.state == "closed" else None,
     )
 
 
@@ -137,3 +142,10 @@ def close_session(session_id: UUID, caller: Learner, store: Store) -> SessionVie
     elif record.state == "open":
         store.request_close(record.id)
     return _view(store, store.get(record.id) or record)
+
+
+@router.delete("/{session_id}/final", response_model_by_alias=True)
+def take_final(session_id: UUID, caller: Learner, store: Store) -> Final:
+    """Hands a closed session's last records to the web app, once."""
+    record = _owned(store, session_id, caller)
+    return Final(final=store.take_final(record.id) if record.state == "closed" else None)
