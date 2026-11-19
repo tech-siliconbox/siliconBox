@@ -128,7 +128,14 @@ jobs:
           SOLVER_REQUIRE_IMAGE: '1'
           SOLVER_TEST_IMAGE: siliconbox-solver:ci
       # Praman's ported tests run in the image, the toolchain sessions use in production (ADR 0031).
-      - run: sh scripts/praman-tests-in-image.sh siliconbox-solver:ci
+      - run: sh scripts/praman-tests-in-image.sh siliconbox-solver:ci "$RUNNER_TEMP/praman-tests"
+      # Their work folders (with sby's logs) when one fails, to see what the tools did.
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: praman-test-work
+          path: ${{ runner.temp }}/praman-tests
+          retention-days: 7
 
   security:
     runs-on: ubuntu-latest
