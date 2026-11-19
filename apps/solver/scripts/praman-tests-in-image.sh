@@ -17,5 +17,8 @@ docker run --rm --user 0 \
     set -e
     apt-get update -qq && apt-get install -y -qq --no-install-recommends procps >/dev/null
     python -m pip install --quiet --no-cache-dir -c constraints.txt pytest fakeredis httpx2
+    status=0
     PATH=/opt/oss-cad-suite/bin:$PATH /usr/local/bin/python -m pytest -q -p no:cacheprovider \
-      --basetemp=/out/pytest tests/praman'
+      --basetemp=/out/pytest tests/praman || status=$?
+    chmod -R a+rX /out    # the runner reads them back (CI keeps them when a test failed)
+    exit "$status"'
