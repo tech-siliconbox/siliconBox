@@ -8,6 +8,7 @@ import { CapstoneGradeForm } from '@/features/admin-tools/components/capstone-gr
 import { formatDate } from '@/lib/format-date';
 import { gradeCapstoneAction } from '@/server/capstone-grade-action';
 import { expertSession } from '@/server/capstone-reviews';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 export const metadata: Metadata = {
   title: 'Grade a capstone',
@@ -24,7 +25,7 @@ export default async function CapstoneReviewPage({ params }: ReviewPageProps) {
   const capstone = submission && (await findPublishedCapstone({ publicId: submission.capstoneId }));
   if (!submission || !capstone) notFound();
   return (
-    <section className="mx-auto flex max-w-3xl flex-col gap-6 px-6 pb-20 pt-16">
+    <section className={`mx-auto flex max-w-3xl flex-col gap-6 px-6 ${PAGE_SPACING}`}>
       <AdminToolHeader title={`Grade: ${capstone.work.title}`}>
         {submission.learnerName ?? 'Deleted account'} ({submission.learnerEmail ?? 'no email'}) sent{' '}
         {submission.fileName} on {formatDate(submission.submittedAt)}. The learner sees your scores

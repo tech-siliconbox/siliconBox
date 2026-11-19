@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { LessonBody } from '@/components/lesson/lesson-body';
 import { Watermarked } from '@/components/shared/watermarked';
 import { readLessonPreview } from '@/server/preview';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 export const metadata: Metadata = {
   title: 'Lesson preview',
@@ -27,7 +28,7 @@ export default async function LessonPreviewPage({ params }: PreviewPageProps) {
         Preview of the latest draft · learners see only the published version
       </p>
       <Watermarked mark={mark}>
-        <article className="mx-auto max-w-3xl px-4 pb-20 pt-16 sm:px-6">
+        <article className={`mx-auto max-w-3xl px-4 sm:px-6 ${PAGE_SPACING}`}>
           <LessonBody lesson={lesson} />
         </article>
       </Watermarked>

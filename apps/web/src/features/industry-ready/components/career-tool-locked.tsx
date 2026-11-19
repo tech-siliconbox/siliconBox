@@ -2,13 +2,14 @@ import { ERRORS, ROUTES } from '@siliconbox/shared';
 import { LockedCard } from '@/components/shared/locked-card';
 import { buttonVariants } from '@/components/ui/button';
 import { SiteLink } from '@/components/ui/site-link';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 type CareerToolLockedProps = { title: string; reason: 'SERVICE_LOCKED' | 'NOT_ENTITLED' };
 
 /** Shown instead of a career tool the learner cannot use yet, with the way forward. */
 export function CareerToolLocked({ title, reason }: CareerToolLockedProps) {
   return (
-    <div className="mx-auto max-w-2xl px-6 pb-20 pt-16">
+    <div className={`mx-auto max-w-2xl px-6 ${PAGE_SPACING}`}>
       <LockedCard
         title={title}
         reason={

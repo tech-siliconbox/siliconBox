@@ -7,6 +7,7 @@ import { findCourseWorkList } from '@/db/content';
 import { AdminToolHeader } from '@/features/admin-tools/components/admin-tool-header';
 import { formatDate } from '@/lib/format-date';
 import { expertSession } from '@/server/capstone-reviews';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 export const metadata: Metadata = {
   title: 'Capstone reviews',
@@ -67,7 +68,7 @@ export default async function CapstoneReviewsPage() {
   ]);
   const titles = new Map(capstones.map((c) => [c.publicId, `${c.courseTitle}: ${c.title}`]));
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-6 px-6 pb-20 pt-16">
+    <section className={`mx-auto flex max-w-5xl flex-col gap-6 px-6 ${PAGE_SPACING}`}>
       <AdminToolHeader title="Capstone reviews">
         Projects waiting for review come first, oldest first. Open one to download it, score each
         rubric criterion and write feedback for the learner.

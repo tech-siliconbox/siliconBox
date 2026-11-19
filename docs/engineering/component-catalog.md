@@ -21,13 +21,13 @@ Check here before writing a component, hook or helper. Add a row when you create
 
 | Name | Purpose | Status |
 | --- | --- | --- |
-| PageShell | Header (with an `headerActions` slot), main, footer | Built |
-| SiteHeader, SiteFooter | Nav and footer used by PageShell | Built |
+| PageShell, PAGE_SPACING | Header (with an `headerActions` slot), main, footer. `PAGE_SPACING` is the one top and bottom space for every page's content, kept small so a short page fits a laptop window without scrolling | Built |
+| SiteHeader, SiteFooter | Nav and footer used by PageShell; the footer is one compact row (brand, links, copyright) on wider screens | Built |
 | BrandMark | Logo icon with "SiliconBox" as live text | Built |
 | GuestActions | Sign in / Get started header actions | Built |
 | NAV_LINKS | Main sections, shared by header and footer (`components/shared/nav-links.ts`) | Built |
 | Watermarked | Tiles the visible mark over content (SVG, no inline styles). The invisible text pattern comes with lesson rendering in phase 2 | Built |
-| LockedCard | Locked state for services and levels, with the reason | Built |
+| LockedCard | Locked state for services and levels, with the reason; fills its grid cell, its action at the bottom | Built |
 | CompanyTag | Company name, with the logo once permission is confirmed | Built |
 | EmptyState | Standard empty display | Built |
 | ErrorState | Standard error display (used by the site's `error.tsx`) | Built |
@@ -78,7 +78,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | courses: CourseProgressBar, modulesDone, nextLesson | "N of M modules done" with a bar (module index, Overview); the next lesson a learner may open | Built |
 | Avatar | The learner's photo, or their initials on a dark circle; `sm` (menu) and `lg` (Settings, Overview) (`components/shared/avatar.tsx`) | Built |
 | PageIntro | The top of a section page: label, heading, a sentence (Courses, Pricing, Questions, Industry Ready) | Built |
-| SiteLink | Every link within the site; never prefetches (golden rule, ADR 0027). Lint allows `next/link` only here (`components/ui/site-link.tsx`) | Built |
+| SiteLink | Every link within the site; never prefetches (golden rule, ADR 0027), so it shows a thin bar at the top while the clicked page loads (`useLinkStatus`). Lint allows `next/link` only here (`components/ui/site-link.tsx`) | Built |
 | admin-tools: TraceForm, TraceResults | Watermark trace tool: paste leaked text, see the accounts it points to | Built |
 | admin-tools: AdminToolHeader, CapstoneGradeForm | An admin tool's heading; scores per rubric criterion and feedback for a capstone, saved by `gradeCapstoneAction` | Built |
 | AssessmentEmbed, CapstoneEmbed | Graded course work in a module's page (ADR 0029): questions as radio groups, then the review with the key once finished; the rubric, upload, scores and feedback (`components/lesson/`) | Built |
@@ -88,7 +88,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | drills: useDrillRun, useDrillDraft, waveRows | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser; trace to waveform rows | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
-| industry-ready: ServiceCard | Open or locked service card; links only to built services | Built |
+| industry-ready: ServiceCard | Open or locked service card, equal heights in a row; links only to built services. The page groups them as Open now and Coming soon, in columns that leave no card alone | Built |
 | industry-ready: CareerToolLocked | Why a career tool is unavailable, with the next step | Built |
 | industry-ready (resume): ResumeBuilder, ResumeLibraryBar, ResumeToolbar, ExportMenu, ResumePreview | The builder: which resume is open (switch, rename, new, duplicate, delete), save state, undo and redo, the panels and downloads (PDF, Word, JSON Resume, Markdown); the preview in the chosen design (`preview-classes.ts`, CSP-safe classes tested against the PDF colours) | Built |
 | industry-ready (resume): ListEditor, EntryControls, BasicsEditor, LinksEditor, SkillsEditor, ExperienceEditor, ProjectsEditor, EducationEditor, CertificationsEditor, AwardsEditor, PublicationsEditor, LanguagesEditor, CustomSectionEditor, BulletsField, MonthRange | Section editors; ListEditor adds, removes and reorders entries with EntryControls (also used by the Sections panel) | Built |
