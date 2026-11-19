@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { useDrillDraft } from '../hooks/use-drill-draft';
 import { useDrillRun } from '../hooks/use-drill-run';
-import { CodeEditor } from './code-editor';
+import { CodeEditor } from '@/components/shared/code-editor';
 import { RunOutput } from './run-output';
 
 type Tab = 'design' | 'properties';

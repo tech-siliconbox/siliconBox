@@ -28,6 +28,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | NAV_LINKS | Main sections, shared by header and footer (`components/shared/nav-links.ts`) | Built |
 | Watermarked | Tiles the visible mark over content (SVG, no inline styles). The invisible text pattern comes with lesson rendering in phase 2 | Built |
 | LockedCard | Locked state for services and levels, with the reason; fills its grid cell, its action at the bottom | Built |
+| CodeEditor | Monospace text area with line numbers; Tab indents, Esc then Tab leaves; read-only without `onChange`. Used by the Drill workspace and Praman | Built |
+| WaveformView, waveRows | A counterexample or cover trace as waveform rows (bits as lines, buses as labelled segments); `waveRows` (`lib/waveform.ts`) turns a trace into rows. Used by the Drill workspace and Praman | Built |
 | CompanyTag | Company name, with the logo once permission is confirmed | Built |
 | EmptyState | Standard empty display | Built |
 | ErrorState | Standard error display (used by the site's `error.tsx`) | Built |
@@ -84,8 +86,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | AssessmentEmbed, CapstoneEmbed | Graded course work in a module's page (ADR 0029): questions as radio groups, then the review with the key once finished; the rubric, upload, scores and feedback (`components/lesson/`) | Built |
 | assessments: AssessmentForm, CapstoneUpload | Sends an attempt (an answer per question) or the project .zip, then shows the page again at its block | Built |
 | InlineCourseHtml | A short piece of the author's markup inside a line (a question, an option, a rubric line), sanitised (`components/lesson/course-html.tsx`) | Built |
-| drills: DrillWorkspace, CodeEditor, RunOutput, WaveformView | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
-| drills: useDrillRun, useDrillDraft, waveRows | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser; trace to waveform rows | Built |
+| drills: DrillWorkspace, RunOutput | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
+| drills: useDrillRun, useDrillDraft | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
 | industry-ready: ServiceCard | Open or locked service card, equal heights in a row; links only to built services. The page groups them as Open now and Coming soon, in columns that leave no card alone | Built |

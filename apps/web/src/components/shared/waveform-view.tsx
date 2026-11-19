@@ -1,5 +1,5 @@
 import type { Trace } from '@siliconbox/shared';
-import { type Segment, busLabel, waveRows } from '../waveform';
+import { type Segment, busLabel, waveRows } from '@/lib/waveform';
 
 /** Room for the longest signal name: about 7 px a character at 11 px monospace. */
 const CHAR_WIDTH = 7;
