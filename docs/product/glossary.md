@@ -7,7 +7,7 @@
 | Content entitlement | A record that lets a learner open one level's lessons, Drills and answers until its end date. |
 | Tool entitlement | A separate 3-month window (the tool window) for the formal tool: running Drills and using Praman. |
 | **Praman** | The formal tool page (`/tool`, header link "Formal Tool"): a JasperGold-style workbench for the learner's own design, ported from formal-verify. ADR 0031. |
-| Tool session | One learner's Praman workspace: files, journal, settings, log and run history. While open it lives in its own session container; reopening replays its journal. |
+| Tool session | One learner's Praman workspace: files, journal, settings, log and run history. While open it lives in its own session container; reopening restores it from its last save. |
 | Proof minutes | Praman's daily allowance per level: the real time engines run in a learner's sessions. Separate from Drill runs. |
 | Window | The start-to-end period of an entitlement. |
 | Upgrade | Buying a higher level while a lower one is active; priced as the difference. |

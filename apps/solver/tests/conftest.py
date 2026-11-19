@@ -1,4 +1,7 @@
 import os
+import shutil
+import subprocess
+import tempfile
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -15,6 +18,9 @@ from app.models import JobSpec
 from app.store import JobStore
 from app.tools import SbyTool
 
+# Praman reads its work folder when its modules load: proofs in tests never write into the tree.
+os.environ.setdefault("FORMAL_WORK_DIR", tempfile.mkdtemp(prefix="praman-tests-"))
+
 SIGNING_KEY = "k" * 48
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -22,6 +28,26 @@ FIXTURES = Path(__file__).parent / "fixtures"
 if os.environ.get("SOLVER_REQUIRE_SBY") == "1" and SbyTool.locate() is None:
     raise RuntimeError("SOLVER_REQUIRE_SBY is set but SymbiYosys was not found on PATH")
 needs_sby = pytest.mark.skipif(SbyTool.locate() is None, reason="SymbiYosys is not installed")
+
+# The container tests: build the image first (`docker build -t siliconbox-solver:dev apps/solver`).
+# CI sets SOLVER_TEST_IMAGE after building it, and SOLVER_REQUIRE_IMAGE so they never skip there.
+IMAGE = os.environ.get("SOLVER_TEST_IMAGE", "siliconbox-solver:dev")
+
+
+def _image_available() -> bool:
+    if shutil.which("docker") is None:
+        return False
+    inspect = subprocess.run(  # noqa: S603
+        ["docker", "image", "inspect", IMAGE],  # noqa: S607
+        capture_output=True,
+        check=False,
+    )
+    return inspect.returncode == 0
+
+
+if os.environ.get("SOLVER_REQUIRE_IMAGE") == "1" and not _image_available():
+    raise RuntimeError(f"SOLVER_REQUIRE_IMAGE is set but {IMAGE} is not available")
+needs_image = pytest.mark.skipif(not _image_available(), reason=f"Docker image {IMAGE} not built")
 
 
 def make_token(scope: str, sub: str = "learner-1", key: str = SIGNING_KEY, **claims) -> str:

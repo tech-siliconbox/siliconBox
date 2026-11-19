@@ -26,20 +26,18 @@ from app.engine.sv_preprocessor import preprocess
 from app.engine.sva_lowering import SVALoweringEngine
 from app.engine.sva_parser import ParsedSVA, parse_sva
 from app.engine.vcd import read_counterexample_vcd
+from app.file_access import FILE_TASKS, INCLUDE
 from app.limits import MAX_LOG_CHARS, MAX_TRACES
 from app.models import CheckResult, JobResult, JobSpec, RunSettings, Trace, error_result
 from app.tools import SbyTool
-from app.workspace import check_folder
+from app.workspace import check_folder, strip_folder
 
 DESIGN_FILE = "design.sv"
 WRAPPER_TOP = "formal_wrapper"
 
 # System tasks and directives that read or write files. A Drill never needs them, and in
 # the runner they could read files outside the job (hardening finding 10).
-FILE_ACCESS = re.compile(
-    r"`\s*include\b|\$(?:readmem[hb]|writemem[hb]|fopen|fread|fgets|fgetc|fscanf|"
-    r"fwrite|fdisplay|fstrobe|fmonitor|sformat|system|dumpfile|dumpvars)\b"
-)
+FILE_ACCESS = re.compile(f"{INCLUDE.pattern}|{FILE_TASKS.pattern}")
 CHECK_LINE = re.compile(r"^\s*(\w+):\s*(assert|cover)\s*\(", re.MULTILINE)
 DISABLE_LINE = re.compile(r"^(\s*)(\w+):\s*(assert|cover)\s*\(")
 MODULE_NAME = re.compile(r"\bmodule\s+(\w+)")
@@ -227,7 +225,7 @@ def _check_result(run: CheckRun, traces_left: int, work_dir: Path) -> CheckResul
         kind="cover" if run.check.kind == "cover" else "assert",
         status=status,
         step=step,
-        message=_clean(str(run.found.get("message") or ""), work_dir)[:2000],
+        message=strip_folder(str(run.found.get("message") or ""), work_dir)[:2000],
         trace=trace,
     )
 
@@ -256,13 +254,6 @@ def _summarise(runs: list[CheckRun], elapsed: float, work_dir: Path) -> JobResul
         checks=checks,
         failed_check=first_fail.name if first_fail else None,
         failure_cycle=first_fail.step if first_fail else None,
-        message=_clean("\n".join(errors), work_dir)[:4000],
-        log=_clean(log, work_dir)[-MAX_LOG_CHARS:],
+        message=strip_folder("\n".join(errors), work_dir)[:4000],
+        log=strip_folder(log, work_dir)[-MAX_LOG_CHARS:],
     )
-
-
-def _clean(text: str, work_dir: Path) -> str:
-    """Removes the server's folder names from tool output (hardening finding 9)."""
-    for prefix in {str(work_dir.resolve()), str(work_dir)}:
-        text = text.replace(prefix + "/", "").replace(prefix, ".")
-    return text

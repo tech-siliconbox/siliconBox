@@ -1,0 +1,52 @@
+{
+  "description": "Non-ANSI FIFO with parameters declared in the module body; bind-style SVA using `define macros and fifo.DEPTH.",
+  "dut": "fifo1.sv",
+  "sva": "fifo_sva1.sv",
+  "depth": 20,
+  "expected": {
+    "wp_full": "COVERED",
+    "wp_empty": "COVERED",
+    "wp_simultaneous_rw": "COVERED",
+    "ap_reset": "PROVEN",
+    "ap_full_flag": "PROVEN",
+    "ap_empty_flag": "PROVEN",
+    "ap_write_inc": "PROVEN",
+    "ap_read_dec": "PROVEN",
+    "ap_simultaneous_rw": "PROVEN",
+    "ap_no_overflow": "PROVEN",
+    "ap_no_underflow": "PROVEN"
+  },
+  "mutations": [
+    {
+      "name": "count resets to 1",
+      "replace": [
+        "count  <= '0;",
+        "count  <= 1;"
+      ],
+      "expected": {
+        "ap_reset": "FAIL"
+      }
+    },
+    {
+      "name": "write increments count by 2",
+      "replace": [
+        "count       <= count + 1'b1;",
+        "count       <= count + 2'd2;"
+      ],
+      "expected": {
+        "ap_write_inc": "FAIL"
+      }
+    },
+    {
+      "name": "empty flag off by one",
+      "replace": [
+        "assign empty = (count == 0);",
+        "assign empty = (count == 1);"
+      ],
+      "expected": {
+        "ap_empty_flag": "FAIL"
+      }
+    }
+  ],
+  "mode": "prove"
+}

@@ -82,15 +82,11 @@ class LocalRunner:
         return _result(outcome, budget)
 
 
-def container_command(name: str, image: str, runtime: str | None) -> list[str]:
-    """The `docker run` line for one job. Every isolation flag lives here."""
+def isolation_flags(runtime: str | None, memory: str, env: dict[str, str]) -> list[str]:
+    """The `docker run` flags every job and session container gets; every isolation flag lives
+    here: no network, read-only root, tmpfs work and tmp folders, memory without swap, CPU and
+    process caps, no capabilities, non-root, and gVisor when `runtime` is runsc."""
     return [
-        "docker",
-        "run",
-        "--rm",
-        "--interactive",
-        "--name",
-        name,
         "--network",
         "none",
         "--read-only",
@@ -99,9 +95,9 @@ def container_command(name: str, image: str, runtime: str | None) -> list[str]:
         "--tmpfs",
         f"/tmp:rw,nosuid,nodev,noexec,size={RUNNER_TMP_MB}m",  # noqa: S108  Inside the container.
         "--memory",
-        RUNNER_MEMORY,
+        memory,
         "--memory-swap",
-        RUNNER_MEMORY,
+        memory,
         "--cpus",
         RUNNER_CPUS,
         "--pids-limit",
@@ -112,14 +108,31 @@ def container_command(name: str, image: str, runtime: str | None) -> list[str]:
         "no-new-privileges",
         "--user",
         CONTAINER_USER,
-        "--env",
-        "SOLVER_WORK_ROOT=/work",
+        *[flag for key, value in env.items() for flag in ("--env", f"{key}={value}")],
         *(["--runtime", runtime] if runtime else []),
-        image,
-        "python",
-        "-m",
-        "app.job_runner",
     ]
+
+
+def container_command(name: str, image: str, runtime: str | None) -> list[str]:
+    """The `docker run` line for one job."""
+    flags = isolation_flags(runtime, RUNNER_MEMORY, {"SOLVER_WORK_ROOT": "/work"})
+    entry = ["python", "-m", "app.job_runner"]
+    return ["docker", "run", "--rm", "--interactive", "--name", name, *flags, image, *entry]
+
+
+def docker_client_env() -> dict[str, str]:
+    """What the docker client needs from this process's environment; nothing reaches a job."""
+    return {key: os.environ[key] for key in DOCKER_CLIENT_ENV if key in os.environ}
+
+
+def remove_container(name: str, client_env: dict[str, str]) -> None:
+    """Killing the docker client does not stop its container; remove it by name."""
+    run_bounded(
+        ["docker", "rm", "--force", name],
+        cwd=APP_ROOT,
+        env=client_env,
+        timeout_seconds=CONTAINER_GRACE_SECONDS,
+    )
 
 
 class ContainerRunner:
@@ -130,7 +143,7 @@ class ContainerRunner:
     def run(self, spec: JobSpec) -> JobResult:
         name = f"siliconbox-job-{uuid.uuid4()}"
         budget = _budget(spec)
-        client_env = {key: os.environ[key] for key in DOCKER_CLIENT_ENV if key in os.environ}
+        client_env = docker_client_env()
         try:
             outcome = run_bounded(
                 container_command(name, self._image, self._runtime),
@@ -140,11 +153,5 @@ class ContainerRunner:
                 stdin_text=spec.model_dump_json(by_alias=True),
             )
         finally:
-            # Killing the docker client does not stop the container; remove it by name.
-            run_bounded(
-                ["docker", "rm", "--force", name],
-                cwd=APP_ROOT,
-                env=client_env,
-                timeout_seconds=CONTAINER_GRACE_SECONDS,
-            )
+            remove_container(name, client_env)
         return _result(outcome, budget)

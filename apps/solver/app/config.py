@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # Image for job containers, and an optional OCI runtime such as "runsc" (gVisor).
     solver_runner_image: str = "siliconbox-solver:dev"
     solver_container_runtime: str | None = None
+    # Praman sessions (ADR 0031): how many this host holds open at once, and how many may wait.
+    solver_session_slots: int = Field(default=2, ge=1)
+    max_waiting_sessions: int = Field(default=50, ge=1)
 
 
 @lru_cache

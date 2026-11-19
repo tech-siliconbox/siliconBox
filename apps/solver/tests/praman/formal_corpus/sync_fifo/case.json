@@ -1,0 +1,50 @@
+{
+  "description": "ANSI FIFO with #() parameters and synchronous reset; SVA with $rose/$fell/$past, repetition, ##N and a local capture variable.",
+  "dut": "sync_fifo.sv",
+  "sva": "fifo_sva.sv",
+  "depth": 40,
+  "expected": {
+    "wp_fifo_full": "COVERED",
+    "wp_fifo_empty": "COVERED",
+    "wp_fifo_full_falling_edge": "COVERED",
+    "wp_fifo_full_after_28": "COVERED",
+    "ap_fifo_not_full_empty": "PROVEN",
+    "ap_fifo_onehot0_full_empty": "PROVEN",
+    "ap_fifo_full_prev_write": "PROVEN",
+    "ap_fifo_empty_prev_read_no_write": "PROVEN",
+    "ap_fifo_write_not_empty": "PROVEN",
+    "ap_fifo_empty_after_reset": "PROVEN",
+    "ap_fifo_read_write_equal": "PROVEN",
+    "ap_fifo_data_after_empty": "PROVEN",
+    "ap_fifo_write_32_full": "VACUOUS",
+    "ap_fifo_data_after_empty_1_4": "FAIL"
+  },
+  "notes": {
+    "ap_fifo_data_after_empty_1_4": "Genuine counterexample: the SVA declares 'reg[7:0] data_start' but captures the 16-bit din, so any write with upper bits set (e.g. 0x8000) mismatches dout. The SVA should use reg[15:0].",
+    "wp_fifo_full_after_28": "Needs depth > 30 to be reachable.",
+    "ap_fifo_write_32_full": "Vacuous: the FIFO is full after 7 writes and the assumption cp_fifo_full_no_write then forbids writing, so 32 consecutive writes can never happen."
+  },
+  "mutations": [
+    {
+      "name": "read flips data bit 15",
+      "replace": [
+        "dout <= fifo[rptr];",
+        "dout <= fifo[rptr] ^ 16'h8000;"
+      ],
+      "expected": {
+        "ap_fifo_data_after_empty": "FAIL"
+      }
+    },
+    {
+      "name": "full flag never set",
+      "replace": [
+        "assign full  = (wptr + 1'b1) == rptr;",
+        "assign full  = 1'b0;"
+      ],
+      "expected": {
+        "wp_fifo_full": "UNREACHABLE"
+      }
+    }
+  ],
+  "mode": "prove"
+}

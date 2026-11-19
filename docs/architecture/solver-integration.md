@@ -22,9 +22,9 @@ The one place a learner chooses the top module, proof time and trace length (the
 3. Each command (a menu action or a line typed in the Tcl console) goes to the container on stdin; the answer comes back on stdout. Praman's session code runs inside: Tcl in safe mode, Yosys and its engines.
 4. Every engine start obeys the ceilings and the learner's remaining proof minutes. Settings above a ceiling are lowered to it, with a line in the log.
 5. The browser polls for log lines and proof progress (no SSE). The web app stores files, journal, results and traces in MongoDB; the solver keeps no database.
-6. After 15 minutes with no command and no proof running, the container closes. The next command reopens the session by replaying its journal.
+6. After 15 minutes with no command and no proof running, the container closes; its last records stay with the solver for the web app. The next command reopens the session from its last save: files, analysed sources, the elaborated design and results, as Praman restores sessions after a restart (Tcl variables are not kept).
 
-One open session per learner. Proof minutes are counted from real engine time, separately from the Drill run quota.
+One open session per learner. Proof minutes are counted from real engine time, separately from the Drill run quota. The solver's session API and protocol: `apps/solver/CLAUDE.md` (Praman sessions).
 
 ## Result shape
 
