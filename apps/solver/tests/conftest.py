@@ -1,4 +1,5 @@
 import os
+import tempfile
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -14,6 +15,9 @@ from app.main import create_app, get_store
 from app.models import JobSpec
 from app.store import JobStore
 from app.tools import SbyTool
+
+# Praman reads its work folder when its modules load: proofs in tests never write into the tree.
+os.environ.setdefault("FORMAL_WORK_DIR", tempfile.mkdtemp(prefix="praman-tests-"))
 
 SIGNING_KEY = "k" * 48
 FIXTURES = Path(__file__).parent / "fixtures"

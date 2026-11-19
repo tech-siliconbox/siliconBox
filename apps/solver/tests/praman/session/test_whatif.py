@@ -7,7 +7,7 @@ from app.praman.tclhost import CommandError, tclsh_path
 from app.praman.services.counterexample import trace_payload
 from app.praman.services.formal_service import get_job
 from tests.praman.conftest import requires_sby
-from tests.praman.session.test_session import run, session  # noqa: F401  (fixture)
+from tests.praman.session.conftest import run
 
 pytestmark = pytest.mark.skipif(tclsh_path() is None, reason="tclsh not installed")
 SETUP = ("analyze -sv pair.sv pair_sva.sv", "elaborate -top pair", "clock clk", "reset !rst_n")

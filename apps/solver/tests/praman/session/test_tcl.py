@@ -36,7 +36,7 @@ class Recorder:
         return f"<{name}>"
 
     def run(self, host, script):
-        return host.evaluate(script, self.call, lambda text, nl: self.out.append(text),
+        return host.evaluate(script, self.call, lambda text, _nl: self.out.append(text),
                              lambda depth, text: self.echo.append((depth, text)))
 
 

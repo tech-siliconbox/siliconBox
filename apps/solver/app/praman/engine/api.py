@@ -16,14 +16,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Protocol
 
-from app.agent.spec_ir import SpecIR
 
 ASSERT_VERDICTS = ("PROVEN", "HOLDS_BOUNDED", "FAIL", "VACUOUS", "ERROR", "TIMEOUT")
 COVER_VERDICTS = ("COVERED", "UNREACHABLE", "NOT_REACHED", "ERROR", "TIMEOUT")
 CONCLUSIVE = frozenset({"PROVEN", "COVERED", "UNREACHABLE"})
-
-_POLARITY = {"async_low": "low", "sync_low": "low", "async_high": "high", "sync_high": "high",
-             "none": "none"}
 
 
 @dataclass
@@ -39,15 +35,6 @@ class EngineJob:
     depth: int = 20
     timeout: int = 300
     name: str = ""                 # label for work directories and logs
-
-    @classmethod
-    def from_ir(cls, ir: SpecIR, rtl: str, sva: str, rtl_name: str = "", **kw) -> "EngineJob":
-        """A job whose top, clock and reset come from the IR (facts the agent
-        does not guess)."""
-        style = ir.design.style
-        return cls(rtl=rtl, sva=sva, rtl_name=rtl_name or f"{ir.design.top}.sv", top=ir.design.top,
-                   clock=style.clock, reset=style.reset or "",
-                   reset_polarity=_POLARITY[style.reset_kind], **kw)
 
 
 @dataclass

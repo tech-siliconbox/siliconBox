@@ -9,7 +9,7 @@ import app.praman.services.formal_service as formal_service
 import app.praman.services.sby_generator as sby_generator
 from tests.praman.conftest import requires_sby
 from tests.praman.session.designs import PAIR, PAIR_SVA
-from tests.test_sva_liveness import DUT as LIVE_DUT, _sva
+from tests.praman.test_sva_liveness import DUT as LIVE_DUT, _sva
 
 
 def run(tmp_path, monkeypatch, reuse: bool, name: str, sva=PAIR_SVA, dut=PAIR, top="pair", depth=20):

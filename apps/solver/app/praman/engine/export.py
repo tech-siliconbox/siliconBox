@@ -29,6 +29,8 @@ from typing import Optional
 
 from app.praman.services.sby_generator import sanitize_filename
 from app.praman.services.yosys_reader import read_commands
+from app.praman.services import sby_generator
+from app.workspace import remove_inside
 
 _PROP = re.compile(r"^; yosys-smt2-(assert|cover|assume) (\S+) (\S+)", re.MULTILINE)
 
@@ -98,7 +100,7 @@ def export(files: dict[str, str], top: str, reader: str, prep_script: list[str],
     start = time.monotonic()
     workdir = Path(workdir)
     if workdir.exists():
-        shutil.rmtree(workdir)
+        remove_inside(workdir, sby_generator.FORMAL_WORK_DIR)
     src, model = workdir / "src", workdir / "model"
     src.mkdir(parents=True)
     model.mkdir()

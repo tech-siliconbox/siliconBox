@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import logging
 import re
-import shutil
 import subprocess
 import os
 import tempfile
@@ -23,11 +22,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
+from app.praman import ceilings
 from app.praman.services.proc import run_tree, sby_environment
 from app.praman.services.compile_worker import run_isolated
 from app.praman.services.sby_generator import FORMAL_WORK_DIR, generate_files_project
 from app.praman.services.sva.pipeline import PreparedDesign, prepare_checked
 from app.praman.services.yosys_reader import MONITOR_FILE, read_commands
+from app.workspace import clear_inside
 
 logger = logging.getLogger("veriassist.strength")
 
@@ -108,7 +109,8 @@ def run_strength(job, service, count: int = 20, workers: int = 4, timeout: int =
     t0 = time.time()
     try:
         _analyse(run, job, service, count, workers, timeout, lines, observed,
-                 budget if budget is not None else float(os.environ.get("FORMAL_MUTATION_BUDGET", "") or 1800))
+                 ceilings.seconds(budget if budget is not None
+                                  else float(os.environ.get("FORMAL_MUTATION_BUDGET", "") or 1800)))
         run.status = "complete"
     except Exception as e:      # reported to the UI, never raised into the thread pool
         logger.exception(f"[{job.job_id}] mutation analysis failed")
@@ -144,7 +146,7 @@ def _analyse(run: StrengthRun, job, service, count: int, workers: int, timeout: 
                     "detected_by": []} for i, m in enumerate(mutations)]
 
     base = FORMAL_WORK_DIR / f"{job.job_id}__strength"
-    shutil.rmtree(base, ignore_errors=True)
+    clear_inside(base, FORMAL_WORK_DIR)
     deadline = time.monotonic() + budget
     from app.praman.services.formal_service import design_edits
 
@@ -165,7 +167,7 @@ def _analyse(run: StrengthRun, job, service, count: int, workers: int, timeout: 
         try:
             return service._run_sby(project.sby_file, project.work_dir, limit)
         finally:
-            shutil.rmtree(run_dir, ignore_errors=True)
+            clear_inside(run_dir, FORMAL_WORK_DIR)
 
     # how long a mutant should take: the unchanged design's check, timed
     started = time.monotonic()
@@ -220,10 +222,11 @@ def _analyse(run: StrengthRun, job, service, count: int, workers: int, timeout: 
                                       base / f"inv{c[0]['index']:03d}_{c[1]}", timeout, observe=c[2]), checks)):
             if same:
                 mutant.setdefault("invisible_to", []).append(req)
-    shutil.rmtree(base, ignore_errors=True)
+    clear_inside(base, FORMAL_WORK_DIR)
 
 
 _ALL = 1_000_000          # more mutations than any design has: Yosys then lists every candidate
+_LOCATED_LINES = 2        # a mutation spanning more lines cannot be placed on one line
 
 
 def _on_lines(command: str, lines: set[int]) -> bool:
@@ -334,10 +337,9 @@ def _list_mutations(prepared: PreparedDesign, monitor: str, count: int,
     if prefer_lines:
         # one per preferred line in turn, so every relied-on line gets a mutant before any gets two
         by_line: dict[int, list[str]] = {}
-        from app.agent.quality import LOCATED_LINES
         for line in design:
             first, last = source_lines(line)
-            if last - first >= LOCATED_LINES:
+            if last - first >= _LOCATED_LINES:
                 continue                             # not placeable on a line: no use to a requirement
             hit = sorted(n for n in prefer_lines if first <= n <= last)
             if hit:

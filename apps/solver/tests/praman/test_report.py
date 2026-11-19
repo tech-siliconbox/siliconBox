@@ -6,7 +6,6 @@ the input hashes.  User text is escaped.
 
 import hashlib
 
-import pytest
 
 import app.praman.services.formal_service as formal_service
 import app.praman.services.sby_generator as sby_generator

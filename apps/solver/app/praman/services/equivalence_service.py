@@ -30,7 +30,7 @@ import time
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from pyslang import ast
 
@@ -42,6 +42,7 @@ from app.praman.services.sva.debug import _fmt, _read_steps
 from app.praman.services.sva.frontend import FrontendError, elaborate
 from app.praman.services.sva.pipeline import HARNESS_MODULE, _choose_reset, _pick_top, harness_module_text
 from app.praman.services.yosys_reader import SLANG, preferred_reader, read_commands
+from app.workspace import clear_inside
 
 logger = logging.getLogger("veriassist.equivalence")
 
@@ -72,7 +73,7 @@ def run_equivalence(service, gold: dict[str, str], gate: dict[str, str], top: st
             f"\nRegisters without reset ({side}, arbitrary at power-up): {', '.join(regs)}"
             for side, regs in plan["unreset"].items() if regs)
         work = FORMAL_WORK_DIR / job_id
-        shutil.rmtree(work, ignore_errors=True)
+        clear_inside(work, FORMAL_WORK_DIR)
         sby = _stage(work, plan, gold, gate, mode, depth, timeout, PROOF_ENGINES)
         result = service._run_sby(str(sby), str(work), timeout)
         entry = _entry(result, plan, depth, mode, PROOF_ENGINE_LABEL)
@@ -309,7 +310,7 @@ def _differences(vcd: str, plan: dict[str, Any]) -> tuple[list[dict], int, list[
     wanted |= {f"{WRAPPER}.{n}" for n, _ in plan["inputs"]}
     wanted.add(f"{WRAPPER}.in_reset")
     trace = _read_steps(vcd, wanted)
-    values, widths = trace["values"], trace["widths"]
+    values = trace["values"]
     in_reset = values.get(f"{WRAPPER}.in_reset", [])
     for t in range(len(trace["steps"])):
         if in_reset and in_reset[t] == "1":

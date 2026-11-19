@@ -156,7 +156,7 @@ class TclHost:
         self,
         script: str,
         on_call: Callable[[str, list[str]], Optional[str]],
-        on_out: Callable[[str, bool], None] = lambda text, newline: None,
+        on_out: Callable[[str, bool], None] = lambda _text, _newline: None,
         on_echo: Callable[[int, str], None] = lambda depth, text: None,
     ) -> str:
         """Run `script`; returns its result.  Raises TclError (script error)

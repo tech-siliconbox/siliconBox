@@ -36,6 +36,32 @@ max-complexity = 10
 "app/engine/{sva_parser,sva_lowering,sv_preprocessor,sby_generator,vcd}.py" = [
   "ANN", "C901", "E501", "PTH", "RET504", "SIM102", "SIM105",
 ]
+# Praman (see [tool.ruff.format]). S603/S607: its tools are fixed argument lists run by name from
+# the image's PATH, inside the session container; S110/S112: deliberate best-effort reads.
+"app/praman/{commands,conn,coverage,deadend,elab,jobs,session,sources,split,tclhost,tclprops}.py" = [
+  "ANN", "B007", "B008", "B023", "B904", "B905", "C901", "E402", "E501", "E731", "E741", "I001", "PTH",
+  "RET", "S110", "S112", "S603", "S607", "SIM", "UP",
+]
+"app/praman/{services,engine}/**" = [
+  "ANN", "B007", "B008", "B023", "B904", "B905", "C901", "E402", "E501", "E731", "E741", "I001", "PTH",
+  "RET", "S105", "S110", "S112", "S603", "S607", "SIM", "UP",
+]
+"tests/praman/{test_*.py,session/test_*.py,session/designs.py,engine/test_*.py}" = [
+  "ANN", "B007", "B008", "B023", "B904", "B905", "C901", "E402", "E501", "E731", "E741", "I001", "PTH",
+  "RET", "S105", "S108", "S307", "S311", "S603", "S607", "SIM", "UP",
+]
+
+# Praman, ported from formal-verify at 1bfa69ba (ADR 0031), keeps its original layout so later
+# upstream changes can be compared and ported line by line: it is not reformatted, and only style
+# rules are relaxed for it. Correctness (F), the remaining bugbear rules and the security rules (S)
+# still apply. SiliconBox's own modules beside it (store.py, host.py, the conftests) get every rule.
+[tool.ruff.format]
+exclude = [
+  "app/praman/{commands,conn,coverage,deadend,elab,jobs,session,sources,split,tclhost,tclprops}.py",
+  "app/praman/services/**",
+  "app/praman/engine/**",
+  "tests/praman/{test_*.py,session/test_*.py,session/designs.py,engine/test_*.py}",
+]
 
 [tool.vulture]
 paths = ["app", "tests"]

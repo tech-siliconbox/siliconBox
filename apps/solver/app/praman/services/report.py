@@ -61,7 +61,7 @@ def build_report(job: FormalJob) -> str:
     entries = list(result.assertion_results) if result else []
     status = result.status if result else job.status.upper()
     parts = [
-        f"<h1>Formal verification report</h1>",
+        "<h1>Formal verification report</h1>",
         f"<div class='muted'>Job <code>{_e(job.job_id)}</code> · run {_e(_when(job.created_at))} · "
         f"report generated {_e(datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'))}</div>",
         _overview(status, entries, job),

@@ -211,7 +211,7 @@ def compile_monitor(
         "",
         *([f"    (* gclk *) wire {GLOBAL_CLOCK_NET};", ""]
           if any(GLOBAL_CLOCK_NET in line or IN_RESET_NET in line for line in body) else []),
-        *([f"    reg [1:0] __va_cycle = 0;",
+        *(["    reg [1:0] __va_cycle = 0;",
            f"    always @(posedge {GLOBAL_CLOCK_NET}) if (__va_cycle != 2'd{reset_cycles}) __va_cycle <= __va_cycle + 2'd1;",
            f"    wire {IN_RESET_NET} = __va_cycle != 2'd{reset_cycles};", ""]
           if not reset_port and any(IN_RESET_NET in line for line in body) else []),

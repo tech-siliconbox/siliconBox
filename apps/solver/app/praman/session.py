@@ -11,7 +11,8 @@ Commands run one at a time on the session's worker thread.  The log is a
 list of numbered events; the UI polls for the events after the last one it
 has, and for a new snapshot of the state when `version` moved.
 
-State lives in memory for now (the database comes with the run history).
+The web app keeps what a session saves (app/praman/store.py); a closed
+session comes back from it with `restored`.
 """
 
 from __future__ import annotations
@@ -34,12 +35,10 @@ logger = logging.getLogger("praman.session")
 
 VERSION = "0.1"
 MAX_EVENTS = 20_000              # log lines kept per session
-IDLE_SECONDS = 4 * 3600          # a session nobody polled for this long is closed
-MAX_SESSIONS = 200
 
-RESTARTED = ("The server was restarted: this session was restored with its files, log, design and results. "
+RESTARTED = ("This session was reopened with its files, log, design and results. "
              "Tcl variables are not kept.")
-RESTARTED_FILES = ("The server was restarted: the files and the log of this session were restored. "
+RESTARTED_FILES = ("This session was reopened with its files and log. "
                    "Run your script again to analyze and elaborate the design.")
 
 # Final states of a property (the others: not_run, running, stopped)
@@ -95,19 +94,12 @@ class Proof:
 
 
 class Session:
-    def __init__(self, session_id: str = "", workspace: str = "", restored: Optional[dict] = None,
-                 persistent: bool = True, owner: str = "", number: int = 0):
-        """restored: what the database kept of this session (store.load_session),
-        when it comes back after a server restart.  persistent: kept in the
-        database (a signed-in user's session); otherwise it lives in memory only
-        and nothing of it - files, log, runs - is saved."""
+    def __init__(self, session_id: str = "", restored: Optional[dict] = None, name: str = ""):
+        """restored: what the web app kept of this session (its last save), when
+        it is opened again.  name: what the learner calls it."""
         from app.praman.commands import Commands, COMMAND_NAMES   # commands need the session type
         self.id = session_id or f"pm_{uuid.uuid4().hex[:16]}"
-        self.workspace = workspace
-        self.persistent = persistent
-        self.owner = owner                              # the signed-in user's name ("" for a guest)
-        self.number = number                            # the how-manieth session of its owner
-        self.key = uuid.uuid4().hex                     # what its stream is opened with (the owner has it)
+        self.name = name
         self.created = time.time()
         self.touched = time.time()
         # A page that saw an earlier life of this session (before a server
@@ -132,7 +124,6 @@ class Session:
         self.settings = {"time_limit": 86400, "per_property_time_limit": 300, "max_trace_length": 20}
 
         self.auto_script = ""                           # the pm.tcl written for the files, while it is ours
-        self._listeners: set = set()                    # (event loop, asyncio.Event) of the open streams
         self._persist_lock = threading.Lock()
         self._persisted_seq = 0
         self._persist_failed = False
@@ -151,14 +142,8 @@ class Session:
         self._worker.start()
         if restored:
             message = RESTARTED if design_back else RESTARTED_FILES
-            if not (self.events and self.events[-1]["text"] == message):    # once, however often it restarts
+            if not (self.events and self.events[-1]["text"] == message):    # once, however often it reopens
                 self.log("info", message, code="PMI006")
-            running = (restored.get("state") or {}).get("proof")
-            if design_back and running:
-                try:
-                    self.commands.resume_proof(running)
-                except Exception:
-                    logger.exception("session %s: the running proof could not be resumed", self.id)
         else:
             self.log("info", f"Praman {VERSION}: {self.label} started. Type 'help' for the commands.",
                      code="PMI001")
@@ -196,22 +181,6 @@ class Session:
 
     def bump(self) -> None:
         self.version = getattr(self, "version", 0) + 1
-        self._wake()
-
-    # ── Streams (routers/praman.py /stream): told when there is something new ──
-
-    def subscribe(self, loop, event) -> None:
-        self._listeners.add((loop, event))
-
-    def unsubscribe(self, loop, event) -> None:
-        self._listeners.discard((loop, event))
-
-    def _wake(self) -> None:
-        for loop, event in list(getattr(self, "_listeners", set())):
-            try:
-                loop.call_soon_threadsafe(event.set)
-            except RuntimeError:                         # its loop is gone
-                self._listeners.discard((loop, event))
 
     def clear_results(self, why: str = "") -> None:
         cleared = False
@@ -251,25 +220,15 @@ class Session:
             self.events.append(event)
             if len(self.events) > MAX_EVENTS:
                 del self.events[: len(self.events) - MAX_EVENTS]
-        self._wake()
 
     @property
     def label(self) -> str:
-        """What the session is called where people see it.  (Its id is random on
-        purpose: it is part of what keeps a session to its owner.)"""
-        if self.persistent and self.owner:
-            return f"{self.owner} · Session {self.number}" if self.number else f"{self.owner}'s session"
-        return "Guest session"
+        """What the session is called where people see it."""
+        return self.name or "Session"
 
     def _state(self) -> dict:
         """What a restart must bring back besides files and log (kept as JSON)."""
-        state: dict[str, Any] = {"runs": self.runs, "phase": self.phase, "auto_script": self.auto_script,
-                                 "owner": self.owner, "number": self.number, "stream_key": self.key}
-        if self.proof.running and self.proof.selected:   # a worker may go on with it through a restart
-            state["proof"] = {"job_id": self.proof.job_id, "selected": self.proof.selected,
-                              "per_property": self.proof.per_property, "started_at": self.proof.started_at,
-                              "task": self.proof.task,
-                              "time_limit": self.proof.time_limit}
+        state: dict[str, Any] = {"runs": self.runs, "phase": self.phase, "auto_script": self.auto_script}
         if self.phase != "empty":
             state["analyzed"] = [[name, hashlib.sha256(text.encode("utf-8")).hexdigest()]
                                  for name, text in self.analyzed]
@@ -290,10 +249,6 @@ class Session:
         from app.praman import sources
         self.runs = int(state.get("runs") or 0)
         self.auto_script = state.get("auto_script") or ""
-        # the page that had the session open goes on streaming after a restart
-        self.key = state.get("stream_key") or self.key
-        self.owner = state.get("owner") or self.owner
-        self.number = int(state.get("number") or 0)
         analyzed = state.get("analyzed") or []
         if not analyzed or any(
                 name not in self.files
@@ -310,8 +265,8 @@ class Session:
             logger.exception("session %s: the saved design could not be restored", self.id)
             return False
         for prop in props.values():
-            if prop.status == "running":                 # its proof ended with the server
-                prop.status, prop.detail, prop.started_at = "stopped", "the server was restarted", None
+            if prop.status == "running":                 # its proof ended with the session's container
+                prop.status, prop.detail, prop.started_at = "stopped", "the session was closed", None
         self.props = props
         self.top, self.tree, self.ports = state["top"], state["tree"], state.get("ports") or []
         self.instances = state.get("instances") or 0
@@ -356,10 +311,9 @@ class Session:
                          f"Check it, then run it: source {sources.DEFAULT_SCRIPT}", code="PMI009")
 
     def persist(self) -> None:
-        """Write the session (files, journal, new log lines) to the database.
-        Best effort: a database that is down does not stop the session."""
+        """Hand the session (files, journal, new log lines) to the web app."""
         store = get_store()
-        if store is None or self._closed or not self.persistent:
+        if store is None or self._closed:
             return
         with self._persist_lock:
             with self.lock:
@@ -367,8 +321,7 @@ class Session:
                 files, journal, settings = dict(self.files), list(self.journal), dict(self.settings)
                 phase, top, state = self.phase, self.top, self._state()
             try:
-                store.save_session(self.id, self.workspace, self.created, phase, top, journal, settings, files,
-                                   new, state)
+                store.save_session(self.id, self.created, phase, top, journal, settings, files, new, state)
                 if new:
                     self._persisted_seq = new[-1]["seq"]
             except Exception:
@@ -424,7 +377,7 @@ class Session:
             result = self.host.evaluate(
                 line,
                 on_call=self.commands.call,
-                on_out=lambda text, newline: self.log("out", text),
+                on_out=lambda text, _newline: self.log("out", text),
                 on_echo=lambda depth, text: self.log("cmd", text, depth=depth),
             )
             if result:
@@ -454,7 +407,6 @@ class Session:
             return
         self.persist()
         self._closed = True
-        self._wake()
         self.proof.cancel.set()
         self._queue.put(None)
         self.host.close()
@@ -468,8 +420,6 @@ class Session:
             return {
                 "id": self.id,
                 "label": self.label,
-                "stream_key": self.key,
-                "persistent": self.persistent,
                 "version": self.version,
                 "phase": self.phase,
                 "busy": self.busy,
@@ -509,89 +459,3 @@ class Session:
             counts[group]["total"] = counts[group].get("total", 0) + 1
         return counts
 
-
-# ── Registry ──────────────────────────────────────────────────
-
-_sessions: dict[str, Session] = {}
-_registry_lock = threading.Lock()
-
-
-def _make_room() -> None:
-    _expire()
-    if len(_sessions) >= MAX_SESSIONS:
-        idle = [s for s in _sessions.values() if not s.proof.running] or list(_sessions.values())
-        oldest = min(idle, key=lambda s: s.touched)
-        _sessions.pop(oldest.id).close()
-
-
-def next_number(workspace: str) -> int:
-    """The number the next saved session of `workspace` gets (1, 2, ...)."""
-    store = get_store()
-    try:
-        return store.count_sessions(workspace) + 1 if store is not None else 0
-    except Exception:
-        logger.exception("sessions of %s could not be counted", workspace)
-        return 0
-
-
-def create_session(workspace: str = "", persistent: bool = True, owner: str = "") -> Session:
-    number = next_number(workspace) if persistent and owner else 0
-    with _registry_lock:
-        _make_room()
-        session = Session(workspace=workspace, persistent=persistent, owner=owner, number=number)
-        _sessions[session.id] = session
-        return session
-
-
-def get_session(session_id: str) -> Optional[Session]:
-    """The session; one the database kept from before a restart is brought
-    back with its files and log (nothing analyzed or elaborated)."""
-    session = _sessions.get(session_id)
-    if session is None:
-        store = get_store()
-        if store is None:
-            return None
-        try:
-            kept = store.load_session(session_id)
-        except Exception:
-            logger.exception("session %s could not be read from the database", session_id)
-            return None
-        if kept is None:
-            return None
-        with _registry_lock:
-            session = _sessions.get(session_id)
-            if session is None:
-                _make_room()
-                session = Session(session_id, kept.get("workspace", ""), restored=kept)
-                _sessions[session_id] = session
-    session.touched = time.time()
-    return session
-
-
-def close_session(session_id: str) -> bool:
-    with _registry_lock:
-        session = _sessions.pop(session_id, None)
-    if session is None:
-        return False
-    session.close()
-    return True
-
-
-def _expire() -> None:
-    now = time.time()
-    for session_id in [sid for sid, s in _sessions.items()
-                       if now - s.touched > IDLE_SECONDS and not s.proof.running]:
-        _sessions.pop(session_id).close()
-
-
-def close_all_sessions() -> None:
-    """The server is stopping: save and close every session (they come back from the database)."""
-    with _registry_lock:
-        open_sessions = list(_sessions.values())
-        _sessions.clear()
-    for session in open_sessions:
-        try:
-            session.commands.stop_proof("the server is stopping")
-            session.close()
-        except Exception:
-            logger.exception("session %s could not be closed", session.id)

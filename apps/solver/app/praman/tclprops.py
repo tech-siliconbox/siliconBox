@@ -20,6 +20,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+from app.file_access import PRAMAN_REFUSAL, file_task
 from app.praman.split import _mask
 
 KINDS = ("assert", "assume", "cover")
@@ -37,6 +38,8 @@ def check_expression(expr: str) -> str:
     masked = _mask(flat)
     if not flat:
         raise TclPropertyError("the expression is empty")
+    if task := file_task(flat):                      # SiliconBox: hardening finding 20
+        raise TclPropertyError(f"{task}: {PRAMAN_REFUSAL}")
     if ";" in masked or masked.count("(") != masked.count(")") or masked.count("[") != masked.count("]"):
         raise TclPropertyError(f'"{flat}" is not one expression')
     return flat
@@ -126,6 +129,6 @@ def differ_statements(inputs: dict[str, list[str]], widths: dict[str, int], unti
     return [
         f"wire __pm_now = {now};",
         "reg __pm_same = 1'b1;",
-        f"always @(posedge {{clock}}) __pm_same <= __pm_same && __pm_now;",
+        "always @(posedge {clock}) __pm_same <= __pm_same && __pm_now;",
         f"always @* if ({CYCLE} == 32'd{until}) __pm_other: assume (!(__pm_same && __pm_now));",
     ]

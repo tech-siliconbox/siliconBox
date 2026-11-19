@@ -8,8 +8,8 @@ import app.praman.services.sby_generator as sby_generator
 from app.praman.services.counterexample import drivers_payload
 from app.praman.services.sva.drivers import find_drivers
 from tests.praman.conftest import requires_sby
-from tests.test_auto_checks import DUT as FSM
-from tests.test_sva_debug import DUT, SVA
+from tests.praman.test_auto_checks import DUT as FSM
+from tests.praman.test_sva_debug import DUT, SVA
 
 WRAP = FSM + """module wrap (input clk, input rst_n, input go, input [3:0] sel, input [7:0] din, output [7:0] q);
   fsm u (.clk(clk), .rst_n(rst_n), .go(go), .sel(sel), .din(din), .q(q));

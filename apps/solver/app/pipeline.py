@@ -26,6 +26,7 @@ from app.engine.sv_preprocessor import preprocess
 from app.engine.sva_lowering import SVALoweringEngine
 from app.engine.sva_parser import ParsedSVA, parse_sva
 from app.engine.vcd import read_counterexample_vcd
+from app.file_access import FILE_TASKS, INCLUDE
 from app.limits import MAX_LOG_CHARS, MAX_TRACES
 from app.models import CheckResult, JobResult, JobSpec, RunSettings, Trace, error_result
 from app.tools import SbyTool
@@ -36,10 +37,7 @@ WRAPPER_TOP = "formal_wrapper"
 
 # System tasks and directives that read or write files. A Drill never needs them, and in
 # the runner they could read files outside the job (hardening finding 10).
-FILE_ACCESS = re.compile(
-    r"`\s*include\b|\$(?:readmem[hb]|writemem[hb]|fopen|fread|fgets|fgetc|fscanf|"
-    r"fwrite|fdisplay|fstrobe|fmonitor|sformat|system|dumpfile|dumpvars)\b"
-)
+FILE_ACCESS = re.compile(f"{INCLUDE.pattern}|{FILE_TASKS.pattern}")
 CHECK_LINE = re.compile(r"^\s*(\w+):\s*(assert|cover)\s*\(", re.MULTILINE)
 DISABLE_LINE = re.compile(r"^(\s*)(\w+):\s*(assert|cover)\s*\(")
 MODULE_NAME = re.compile(r"\bmodule\s+(\w+)")

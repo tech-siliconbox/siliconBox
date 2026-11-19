@@ -27,7 +27,8 @@ import threading
 import time
 from typing import TYPE_CHECKING, AbstractSet, Optional
 
-from app.praman import sources
+from app.file_access import PRAMAN_REFUSAL, file_task
+from app.praman import ceilings, sources
 from app.praman.tclhost import CommandError, ExitRequested, tcl_list, tcl_split
 from app.praman.services.uploads import join_sources
 
@@ -308,6 +309,9 @@ class Commands:
         if not names:
             raise CommandError("analyze: no source file given (analyze -sv <file> ...)")
         new = [(name, s.files[name]) for name in dict.fromkeys(names)]
+        for name, text in new:                       # SiliconBox: hardening finding 20
+            if task := file_task(text):
+                raise CommandError(f"analyze: {name} uses {task}: {PRAMAN_REFUSAL}")
         kept = [(n, t) for n, t in s.analyzed if n not in dict(new)]
         joined = join_sources([*kept, *new], "analyze.sv")
         for name, _ in new:
@@ -573,24 +577,35 @@ class Commands:
 
     # ── Settings ──────────────────────────────────────────────
 
+    def _within_ceiling(self, value: int, what: str, cycles: bool = False) -> int:
+        """SiliconBox (ADR 0031): a value above the learner's ceiling is lowered to it, and the log says so."""
+        lowered = ceilings.depth(value) if cycles else ceilings.seconds(value)
+        if lowered < value:
+            unit = " cycles" if cycles else "s"
+            self.s.log("info", f"{what}: {value}{unit} is above the ceiling of your level; {lowered}{unit} is used.",
+                       code="PMI100")
+        return lowered
+
     def cmd_set_prove_time_limit(self, args: list[str]) -> str:
         if len(args) != 1:
             raise CommandError("set_prove_time_limit: give one time, e.g. set_prove_time_limit 4h")
-        self.s.settings["time_limit"] = parse_time(args[0], "set_prove_time_limit")
+        self.s.settings["time_limit"] = self._within_ceiling(
+            parse_time(args[0], "set_prove_time_limit"), "set_prove_time_limit")
         self.s.bump()
         return ""
 
     def cmd_set_prove_per_property_time_limit(self, args: list[str]) -> str:
         if len(args) != 1:
             raise CommandError("set_prove_per_property_time_limit: give one time, e.g. 300s")
-        self.s.settings["per_property_time_limit"] = parse_time(args[0], "set_prove_per_property_time_limit")
+        self.s.settings["per_property_time_limit"] = self._within_ceiling(
+            parse_time(args[0], "set_prove_per_property_time_limit"), "set_prove_per_property_time_limit")
         self.s.bump()
         return ""
 
     def cmd_set_max_trace_length(self, args: list[str]) -> str:
         if len(args) != 1 or not args[0].isdigit() or not 1 <= int(args[0]) <= 100000:
             raise CommandError("set_max_trace_length: give a number of cycles, e.g. set_max_trace_length 50")
-        self.s.settings["max_trace_length"] = int(args[0])
+        self.s.settings["max_trace_length"] = self._within_ceiling(int(args[0]), "set_max_trace_length", cycles=True)
         self.s.bump()
         return ""
 
@@ -2036,10 +2051,12 @@ class Commands:
         if problem:
             raise CommandError(f"prove: the proof engine (sby) cannot be started: {problem}")
 
-        time_limit = parse_time(opts["-time_limit"], "prove -time_limit") if "-time_limit" in opts \
-            else s.settings["time_limit"]
-        per_property = parse_time(opts["-per_property_time_limit"], "prove -per_property_time_limit") \
-            if "-per_property_time_limit" in opts else s.settings["per_property_time_limit"]
+        time_limit = self._within_ceiling(parse_time(opts["-time_limit"], "prove -time_limit"), "prove -time_limit") \
+            if "-time_limit" in opts else ceilings.seconds(s.settings["time_limit"])
+        per_property = self._within_ceiling(
+            parse_time(opts["-per_property_time_limit"], "prove -per_property_time_limit"),
+            "prove -per_property_time_limit") \
+            if "-per_property_time_limit" in opts else ceilings.seconds(s.settings["per_property_time_limit"])
 
         sources_now = self._split_sources(s.splits)
         from app.praman.session import Proof
@@ -2114,7 +2131,6 @@ class Commands:
 
     def _run_proof(self, proof: "Proof", selected: list["Prop"], per_property: int) -> str:
         from app.praman import jobs
-        from app.praman.store import get_store
         s = self.s
         # a split assertion is proven through its cases
         only: set[str] = set()
@@ -2134,49 +2150,17 @@ class Commands:
         else:
             reset_signal, polarity = s.reset[0], "low" if s.reset[1] else "high"
         spec = jobs.ProofSpec(
-            job_id=proof.job_id, workspace=s.workspace, design_text=proof.sources[0], sva_text=proof.sources[1],
+            job_id=proof.job_id, design_text=proof.sources[0], sva_text=proof.sources[1],
             design_name=s.design.name, top=s.top, depth=s.settings["max_trace_length"], per_property=per_property,
             scans=scan_limits(per_property), only=sorted(only), reset_signal=reset_signal, reset_polarity=polarity,
             clock_signal=s.clock or "", witness_covers="witness" in s.related,
-            cache=bool(s.persistent and get_store() is not None),       # a signed-in user's results are reused
             cut=self._design_edits(proof.task)[0], without=self._design_edits(proof.task)[1])
         proof.selected, proof.per_property = [p.id for p in selected], per_property
-        s.persist()                                      # a restart can pick the proof back up
+        s.persist()                                      # the log so far reaches the web app
         return self._follow(proof, lambda reported: jobs.run(
             spec, proof.cancel, lambda entry: self._result(proof, entry, reported),
             lambda label, expired, then: self._progress(proof, label, expired, then),
             lambda label, kind, text, progress: self._engine(proof, label, kind, text, progress)))
-
-    def resume_proof(self, saved: dict) -> None:
-        """After a server restart: follow the proof a worker may still be running."""
-        from app.praman import jobs
-        from app.praman.session import Proof
-        s = self.s
-        job_id = saved.get("job_id", "")
-        if not job_id or jobs.state(job_id) == "unknown":
-            return
-        proof = Proof(running=True, started_at=saved.get("started_at"), job_id=job_id,
-                      time_limit=saved.get("time_limit", 86400), recorded=True, task=saved.get("task", ""),
-                      selected=list(saved.get("selected", [])), per_property=saved.get("per_property", 0))
-        ids = set(proof.selected)
-        with s.lock:
-            for prop in s.props.values():
-                if prop.id in ids or prop.parent in ids:
-                    prop.status, prop.detail, prop.started_at = "running", "", proof.started_at
-            proof.total = sum(1 for p in s.props.values() if p.status == "running")
-            s.proof = proof
-            s.bump()
-        s.log("info", "The proof that was running when the server restarted goes on.", code="PMI047")
-        selected = [s.props[i] for i in proof.selected if i in s.props]
-
-        def follow():
-            self._follow(proof, lambda reported: jobs.collect(
-                job_id, proof.cancel, lambda entry: self._result(proof, entry, reported),
-                lambda label, expired, then: self._progress(proof, label, expired, then),
-                on_engine=lambda label, kind, text, progress: self._engine(proof, label, kind, text, progress)),
-                selected)
-        proof.thread = threading.Thread(target=follow, name=f"praman-resume-{job_id}", daemon=True)
-        proof.thread.start()
 
     def _follow(self, proof: "Proof", run, selected: Optional[list] = None) -> str:
         """Run (or follow) a proof to its end, then settle what it left open."""
@@ -2241,7 +2225,7 @@ class Commands:
         from app.praman.store import get_store
         s = self.s
         store = get_store()
-        if store is None or not s.persistent:           # not signed in: nothing is kept
+        if store is None:                                # no outbox (the tests): nothing is kept
             return
         try:
             s.persist()                                  # the session row and the log so far
@@ -2249,7 +2233,7 @@ class Commands:
             reset = "not declared" if s.reset is None else \
                 (f"{'!' if s.reset[1] else ''}{s.reset[0]}" if s.reset[0] else "none")
             store.start_run(
-                proof.job_id, s.id, s.workspace, s.runs, command, s.top, clock, reset, proof.started_at,
+                proof.job_id, s.id, s.runs, command, s.top, clock, reset, proof.started_at,
                 {**s.settings, "time_limit": proof.time_limit, "related": sorted(s.related)},
                 list(s.journal), dict(s.files), {name for name, _ in s.analyzed}, s.seq,
                 {"praman": VERSION, **_tool_versions()})
@@ -2567,6 +2551,8 @@ class Commands:
         if not depth.isdigit() or not 1 <= int(depth) <= 10000:
             raise CommandError("check_equivalence: -depth takes a number of cycles")
         revised = join_sources([(n, s.files[n]) for n in names], "revised.sv")
+        if task := file_task(revised.text):          # SiliconBox: hardening finding 20
+            raise CommandError(f"check_equivalence: the revised design uses {task}: {PRAMAN_REFUSAL}")
         original_name = "original.sv"
         gold = {original_name: preprocess(s.design.text, original_name)}
         gate = {revised.name: preprocess(revised.text, revised.name)}

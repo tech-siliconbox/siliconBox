@@ -6,6 +6,7 @@ server-made UUIDs, and a delete happens only after the resolved path is confirme
 strictly inside the work root.
 """
 
+import contextlib
 import shutil
 import uuid
 from collections.abc import Iterator
@@ -25,11 +26,24 @@ def remove_inside(path: Path, root: Path) -> None:
     shutil.rmtree(resolved)
 
 
+def clear_inside(path: Path, root: Path) -> None:
+    """remove_inside for best-effort cleanup (Praman's work folders, ADR 0031): a folder that is
+    already gone or cannot be removed stays; a path outside the root still raises."""
+    with contextlib.suppress(OSError):  # UnsafePathError is a ValueError: never suppressed
+        remove_inside(path, root)
+
+
+def new_folder(work_root: Path) -> Path:
+    """A fresh private folder with a UUID name inside the work root."""
+    folder = work_root.resolve() / str(uuid.uuid4())
+    folder.mkdir(mode=0o700)
+    return folder
+
+
 @contextmanager
 def job_folder(work_root: Path) -> Iterator[Path]:
     """A fresh folder for one job, removed afterwards whatever happens."""
-    folder = work_root.resolve() / str(uuid.uuid4())
-    folder.mkdir(mode=0o700)
+    folder = new_folder(work_root)
     try:
         yield folder
     finally:

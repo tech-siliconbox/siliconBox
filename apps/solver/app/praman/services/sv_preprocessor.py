@@ -92,7 +92,6 @@ def preprocess(source: str, filename: str = "") -> str:
     Apply all yosys-compatibility transformations to a SV source string.
     Returns the transformed source.
     """
-    original = source
     changes = []
 
     # Pass 1: localparam logic  (do before packed-2D so we don't mangle it)

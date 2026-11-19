@@ -10,14 +10,16 @@ the user's sources are never modified.
 
 import os
 import re
-import shutil
 import logging
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass, field
-import xml.etree.ElementTree as ET
+
+# Tool output may carry names from learner code: parsed with defusedxml (hardening #2).
+from defusedxml import ElementTree as ET
 
 from app.praman.services.yosys_reader import VERILOG, read_commands
+from app.workspace import remove_inside
 
 # Label of the wrapper cover used by the assumption sanity check
 SANITY_COVER_LABEL = "_va_sanity"
@@ -71,7 +73,7 @@ def generate_files_project(
     front end (see yosys_reader)."""
     project_dir = Path(work_dir)
     if project_dir.exists():
-        shutil.rmtree(project_dir)
+        remove_inside(project_dir, FORMAL_WORK_DIR)
     src_dir = project_dir / "src"
     src_dir.mkdir(parents=True)
 

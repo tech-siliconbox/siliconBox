@@ -3,7 +3,6 @@ Sequential equivalence of two versions of a design: same outputs for the
 same inputs after reset, proven or refuted with the first difference.
 """
 
-import time
 
 import pytest
 

@@ -29,10 +29,11 @@ is said only when step 1 finds no state at all.
 from __future__ import annotations
 
 import re
-import shutil
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from app.workspace import clear_inside
 from typing import Optional
 
 STATE_CELLS = {"$dff", "$ff", "$anyinit"}            # after async2sync; dffunmap; memory_map
@@ -331,4 +332,4 @@ def check(prepared, cut: list[str], without: list[str], depth: int, timeout: int
                            f"(states where no input satisfies the assumptions) are not reached from reset. "
                            f"This is not a proof that there is none."}
     finally:
-        shutil.rmtree(work, ignore_errors=True)
+        clear_inside(work, Path(tempfile.gettempdir()))

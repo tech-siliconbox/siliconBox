@@ -5,10 +5,10 @@ import threading
 
 import pytest
 
-from app.praman.session import Proof, Session
+from app.praman.session import Proof
 from app.praman.tclhost import tclsh_path
 from tests.praman.conftest import requires_sby
-from tests.praman.session.test_session import run, session  # noqa: F401  (fixture)
+from tests.praman.session.conftest import run
 
 pytestmark = pytest.mark.skipif(tclsh_path() is None, reason="tclsh not installed")
 

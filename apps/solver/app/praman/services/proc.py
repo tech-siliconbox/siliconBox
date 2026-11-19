@@ -18,6 +18,8 @@ import sys
 import threading
 import time
 
+from app.praman import ceilings
+
 logger = logging.getLogger("veriassist.proc")
 
 
@@ -133,12 +135,15 @@ def run_tree(cmd, timeout=None, cancel=None, **kwargs) -> subprocess.CompletedPr
     way (TimeoutExpired), so a run can be stopped by the user."""
     if cancel is not None and cancel.is_set():
         raise subprocess.TimeoutExpired(cmd, timeout or 0)
+    timeout = ceilings.engine_timeout(timeout)      # SiliconBox: the learner's ceilings (ADR 0031)
+    if timeout is not None and timeout <= 0:        # no proof time left today: nothing starts
+        raise subprocess.TimeoutExpired(cmd, 0)
     kwargs.setdefault("text", True)
     kwargs.setdefault("stdout", subprocess.PIPE)
     kwargs.setdefault("stderr", subprocess.PIPE)
     kwargs.pop("capture_output", None)
     posix = os.name == "posix"
-    with subprocess.Popen(cmd, start_new_session=posix, **kwargs) as proc:
+    with ceilings.engine_running(), subprocess.Popen(cmd, start_new_session=posix, **kwargs) as proc:
         try:
             out, err = _communicate(proc, cmd, timeout, cancel)
         except MemoryLimitExceeded:

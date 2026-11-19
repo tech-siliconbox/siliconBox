@@ -27,3 +27,22 @@ RUNNER_CPUS = "1"
 RUNNER_PIDS = 256
 RUNNER_WORK_MB = 256
 RUNNER_TMP_MB = 64
+
+# Praman sessions (ADR 0031). The web app sends each learner's ceilings for their level; these
+# are the solver's own absolute ceilings (the Advance values), whatever a call asks for.
+PRAMAN_MAX_PROOF_SECONDS = 30 * 60
+PRAMAN_MAX_TRACE_LENGTH = 200
+PRAMAN_MAX_DAILY_SECONDS = 240 * 60  # Advance's proof minutes a day
+PRAMAN_MAX_FILES_BYTES = 1024 * 1024
+PRAMAN_MAX_TRACE_BYTES = 2 * 1024 * 1024
+PRAMAN_IDLE_SECONDS = 15 * 60  # a session with no command for this long, and no proof, closes
+
+# Per-session container (app.session_runners): 1 CPU like a job, more memory for a whole tool.
+PRAMAN_SESSION_MEMORY = "1536m"
+# Praman's own knobs, sized for one CPU: one check and one compile at a time, Tcl well inside
+# the container's memory.
+PRAMAN_SESSION_TUNING = {
+    "PRAMAN_TCL_MEMORY_MB": "256",
+    "FORMAL_MAX_PARALLEL": "1",
+    "FORMAL_COMPILE_WORKERS": "1",
+}

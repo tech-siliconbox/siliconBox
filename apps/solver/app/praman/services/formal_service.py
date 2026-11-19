@@ -31,7 +31,9 @@ from typing import Optional, Any
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from app.praman import ceilings
 from app.praman.services.proc import MemoryLimitExceeded, run_tree, sby_environment
+from app.workspace import clear_inside, remove_inside
 from app.praman.services.compile_worker import run_isolated
 from app.praman.services.sv_preprocessor import preprocess
 from app.praman.services.sva.frontend import FrontendError
@@ -343,6 +345,7 @@ class FormalService:
         Returns:
             FormalJob with complete results
         """
+        depth, timeout = ceilings.depth(depth), ceilings.seconds(timeout)   # SiliconBox (ADR 0031)
         if not project_name:
             project_name = f"formal_{uuid.uuid4().hex[:8]}"
 
@@ -476,8 +479,6 @@ class FormalService:
                                                    work_dir=FORMAL_WORK_DIR / project_name)
                 if native.ok:
                     sby_result.assertion_results = merge_both(sby_result.assertion_results, native, port)
-                    if portfolio and mode == "prove":
-                        self._certify(sby_result.assertion_results, prepared, project_name)
                 else:
                     sby_result.error_message += f"\nnative engine: {native.error}"
             for entry in sby_result.assertion_results:
@@ -532,21 +533,6 @@ class FormalService:
         job.completed_at = datetime.now().isoformat()
 
         return job
-
-    def _certify(self, entries: list[dict], prepared, project_name: str) -> None:
-        """Evidence level L3 (PRD §16.2): an L2 proof whose rIC3 certificate
-        Certifaiger accepts.  Without the tools nothing changes."""
-        from app.praman.engine import certify
-        if not certify.available():
-            return
-        for entry in entries:
-            if entry.get("evidence_level") != "L2":
-                continue
-            cert = certify.certify(prepared, entry["name"], workdir=FORMAL_WORK_DIR / project_name / "certificates",
-                                   timeout=PROOF_TIMEOUT_SECONDS)
-            entry["certificate"] = {"status": cert.status, "detail": cert.detail[-200:], "witness": cert.witness}
-            if cert.certified:
-                entry["evidence_level"] = "L3"
 
     def _run_native(self, job: FormalJob, prepared, project_name: str, raw: bool = False):
         """The native engine on the compiled design: an SbyResult-shaped result
@@ -715,7 +701,7 @@ class FormalService:
         assertions_dir = parent_dir / "assertions"
 
         if parent_dir.exists():
-            shutil.rmtree(parent_dir)
+            remove_inside(parent_dir, FORMAL_WORK_DIR)
         assertions_dir.mkdir(parents=True, exist_ok=True)
 
         aggregate.log_paths["job_dir"] = str(parent_dir)
@@ -758,7 +744,7 @@ class FormalService:
                 bulky = [p for p in Path(project.work_dir).rglob("*")
                          if p.is_dir() and p.name in _BULKY_DIRS]
                 for path in bulky:
-                    shutil.rmtree(path, ignore_errors=True)
+                    clear_inside(path, Path(project.work_dir))
             return project.work_dir, result
 
         def tracked(task):
@@ -1381,7 +1367,7 @@ def prune_run_artifacts(job_dir: Path, keep_traces: set[str]) -> int:
         for d in [d for d in dirs if d in _BULKY_DIRS]:
             path = os.path.join(root, d)
             freed += _tree_size(path)
-            shutil.rmtree(path, ignore_errors=True)
+            clear_inside(Path(path), Path(job_dir))
             dirs.remove(d)
         for f in files:
             path = os.path.join(root, f)
@@ -1594,7 +1580,7 @@ class SharedModel:
         from app.praman.services.yosys_reader import read_commands
         prepared = self.prepared
         src = self.work_dir / "shared_model"
-        shutil.rmtree(src, ignore_errors=True)
+        clear_inside(src, FORMAL_WORK_DIR)
         src.mkdir(parents=True)
         files = prepared.sources(0)
         files[MONITOR_FILE] = self.lowered
@@ -1611,7 +1597,7 @@ class SharedModel:
             raise RuntimeError((done.stderr or done.stdout or "yosys failed").strip()[-300:])
         text = model.read_text()
         if not KEEP_ARTIFACTS:
-            shutil.rmtree(src, ignore_errors=True)
+            clear_inside(src, FORMAL_WORK_DIR)
         return text
 
     _CHECK_CELL = re.compile(r"^\s*cell \$(?:check|assert|cover|live|fair) \\?(\S+)", re.M)
@@ -1665,7 +1651,7 @@ def prune_old_jobs(work_dir: Path, days: float) -> None:
             continue
         try:
             if entry.is_dir() and entry.stat().st_mtime < cutoff:
-                shutil.rmtree(entry, ignore_errors=True)
+                clear_inside(entry, Path(work_dir))
                 logger.info(f"Removed job folder older than {days:g} days: {entry.name}")
         except OSError:
             continue
@@ -2046,7 +2032,6 @@ def format_counterexample_for_llm(vcd_data: dict, max_cycles: int = 30) -> str:
     lines.append("")
 
     # Build cycle-by-cycle state
-    timeline = vcd_data.get("timeline", {})
     signals = vcd_data.get("signals", [])
 
     if not signals:

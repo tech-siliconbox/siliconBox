@@ -21,11 +21,12 @@ from __future__ import annotations
 
 import os
 import re
-import shutil
 from dataclasses import dataclass, field
 from typing import Optional
 
+from app.praman import ceilings
 from app.praman.engine.api import EngineJob
+from app.workspace import clear_inside
 
 
 @dataclass
@@ -151,7 +152,7 @@ def cone_lines(job: EngineJob, proven: list[str]) -> Optional[set[int]]:
         return None
     finally:
         if "root" in locals():
-            shutil.rmtree(root, ignore_errors=True)
+            clear_inside(root, Path(FORMAL_WORK_DIR))
     rtl_file = sanitize_filename(job.rtl_name)
     rtl_lines = job.rtl.splitlines()
     # the module each line is in (a joined file holds many): a name matches only in its own module
@@ -239,6 +240,7 @@ def line_coverage(job: EngineJob, proven: list[str], lines: Optional[list[int]] 
     workers = workers or int(os.environ.get("FORMAL_COVERAGE_PARALLEL", "") or max(1, (os.cpu_count() or 2) // 2))
 
     budget = budget if budget is not None else float(os.environ.get("FORMAL_COVERAGE_BUDGET", "") or 1800)
+    budget = ceilings.seconds(budget)                    # SiliconBox: one check within the ceiling (ADR 0031)
     deadline = time.monotonic() + budget
 
     def check(line: int):

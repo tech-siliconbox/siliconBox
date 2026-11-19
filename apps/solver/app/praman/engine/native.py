@@ -115,7 +115,7 @@ class NativeEngine:
                 "mode": job.mode, "timeout": job.timeout, "solver": solver}
         spec_path = root / "spec.json"
         spec_path.write_text(json.dumps(spec))
-        env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(Path(__file__).resolve().parents[2]),
+        env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(Path(__file__).resolve().parents[3]),
                                                             os.environ.get("PYTHONPATH", "")])}
         try:
             # the worker and its solver in a process group of their own, killed together on a timeout

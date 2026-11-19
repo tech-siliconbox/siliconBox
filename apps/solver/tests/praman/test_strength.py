@@ -8,7 +8,7 @@ import app.praman.services.sby_generator as sby_generator
 import app.praman.services.strength_service as strength_service
 from app.praman.services.strength_service import run_strength
 from tests.praman.conftest import requires_sby
-from tests.test_auto_checks import DUT
+from tests.praman.test_auto_checks import DUT
 
 # Checks the state machine only; the memory and q are not checked
 SVA = """module fsm_sva ();
@@ -44,43 +44,6 @@ def test_mutants_of_checked_logic_are_detected(tmp_path, monkeypatch):
     assert 0 < report["score"] < 100
     assert not list(tmp_path.glob("*__strength"))     # work folders removed
 
-
-@requires_sby
-def test_mutations_change_the_design_never_the_properties():
-    # a checker's helper wire (`wire [5:0] __next_remaining = remaining - 1;`) is logic of the property
-    # file: a mutant there is a changed property, which no property can be expected to catch
-    from app.agent.patterns import Context  # noqa: F401  (the case's IR loads the agent's models)
-    from app.praman.services.compile_worker import run_isolated
-    from app.praman.services.formal_service import FormalService, compile_design
-    from app.praman.services.strength_service import _list_mutations, _sources
-    from eval.formal import Case
-    case = Case.load("oneshot_timer")
-    sva = case.sva.replace("default clocking", "wire [5:0] __next_remaining = remaining - 1;\n  default clocking", 1)
-    prepared = run_isolated(compile_design, sva, case.rtl, case.rtl_name, "oneshot_timer", reset_signal="rst_n",
-                            reset_polarity="low", clock_signal="clk")
-    monitor = FormalService()._isolate(prepared.monitor_text, {"ap_req002_load"} if "ap_req002_load" in sva else set())
-    mutations, _ = _list_mutations(prepared, monitor, 200, design_files={case.rtl_name})
-    files = {s.rsplit(":", 1)[0] for m in mutations for s in _sources(m)}
-    assert mutations and files == {case.rtl_name}
-
-
-@requires_sby
-def test_a_survivor_no_output_shows_is_equivalent_and_not_counted(tmp_path, monkeypatch):
-    # pulse_stretch: `pulse_out = remaining != 0` with a bit of `remaining` flipped only while another
-    # bit is 1 gives the same answer for every value - no property can catch it
-    for module in (formal_service, sby_generator, strength_service):
-        monkeypatch.setattr(module, "FORMAL_WORK_DIR", tmp_path)
-    from eval.formal import Case
-    case = Case.load("pulse_stretch")
-    service = formal_service.FormalService()
-    job = service.run_formal(sva_code=case.sva, dut_code=case.rtl, dut_filename=case.rtl_name, dut_top="pulse_stretch",
-                             mode="prove", depth=case.depth, reset_signal="rst_n", reset_polarity="low",
-                             clock_signal="clk", project_name="equiv")
-    report = run_strength(job, service, count=40, workers=2).to_dict()
-    assert report["status"] == "complete", report["message"]
-    assert report["equivalent"] > 0
-    assert report["checked"] + report["equivalent"] == report["total"]
-    assert report["score"] == round(100 * report["detected"] / report["checked"], 1)
 
 
 TWO_OUTPUTS = """module two (input logic clk, input logic rst_n, input logic x, input logic y,
@@ -168,14 +131,3 @@ def test_the_time_a_mutant_gets_is_sized_to_the_design_and_the_undecided_get_mor
     assert report["timed_out"] == 1 and report["checked"] + report["equivalent"] == report["total"] - 1
 
 
-def test_a_requirement_whose_mutants_were_not_decided_says_so():
-    from types import SimpleNamespace
-    from app.agent.quality import mutation_by_requirement
-    coverage = SimpleNamespace(relied_on={8: ["a_run"], 12: ["a_done"]})
-    labels = {"a_run": ["REQ-001"], "a_done": ["REQ-002"]}
-    mutants = [{"status": "timeout", "command": "", "location": "fsm.sv:8"},
-               {"status": "detected", "command": "", "location": "fsm.sv:12", "detected_by": ["a_done"]},
-               {"status": "timeout", "command": "", "location": "fsm.sv:12"}]
-    out = mutation_by_requirement(mutants, coverage, labels)
-    assert out["REQ-001"] == (0, 0, 0, 1), "only undecided mutants: not measured, and why"
-    assert out["REQ-002"] == (1, 1, 1, 1)

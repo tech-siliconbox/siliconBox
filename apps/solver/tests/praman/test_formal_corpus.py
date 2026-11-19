@@ -74,7 +74,7 @@ def test_expected_verdicts(case_name, tmp_path, monkeypatch):
 
 
 @requires_sby
-@pytest.mark.parametrize("case_name, mutation", _mutations())
+@pytest.mark.parametrize("case_name, mutation", list(_mutations()))
 def test_mutation_is_caught(case_name, mutation, tmp_path, monkeypatch):
     case = _load_case(case_name)
     old, new = mutation["replace"]
