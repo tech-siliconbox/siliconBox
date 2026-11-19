@@ -5,8 +5,6 @@ SOLVER_TEST_IMAGE after building it; locally the tests run when the image exists
 """
 
 import json
-import os
-import shutil
 import subprocess
 import time
 
@@ -15,25 +13,7 @@ import pytest
 from app import runners
 from app.limits import RUNNER_PIDS
 from app.runners import ContainerRunner, container_command
-from tests.conftest import counter_spec
-
-IMAGE = os.environ.get("SOLVER_TEST_IMAGE", "siliconbox-solver:dev")
-
-
-def _image_available() -> bool:
-    if shutil.which("docker") is None:
-        return False
-    inspect = subprocess.run(  # noqa: S603
-        ["docker", "image", "inspect", IMAGE],  # noqa: S607
-        capture_output=True,
-        check=False,
-    )
-    return inspect.returncode == 0
-
-
-if os.environ.get("SOLVER_REQUIRE_IMAGE") == "1" and not _image_available():
-    raise RuntimeError(f"SOLVER_REQUIRE_IMAGE is set but {IMAGE} is not available")
-needs_image = pytest.mark.skipif(not _image_available(), reason=f"Docker image {IMAGE} not built")
+from tests.conftest import IMAGE, counter_spec, needs_image
 
 
 def test_every_isolation_flag_is_set() -> None:

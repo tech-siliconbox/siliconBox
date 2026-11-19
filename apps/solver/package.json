@@ -3,8 +3,9 @@
   "private": true,
   "scripts": {
     "setup": "python3.12 -m venv .venv && .venv/bin/pip install -q -U pip && .venv/bin/pip install -q -e . --group dev -c constraints.txt",
-    "dev": "sh -c 'trap \"kill 0\" EXIT; .venv/bin/python -m app.worker & .venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8001'",
+    "dev": "sh -c 'trap \"kill 0\" EXIT; .venv/bin/python -m app.worker & .venv/bin/python -m app.supervisor & .venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8001'",
     "worker": ".venv/bin/python -m app.worker",
+    "supervisor": ".venv/bin/python -m app.supervisor",
     "lint": ".venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/vulture",
     "test": ".venv/bin/pytest -q",
     "gate": ".venv/bin/python -m app.gate"

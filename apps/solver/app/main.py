@@ -1,6 +1,7 @@
 """FastAPI entry point. Every route sits behind a signed service token; there is no CORS.
 
-There is no synchronous run route (hardening finding 7): jobs are queued and polled.
+There is no synchronous run route (hardening finding 7): jobs are queued and polled. Praman
+sessions have routes of their own (app/session_api.py, ADR 0031).
 """
 
 from functools import lru_cache
@@ -13,6 +14,7 @@ from redis import Redis
 from app.auth import Caller, require_scope
 from app.config import get_settings
 from app.models import JobResult, JobSpec, WireModel
+from app.session_api import router as session_router
 from app.store import Job, JobState, JobStore, QueueFull
 from app.tools import SbyTool
 
@@ -73,6 +75,7 @@ def read_job(
 def create_app() -> FastAPI:
     application = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
     application.include_router(router)
+    application.include_router(session_router)
     return application
 
 
