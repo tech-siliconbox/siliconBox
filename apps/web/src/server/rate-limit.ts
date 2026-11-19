@@ -34,6 +34,9 @@ export const RATE_LIMITS = {
   dataExport: { name: 'data-export', limit: 5, windowMs: 60 * 60 * 1000 },
   // Admins tracing leaked text: a handful an hour is plenty, and it bounds lookups of learners.
   watermarkTrace: { name: 'watermark-trace', limit: 20, windowMs: 60 * 60 * 1000 },
+  // Praman (ADR 0031): the tool page polls every second or two while a session is open.
+  toolPoll: { name: 'tool-poll', limit: 90, windowMs: 60_000 },
+  toolCommand: { name: 'tool-command', limit: 30, windowMs: 60_000 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 /** Throws RATE_LIMITED, with Retry-After, once `key` has used up the policy's window. */

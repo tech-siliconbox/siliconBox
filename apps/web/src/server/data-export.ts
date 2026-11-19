@@ -10,6 +10,9 @@ import { findPhoto, findProfile } from '@/db/profiles';
 import { findCompletions } from '@/db/progress';
 import { findAllResumes } from '@/db/resumes';
 import { findRunOutcomes } from '@/db/runs';
+import { readFiles } from '@/db/tool-files';
+import { findAllToolRuns } from '@/db/tool-runs';
+import { findAllToolSessions } from '@/db/tool-sessions';
 import { getAuth } from './auth/auth';
 import type { Identity } from './auth/authenticate';
 import { runSolved } from './runs';
@@ -22,7 +25,8 @@ const SIGN_IN_METHODS: Readonly<Record<string, string>> = {
 const NOT_INCLUDED =
   'Not included: your Drill code, which starts from our copyrighted starter files; watermark ' +
   'codes and security alerts, which protect your account and our content; your capstone files, ' +
-  'which you uploaded and keep; your CV files, which you can download from CV screening.';
+  'which you uploaded and keep; your CV files, which you can download from CV screening; ' +
+  "your Praman sessions' logs and waveform traces, which you can open on the tool page.";
 
 /** Who the learner is, how they sign in, the device signed in now, and past sign-ins. */
 async function accountPart(identity: Identity, headers: Headers) {
@@ -118,6 +122,37 @@ async function courseWorkPart(userId: string) {
   };
 }
 
+/** The learner's Praman sessions (files and script) and runs with each property's result. */
+async function pramanPart(userId: string) {
+  const [sessions, runs] = await Promise.all([
+    findAllToolSessions(userId),
+    findAllToolRuns(userId),
+  ]);
+  const names = new Map(sessions.map((session) => [session.publicId, session.name]));
+  return {
+    pramanSessions: await Promise.all(
+      sessions.map(async (session) => ({
+        name: session.name,
+        createdAt: session.createdAt,
+        lastUsedAt: session.lastUsedAt,
+        top: session.top,
+        files: await readFiles(userId, session.files),
+        script: session.journal,
+      })),
+    ),
+    pramanRuns: runs.map((run) => ({
+      session: names.get(run.sessionId) ?? run.sessionId,
+      number: run.number,
+      command: run.command,
+      top: run.top,
+      status: run.status,
+      startedAt: run.startedAt,
+      finishedAt: run.finishedAt,
+      properties: run.properties,
+    })),
+  };
+}
+
 /** The learner's handle, bio and links, and their photo as a data address. */
 async function profilePart(userId: string) {
   const [profile, photo] = await Promise.all([findProfile(userId), findPhoto(userId)]);
@@ -127,14 +162,17 @@ async function profilePart(userId: string) {
 
 /** Everything we hold about a learner, in plain fields, for the download in Settings (DPDP). */
 export async function buildDataExport(identity: Identity, headers: Headers, now: Date) {
-  const [account, profile, learning, courseWork, resumes, cvScreenings] = await Promise.all([
-    accountPart(identity, headers),
-    profilePart(identity.userId),
-    learningPart(identity.userId),
-    courseWorkPart(identity.userId),
-    findAllResumes(identity.userId),
-    findAllScreenings(identity.userId),
-  ]);
+  const [account, profile, learning, courseWork, resumes, cvScreenings, praman] = await Promise.all(
+    [
+      accountPart(identity, headers),
+      profilePart(identity.userId),
+      learningPart(identity.userId),
+      courseWorkPart(identity.userId),
+      findAllResumes(identity.userId),
+      findAllScreenings(identity.userId),
+      pramanPart(identity.userId),
+    ],
+  );
   return {
     exportedAt: now,
     notIncluded: NOT_INCLUDED,
@@ -144,5 +182,6 @@ export async function buildDataExport(identity: Identity, headers: Headers, now:
     ...courseWork,
     resumes,
     cvScreenings,
+    ...praman,
   };
 }
