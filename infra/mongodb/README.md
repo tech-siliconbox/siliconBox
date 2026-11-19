@@ -26,6 +26,18 @@ Dev (2026-11-18): `siliconbox_grader` created with role `siliconboxGrader`; 16 o
 
 Payload stores the `drill_private` collection as `drill_privates`; roles and checks use that name.
 
+## Working from a new network
+
+Atlas accepts only the IPs on the project's access list. On any other network (a hotspot, an
+office) every connection fails with `SSL alert number 80` / `ReplicaSetNoPrimary`; a paused
+cluster looks the same. The dev server says which at startup: one `db_connected` line per
+database user (host, database, user, time taken), or `db_unreachable` with the likely cause.
+
+Fix: `pnpm db:allow-my-ip` (after `atlas auth login`). It tries the connection first and only
+when Atlas refuses this network adds this computer's IP for 24 hours, then waits until Atlas
+applies it. Networks already allowed are left alone, so permanent entries never get an expiry.
+If Atlas still refuses, check whether the cluster is paused: `atlas clusters list`.
+
 ## Local or self-managed
 
 `docker compose up -d` starts a single-node replica set; `mongosh "$MONGODB_URI_ADMIN" --file
