@@ -7,6 +7,7 @@ import { QuestionSearch } from '@/features/questions/components/question-search'
 import { questionsHref } from '@/features/questions/questions-href';
 import { SiteLink } from '@/components/ui/site-link';
 import { PageIntro } from '@/components/shared/page-intro';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 export const metadata: Metadata = { title: 'Interview questions' };
 
@@ -19,7 +20,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
   const { questions, total, page, pageCount } = await findPublishedQuestions(query);
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-8 px-6 pb-20 pt-24">
+    <div className={`mx-auto flex max-w-4xl flex-col gap-8 px-6 ${PAGE_SPACING}`}>
       <PageIntro eyebrow="Question bank" title="Interview questions">
         Questions companies have asked. Answers are open to learners with active access.
       </PageIntro>

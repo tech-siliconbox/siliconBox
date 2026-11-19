@@ -7,6 +7,7 @@ import { CourseLevelBadge } from '@/features/courses/components/course-outline';
 import { findCourseOutlines } from '@/db/content';
 import { PageIntro } from '@/components/shared/page-intro';
 import { countOf } from '@/lib/count-of';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 export const metadata: Metadata = { title: 'Courses' };
 
@@ -46,7 +47,7 @@ function CourseCard({ course }: { course: CourseOutline }) {
 export default async function CoursesPage() {
   const courses = await findCourseOutlines();
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6">
+    <div className={`mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6 ${PAGE_SPACING}`}>
       <PageIntro eyebrow="Courses" title="Course outlines">
         Three levels, each building on the last. Every outline is open to read, and Module 1 of each
         course is free once you sign in.

@@ -7,6 +7,7 @@ import { linkedLessonSlugs, resolveCourseLinks } from '@/server/course-html';
 import { optionalPageIdentity } from '@/server/auth/page-identity';
 import { findDoneInCourse } from '@/server/progress';
 import { CourseLevelBadge, CourseOutlineView } from '@/features/courses/components/course-outline';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 type CoursePageProps = { params: Promise<{ slug: string }> };
 
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
 async function AuthorCourseHome({ introduction }: { introduction: string }) {
   const lessonCourses = await findLessonCourses(linkedLessonSlugs(introduction));
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
+    <div className={`mx-auto max-w-4xl px-4 sm:px-6 ${PAGE_SPACING}`}>
       <CourseHtml html={resolveCourseLinks(introduction, lessonCourses)} />
     </div>
   );
@@ -35,7 +36,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
   const identity = await optionalPageIdentity();
   const done = await findDoneInCourse(identity, course);
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-10 px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
+    <div className={`mx-auto flex max-w-4xl flex-col gap-10 px-4 sm:px-6 ${PAGE_SPACING}`}>
       <header className="flex flex-col gap-4">
         <Eyebrow>Course</Eyebrow>
         <h1 className="text-4xl font-bold leading-[1.06] tracking-tighter sm:text-5xl">

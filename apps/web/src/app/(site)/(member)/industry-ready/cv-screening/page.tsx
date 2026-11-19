@@ -6,6 +6,7 @@ import { CvScreener } from '@/features/industry-ready/components/cv/cv-screener'
 import { isAiConfigured } from '@/server/ai/claude';
 import { requirePageIdentity } from '@/server/auth/page-identity';
 import { CAREER_SERVICES, careerToolState } from '@/server/career-services';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 export const metadata: Metadata = {
   title: 'CV screening',
@@ -18,7 +19,7 @@ export default async function CvScreeningPage() {
   if (state !== 'open') return <CareerToolLocked title="CV screening" reason={state} />;
   const screenings = await listScreenings(identity.userId);
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 pb-20 pt-12">
+    <div className={`mx-auto flex max-w-3xl flex-col gap-6 px-6 ${PAGE_SPACING}`}>
       <header className="flex flex-col gap-2 text-center">
         <Eyebrow>Industry Ready</Eyebrow>
         <h1 className="text-4xl font-bold tracking-tighter">CV screening</h1>

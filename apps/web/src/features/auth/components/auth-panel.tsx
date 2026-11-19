@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BrandMark } from '@/components/shared/brand-mark';
 import { Card } from '@/components/ui/card';
+import { PAGE_SPACING } from '@/components/shared/page-shell';
 
 type AuthPanelProps = {
   title: string;
@@ -22,8 +23,8 @@ export function AuthPanel({
   children,
 }: AuthPanelProps) {
   return (
-    <div className="mx-auto w-full max-w-sm px-4 pb-20 pt-12 sm:px-0 sm:pt-16">
-      <Card className="flex flex-col gap-5 sm:p-8">
+    <div className={`mx-auto w-full max-w-md px-4 sm:px-0 ${PAGE_SPACING}`}>
+      <Card className="flex flex-col gap-4 sm:px-8 sm:py-7">
         <header className="flex flex-col items-center gap-3 text-center">
           <BrandMark />
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
