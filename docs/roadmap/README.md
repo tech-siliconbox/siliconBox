@@ -16,6 +16,8 @@ Summary of everything left before launch: [path-to-launch.md](path-to-launch.md)
 
 Phase 3 (in progress): the solver, run API and container runner are done; the Drill workspace and the publish gate are next. Phase 2 is done apart from scheduled publishing (needs the host's cron); phase 1's gate waits on staging (Vercel, deferred by the founder). See the progress notes in each phase file.
 
+Alongside: Praman, the formal tool page (`/tool`). Plan confirmed 2026-11-19 ([tool-page-plan.md](tool-page-plan.md), [ADR 0031](../adr/0031-praman-formal-tool-page.md)); built in six PRs. It opens to learners only after its own hardening gate and an always-on host that runs containers.
+
 ## Blockers and founder decisions
 
 - [ ] Team size and start date (sets the calendar)
