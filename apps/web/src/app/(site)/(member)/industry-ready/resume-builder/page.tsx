@@ -3,7 +3,7 @@ import { Eyebrow } from '@/components/ui/eyebrow';
 import { findLatestResume, listResumes } from '@/db/resumes';
 import { CareerToolLocked } from '@/features/industry-ready/components/career-tool-locked';
 import { ResumeBuilder } from '@/features/industry-ready/components/resume/resume-builder';
-import { blankDraft } from '@/features/industry-ready/hooks/use-resume-workspace';
+import { blankDraft, toDraft } from '@/features/industry-ready/resume-draft';
 import { isAiConfigured } from '@/server/ai/claude';
 import { requirePageIdentity } from '@/server/auth/page-identity';
 import { CAREER_SERVICES, careerToolState } from '@/server/career-services';
@@ -22,10 +22,7 @@ export default async function ResumeBuilderPage() {
     listResumes(identity.userId),
     findLatestResume(identity.userId),
   ]);
-  const initial =
-    latest === null
-      ? blankDraft(account)
-      : { publicId: latest.publicId, title: latest.title, resume: latest.resume };
+  const initial = latest === null ? blankDraft(account) : toDraft(latest);
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 pb-20 pt-12">
       <header className="flex flex-col gap-2">

@@ -1,6 +1,7 @@
 'use client';
 
 import { API_ROUTES, type Resume, resumeMarkdown, slugify, toJsonResume } from '@siliconbox/shared';
+import { useRef } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { downloadText } from '@/lib/download-text';
@@ -13,6 +14,7 @@ type ExportMenuProps = {
 
 /** Download as PDF or Word (from the saved resume), or as JSON Resume or Markdown (as on screen). */
 export function ExportMenu({ resume, settle }: ExportMenuProps) {
+  const menu = useRef<HTMLDetailsElement>(null);
   const base = `${slugify(resume.basics.fullName) || 'resume'}-resume`;
   const fromServer = async (route: (id: string) => string) => {
     const id = await settle();
@@ -36,7 +38,7 @@ export function ExportMenu({ resume, settle }: ExportMenuProps) {
     },
   ];
   return (
-    <details className="relative">
+    <details ref={menu} className="relative">
       <summary className={cn(buttonVariants({ size: 'sm' }), 'cursor-pointer list-none')}>
         Download
       </summary>
@@ -47,7 +49,10 @@ export function ExportMenu({ resume, settle }: ExportMenuProps) {
             size="sm"
             variant="secondary"
             className="w-full justify-start"
-            onClick={run}
+            onClick={() => {
+              if (menu.current !== null) menu.current.open = false;
+              run();
+            }}
           >
             {label}
           </Button>

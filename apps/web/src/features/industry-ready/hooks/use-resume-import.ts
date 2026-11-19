@@ -3,7 +3,8 @@
 import { ResumeImportResultSchema, fromJsonResume } from '@siliconbox/shared';
 import { useState } from 'react';
 import { useApiRequest } from './use-api-request';
-import type { Account, ResumeWorkspace } from './use-resume-workspace';
+import type { Account } from '../resume-draft';
+import type { ResumeWorkspace } from './use-resume-workspace';
 
 const outcome = (title: string, dropped: number, notes: string[] = []) =>
   [

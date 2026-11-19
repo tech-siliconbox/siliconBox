@@ -97,7 +97,7 @@ test('Resume Builder keeps several resumes, with sections, design, undo and impo
   await expect(page.getByLabel('Resume', { exact: true }).locator('option')).toHaveCount(2);
 
   await page.getByRole('button', { name: 'Tailor with AI' }).click();
-  await expect(page.getByText('Coming soon')).toBeVisible();
+  await expect(page.getByText('Coming soon', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Import', exact: true }).click();
   await page.getByLabel('JSON Resume file').setInputFiles({
@@ -116,6 +116,7 @@ test('Resume Builder checks its own PDF against a job description', async ({ pag
   await page.goto(ROUTES.resumeBuilder);
 
   await page.getByLabel('Resume', { exact: true }).selectOption({ label: 'My resume' });
+  await expect(page.getByLabel('Company')).toHaveValue('Invented Chips');
   await page.getByRole('button', { name: 'Check', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Check this resume' });
   await panel.getByLabel('Job description (optional)').fill(POSTING);

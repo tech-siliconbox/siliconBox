@@ -10,12 +10,10 @@ import {
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { z } from 'zod';
 import { errorMessage } from '@/lib/api-error';
+import type { ResumeDraft } from '../resume-draft';
 import { useUndoHistory } from './use-undo-history';
 
 export type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'invalid' | 'error';
-
-/** The resume being edited; `publicId` is null until the first edit's save creates it. */
-export type ResumeDraft = { publicId: string | null; title: string; resume: Resume };
 
 const AUTOSAVE_DELAY_MS = 1500;
 

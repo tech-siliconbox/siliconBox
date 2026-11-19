@@ -4,12 +4,8 @@ import type { Resume, ResumeSummary } from '@siliconbox/shared';
 import { type ReactNode, useId, useState } from 'react';
 import { FormError } from '@/components/ui/form-error';
 import { TextAreaField } from '@/components/ui/text-area-field';
-import type { ResumeDraft } from '../../hooks/use-resume-draft';
-import {
-  type Account,
-  type ResumeWorkspace,
-  useResumeWorkspace,
-} from '../../hooks/use-resume-workspace';
+import type { Account, ResumeDraft } from '../../resume-draft';
+import { type ResumeWorkspace, useResumeWorkspace } from '../../hooks/use-resume-workspace';
 import { AwardsEditor } from './awards-editor';
 import { BasicsEditor } from './basics-editor';
 import { CertificationsEditor } from './certifications-editor';

@@ -10,22 +10,8 @@ import {
 } from '@siliconbox/shared';
 import { useCallback, useState } from 'react';
 import { useApiRequest } from './use-api-request';
-import { type ResumeDraft, useResumeDraft } from './use-resume-draft';
-
-export type Account = { name: string; email: string };
-
-const toDraft = ({ publicId, title, resume }: SavedResume): ResumeDraft => ({
-  publicId,
-  title,
-  resume,
-});
-
-/** A blank resume from the account, not saved until the learner edits it. */
-export const blankDraft = (account: Account): ResumeDraft => ({
-  publicId: null,
-  title: 'My resume',
-  resume: emptyResume(account.name, account.email),
-});
+import { type Account, type ResumeDraft, blankDraft, toDraft } from '../resume-draft';
+import { useResumeDraft } from './use-resume-draft';
 
 type Editor = ReturnType<typeof useResumeDraft>;
 
