@@ -116,6 +116,8 @@ jobs:
         with:
           version: '2026-10-01'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      # Tcl: Praman's console runs a safe Tcl interpreter (ADR 0031).
+      - run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends tcl
       - run: python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e . --group dev -c constraints.txt
       - run: .venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/vulture
       # The runner image, so the container tests (isolation and attacks) run instead of skipping.
