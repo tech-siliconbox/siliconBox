@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignore": ["infra/mongodb/*.js", "infra/mongodb/*.mjs", "infra/mongodb/*.cjs"],
-  "ignoreBinaries": ["python3.12"],
+  "ignoreBinaries": ["python3.12", "atlas"],
   "workspaces": {
     ".": {},
     "apps/web": {

@@ -12,6 +12,7 @@
     "cms:types": "payload generate:types && payload generate:importmap",
     "content:import": "payload run scripts/content-import.ts",
     "db:verify-roles": "node scripts/verify-db-roles.ts",
+    "db:allow-my-ip": "payload run scripts/allow-my-ip.ts",
     "content:convert": "payload run scripts/content-convert.ts"
   },
   "dependencies": {

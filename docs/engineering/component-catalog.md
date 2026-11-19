@@ -125,7 +125,9 @@ Check here before writing a component, hook or helper. Add a row when you create
 | sanitizeSvg | Allow-listed inline SVG for diagrams | Built |
 | sanitizeCourseHtml, resolveCourseLinks, markCourseHtml, markHtmlFragment | An author's page markup (or a short piece of it): allow-listed elements and attributes, `lesson:`/`course:` links to routes, the invisible watermark in its text (`server/course-html.ts`, ADR 0024) | Built |
 | enforceRateLimit | Throws RATE_LIMITED with Retry-After; used by the gate and by lesson reads | Built |
-| createMongoClient | Every database user's client, with the small pool free Atlas needs (`db/client.ts`) | Built |
+| createMongoClient | Every database user's long-lived client, with the small pool free Atlas needs (`db/client.ts`) | Built |
+| describeDatabase, connectionProblem, pingDatabase, PROBLEM_HINTS | Where a connection points (never the password), why it failed in plain words, a one-off ping; used by the dev startup report and `pnpm db:allow-my-ip` (`db/connection-status.ts`) | Built |
+| reportDatabaseConnections | Dev server startup: one log line per database user, connected or why not (`server/database-report.ts`, called from `instrumentation.ts`) | Built |
 | findPublishedAssessment, findPublishedCapstone, findCourseWorkList | Published course work with its course and the page that shows it (`db/content.ts`, ADR 0029) | Built |
 | findAssessmentKey | An assessment's answer key, through the grader connection only (`db/grading.ts`) | Built |
 | findAttempts, findAllAttempts, recordAttempt | Assessment attempts; at most three, enforced in one write (`db/assessment-attempts.ts`) | Built |

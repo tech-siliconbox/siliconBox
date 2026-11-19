@@ -49,6 +49,7 @@ pnpm test               unit tests (Vitest)
 pnpm test:entitlements  purchase/upgrade matrix, must always pass
 pnpm test:e2e           Playwright against a local stack (build first)
 pnpm db:migrate         run migrate-mongo migrations (needs MONGODB_URI_ADMIN)
+pnpm db:allow-my-ip     on a new network Atlas refuses: add this computer's IP for 24 h
 pnpm naming:check       the banned word must not appear anywhere
 pnpm dedupe:check       copy-paste detection (jscpd)
 pnpm unused:check       unused files, exports, dependencies (knip)

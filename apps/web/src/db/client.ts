@@ -5,7 +5,8 @@ import { getConfig } from '@/server/config';
 const globalForMongo = globalThis as typeof globalThis & { siliconboxMongo?: MongoClient };
 
 /**
- * Every database user's client is built here. Serverless hosts start many small instances, and
+ * Every database user's long-lived client is built here (the dev startup check in
+ * connection-status.ts opens its own short one). Serverless hosts start many small instances, and
  * Atlas free (M0) allows 500 connections in all, so each client keeps a small pool and lets idle
  * connections go (docs/architecture/hosting.md).
  */
