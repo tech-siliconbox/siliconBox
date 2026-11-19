@@ -1,0 +1,28 @@
+{
+  "description": "Combinational ECC block (no clock/reset), non-ANSI ports with trailing comments containing 'input'/'output'.",
+  "dut": "ecc1.sv",
+  "sva": "ecc_sva1.sv",
+  "depth": 20,
+  "expected": {
+    "wp_example1": "COVERED",
+    "wp_example2": "COVERED",
+    "ap_example1": "PROVEN",
+    "ap_example2": "FAIL"
+  },
+  "notes": {
+    "ap_example2": "Genuine counterexample: with gen=0 and correct_n=1 the RTL drives dataout = datain, so 'dataout != datain' is false. The example property is wrong for this design."
+  },
+  "mutations": [
+    {
+      "name": "generate mode flips data bit 31",
+      "replace": [
+        "enc_s[31:0] <= datain[31:0];",
+        "enc_s[31:0] <= datain[31:0] ^ 32'h80000000;"
+      ],
+      "expected": {
+        "ap_example1": "FAIL"
+      }
+    }
+  ],
+  "mode": "prove"
+}
