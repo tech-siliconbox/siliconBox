@@ -1,4 +1,5 @@
 import { type ContentImport, ContentImportSchema, type Level, slugify } from '@siliconbox/shared';
+import { extractAssessment, extractCapstone } from './course-work';
 import { createNotes } from './notes';
 import { type CoursePageParts, pageBlocks, pageMarkup, readCoursePage } from './pages';
 import { readSvgRules } from './svg-styles';
@@ -89,6 +90,19 @@ function toModule(
   };
 }
 
+type CourseWork = {
+  assessment: Omit<NonNullable<ImportModule['assessment']>, 'status'> | null;
+  capstone: Omit<NonNullable<ImportModule['capstone']>, 'status'> | null;
+};
+
+/** A module's graded work, published with its page. */
+function withCourseWork({ assessment, capstone }: CourseWork) {
+  return {
+    ...(assessment && { assessment: { ...assessment, status: 'published' as const } }),
+    ...(capstone && { capstone: { ...capstone, status: 'published' as const } }),
+  };
+}
+
 /** The whole course as an import file, plus notes on anything not kept exactly. */
 export function convertCourse(sources: CourseSources, options: CourseOptions) {
   const notes: string[] = [];
@@ -113,9 +127,14 @@ export function convertCourse(sources: CourseSources, options: CourseOptions) {
   const home = readCoursePage(index.html);
   const introduction = pageMarkup(home.root, context(INDEX_FILE, []));
   const modules = pages.map((page, i) => {
-    const drills = options.drillsByModule.get(moduleSlug(options.slug, i + 1)) ?? [];
-    const blocks = pageBlocks(page.parts.root, context(page.file, drills));
-    return toModule(options.slug, i + 1, page, blocks);
+    const slug = moduleSlug(options.slug, i + 1);
+    const pageContext = context(page.file, options.drillsByModule.get(slug) ?? []);
+    const work = {
+      assessment: extractAssessment(page.parts.root, `${slug}-assessment`, pageContext.notes),
+      capstone: extractCapstone(page.parts.root, `${slug}-capstone`, pageContext.notes),
+    };
+    const blocks = pageBlocks(page.parts.root, pageContext);
+    return { ...toModule(options.slug, i + 1, page, blocks), ...withCourseWork(work) };
   });
 
   const course: ImportCourse = {

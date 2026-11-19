@@ -10,21 +10,25 @@ async function signInOnNewDevice(browser: Browser, userAgent?: string): Promise<
   ).newPage();
   failOnCspViolation(page);
   await submitSignIn(page, learner);
-  await expect(page).toHaveURL('/account');
+  await expect(page).toHaveURL('/dashboard');
   return page;
 }
 
 test.describe.configure({ mode: 'serial' });
 
-test('a new learner signs up and sees their watermarked account page', async ({ page }) => {
+test('a new learner signs up onto their watermarked Overview, with an account menu', async ({
+  page,
+}) => {
   failOnCspViolation(page);
   await signUp(page, learner);
-  await expect(page.getByText(learner.email)).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Welcome back, Test');
   await expect(page.locator('[data-watermark] text')).toContainText('lea…@example.test');
-  // Public pages know the learner is signed in.
+  // Public pages know the learner is signed in: the menu says who, and offers sign-out.
   await page.goto('/pricing');
-  await expect(page.getByRole('link', { name: 'Account' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Your account' }).click();
+  await expect(page.getByText(learner.email)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
 });
 
 test('signing in on a second device signs the first out with a reason', async ({ browser }) => {
@@ -100,7 +104,7 @@ test('a learner resets a forgotten password from the emailed link', async ({ pag
   await expect(page.getByRole('status')).toContainText('Your password was changed');
 
   await submitSignIn(page, { ...forgetful, password: `New-${forgetful.password}` });
-  await expect(page).toHaveURL('/account');
+  await expect(page).toHaveURL('/dashboard');
 });
 
 test('a used or broken reset link says so', async ({ page }) => {
@@ -110,8 +114,8 @@ test('a used or broken reset link says so', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('the account page sends a signed-out visitor to sign-in', async ({ page }) => {
-  await page.goto('/account');
+test('the member pages send a signed-out visitor to sign-in', async ({ page }) => {
+  await page.goto('/settings');
   await expect(page).toHaveURL('/sign-in');
 });
 

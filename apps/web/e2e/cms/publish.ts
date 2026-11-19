@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { BASE_URL } from '../base-url';
 import type { AdminRole } from '@siliconbox/shared';
-import { type APIRequestContext, request } from '@playwright/test';
+import { type APIRequestContext, type Browser, request } from '@playwright/test';
 
 /** Creates a CMS admin with `role` and returns an API client signed in as them. */
 export async function signInAsAdmin(role: AdminRole): Promise<APIRequestContext> {
@@ -25,6 +25,13 @@ export async function signInAsAdmin(role: AdminRole): Promise<APIRequestContext>
   return client;
 }
 
+/** A browser page signed in as the CMS admin behind `client`. */
+export async function adminPage(browser: Browser, client: APIRequestContext) {
+  const context = await browser.newContext({ baseURL: BASE_URL });
+  await context.addCookies((await client.storageState()).cookies);
+  return context.newPage();
+}
+
 /** Creates a CMS document; empty ids mean the CMS refused it (see `status`). */
 export async function createDoc(
   client: APIRequestContext,
@@ -36,7 +43,11 @@ export async function createDoc(
     | 'drill_private'
     | 'companies'
     | 'questions'
-    | 'answers',
+    | 'answers'
+    | 'faqs'
+    | 'assessments'
+    | 'assessment_keys'
+    | 'capstones',
   data: Record<string, unknown>,
 ): Promise<{ id: string; publicId: string; slug: string; status: number }> {
   const response = await client.post(`/cms-api/${collection}`, { data });

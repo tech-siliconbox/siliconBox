@@ -14,15 +14,27 @@ export const ROUTES = {
   lessonPreview: (lesson: string) => `/preview/lessons/${lesson}`,
   drill: (course: string, drill: string) => `/courses/${course}/drills/${drill}`,
   watermarkTrace: '/admin-tools/trace',
+  capstoneReviews: '/admin-tools/capstones',
+  capstoneReview: (submission: string) => `/admin-tools/capstones/${submission}`,
+  capstoneFile: (submission: string) => `/admin-tools/capstones/${submission}/file`,
   signIn: '/sign-in',
   signUp: '/sign-up',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
-  account: '/account',
+  dashboard: '/dashboard',
+  performance: '/performance',
+  activity: '/activity',
+  settings: '/settings',
+  help: '/help',
 } as const;
 
 export const API_ROUTES = {
   me: '/api/v1/me',
+  dataExport: '/api/v1/me/export',
+  profile: '/api/v1/profile',
+  profilePhoto: '/api/v1/profile/photo',
+  assessmentAttempts: (assessmentId: string) => `/api/v1/assessments/${assessmentId}/attempts`,
+  capstoneSubmission: (capstoneId: string) => `/api/v1/capstones/${capstoneId}/submission`,
   progress: '/api/v1/progress',
   services: '/api/v1/services',
   resume: '/api/v1/resume',
@@ -37,6 +49,9 @@ export const SIGNED_OUT_ELSEWHERE = 'replaced';
 
 /** Query value the sign-in page reads after a password reset. */
 export const PASSWORD_CHANGED = 'password-changed';
+
+/** Query value the sign-in page reads after the learner deleted their account. */
+export const ACCOUNT_DELETED = 'account-deleted';
 
 /** Google sign-in error code for an email that already has a password account. */
 const GOOGLE_ACCOUNT_NOT_LINKED = 'account_not_linked';

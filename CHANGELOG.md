@@ -4,6 +4,25 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (graded course work, ADR 0029)
+
+- Assessments: a course's multiple-choice assessment is answered in its module page and scored on the server against a hidden key (`assessment_keys`, read only by the grader database user). At most 3 attempts, no waiting; the review with right answers and explanations appears only once the learner passed or used every attempt. The Basic course's 30-question assessment (pass 24) was converted; its answer key is no longer printed in the page.
+- Capstone projects: learners upload one .zip (up to 10 MB, checked by its bytes) from the module page; our experts (Editors and the Owner) download it at `/admin-tools/capstones`, score each rubric criterion and write feedback (audit-logged). Learners see scores and feedback in the page; a failing grade lets them send a new version.
+- Performance (`/performance`): each course's assessment and capstone results; a course passes when both pass. In the avatar menu and the sidebar.
+- The course converter turns an assessment section and a rubric table into graded course work; the importer writes assessments, keys and capstones. New collections and indexes (migration `20261010000000-course-work`); re-apply the database roles.
+- Shared: account forms' `ActionForm`, `useFormAction` and `FormError` moved out of the auth feature for every feature's forms.
+
+### Added (member area)
+
+- An avatar menu in the header for signed-in learners (name, email, Overview, Settings, Help, Sign out), on member and public pages alike. It replaces the Account link and the separate sign-out button.
+- Overview (`/dashboard`, was `/account`): modules done, Drills solved, day streak (India time), the next lesson to read, each course's access and progress, getting-started steps and recent activity.
+- Settings (`/settings`): change the name or the password (other devices are signed out), see whether the email is verified and send the link again, and see each level's and the formal tool's window.
+- Help (`/help`): questions and answers written in the CMS (new `faqs` collection, drafts and publish like lessons). The site's database role may read it; re-apply roles with `node infra/mongodb/atlas-roles.mjs <projectId>`.
+- Names are kept to 100 characters on the server too, whatever the client sends.
+- Activity (`/activity`): day streak, longest streak, days active, lessons and runs; the last 12 months as a square a day in the design's heat colours (scrolls to this week on phones); the 20 most recent lessons and runs. Listed in the avatar menu and the sidebar.
+- Profile, in Settings: photo (re-encoded on the server as a 256 px WebP without EXIF, kept in MongoDB until object storage exists), handle (unique), bio and LinkedIn, GitHub and website links, checked by one shared schema in the browser and on the server. Shown on the Overview; the photo replaces the initials in the avatar menu. Included in the data download and removed with the account. New `profiles` and `avatars` collections (migration `20261009000000-profiles`); re-apply the database roles. `sharp` 0.35.5 is now a direct dependency.
+- Your data (DPDP), in Settings: download everything we hold as a JSON file (`GET /api/v1/me/export`, 5 an hour, no tokens, Drill code or watermark codes), or delete the account with the password (Google accounts: type the email, signed in within a day). Deletion empties the learner's own collections; the audit log, security alerts and admin grant records stay. Both are audit-logged.
+
 ### Changed (sign-in, ADR 0025)
 
 - Learners sign in with email and password or with Google; two-factor sign-in is removed and its stored secrets deleted (migration `20261007000000-remove-two-factor`). One device at a time stays: a new sign-in, by either method, signs out every other device.

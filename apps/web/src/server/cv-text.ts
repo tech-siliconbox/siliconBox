@@ -2,14 +2,12 @@ import 'server-only';
 import mammoth from 'mammoth';
 import { extractText, getDocumentProxy } from 'unpdf';
 import { AppError } from './errors';
+import { startsWith } from './file-bytes';
 
 export const MAX_CV_BYTES = 5 * 1024 * 1024;
 
 const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d]; // "%PDF-"
 const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // "PK..", the container of a .docx
-
-const startsWith = (bytes: Uint8Array, magic: number[]) =>
-  magic.every((byte, index) => bytes[index] === byte);
 
 /** Decides the type from the file's own bytes, never from the name or browser-supplied type alone. */
 function fileKind(name: string, bytes: Uint8Array): 'pdf' | 'docx' | null {

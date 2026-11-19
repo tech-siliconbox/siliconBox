@@ -10,7 +10,7 @@ let pdfPath = '';
 
 async function signIn(page: Page): Promise<void> {
   await submitSignIn(page, learner);
-  await expect(page).toHaveURL(ROUTES.account);
+  await expect(page).toHaveURL(ROUTES.dashboard);
 }
 
 test.describe.configure({ mode: 'serial' });

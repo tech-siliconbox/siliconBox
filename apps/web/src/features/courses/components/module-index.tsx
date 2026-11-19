@@ -9,31 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 import { formatDuration } from '@/lib/format-duration';
 import { isModuleDone, moduleMinutes, readableModules } from '../course-progress';
+import { CourseProgressBar } from './course-progress-bar';
 import { SiteLink } from '@/components/ui/site-link';
 
 type OutlineLesson = CourseOutline['modules'][number]['lessons'][number];
-
-type CourseProgressBarProps = { course: CourseOutline; doneLessonIds: ReadonlySet<string> };
-
-/** "3 of 11 modules done", with a bar. */
-function CourseProgressBar({ course, doneLessonIds }: CourseProgressBarProps) {
-  const modules = readableModules(course);
-  const done = modules.filter(({ module }) => isModuleDone(module, doneLessonIds)).length;
-  if (modules.length === 0) return null;
-  return (
-    <div className="flex flex-col gap-1.5">
-      <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-        {done} of {modules.length} modules done
-      </p>
-      <progress
-        value={done}
-        max={modules.length}
-        aria-label="Course progress"
-        className="h-1 w-full appearance-none overflow-hidden rounded-full bg-muted [&::-moz-progress-bar]:bg-success [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-success"
-      />
-    </div>
-  );
-}
 
 export type ModuleIndexProps = {
   course: CourseOutline;

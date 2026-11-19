@@ -1,5 +1,5 @@
 {
-  "comment": "Least-privilege roles for the SiliconBox database. Read by create-app-role.js (mongosh) and atlas-roles.mjs (Atlas). Deliberately absent from siliconboxApp: answers and drill_privates (hidden material; Payload stores the drill_private collection under that plural name), the migration collections, and update/remove on audit_log (append-only). siliconboxGrader reads drill_privates only, to grade Drill runs (ADR 0021).",
+  "comment": "Least-privilege roles for the SiliconBox database. Read by create-app-role.js (mongosh) and atlas-roles.mjs (Atlas). Deliberately absent from siliconboxApp: answers, drill_privates and assessment_keys (hidden material; Payload stores the drill_private collection under that plural name), the migration collections, and update/remove on audit_log (append-only). siliconboxGrader reads drill_privates and assessment_keys only, to grade Drill runs (ADR 0021) and assessments (ADR 0029).",
   "database": "siliconbox",
   "roles": {
     "siliconboxApp": {
@@ -16,17 +16,33 @@
         "ended_sessions",
         "watermark_codes",
         "resumes",
-        "cv_screenings"
+        "cv_screenings",
+        "profiles",
+        "avatars",
+        "assessment_attempts",
+        "capstone_submissions",
+        "capstone_files"
       ],
       "insertOnly": ["security-alerts"],
       "findInsert": ["audit_log"],
-      "readOnly": ["courses", "modules", "lessons", "drills", "questions", "companies", "services"]
+      "readOnly": [
+        "courses",
+        "modules",
+        "lessons",
+        "drills",
+        "questions",
+        "companies",
+        "services",
+        "faqs",
+        "assessments",
+        "capstones"
+      ]
     },
     "siliconboxAnswersReader": {
       "readOnly": ["answers"]
     },
     "siliconboxGrader": {
-      "readOnly": ["drill_privates"]
+      "readOnly": ["drill_privates", "assessment_keys"]
     }
   }
 }

@@ -30,3 +30,6 @@ export const TOOL_WINDOW_MONTHS = 3;
 
 /** The shortest password an account may have (sign-up, reset). */
 export const MIN_PASSWORD_LENGTH = 10;
+
+/** The longest name an account may have (sign-up, Settings, Google). */
+export const MAX_NAME_LENGTH = 100;

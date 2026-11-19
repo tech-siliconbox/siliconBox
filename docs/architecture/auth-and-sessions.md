@@ -6,7 +6,7 @@ Use a maintained library. Two kinds of access stay separate: content and the for
 
 - **Better Auth** with the MongoDB adapter. Email + password with breached-password check; Google sign-in. No two-factor for learners (ADR 0025).
 - A Google sign-in joins an existing account only when that account's email is verified; otherwise the learner signs in with their password.
-- Email verification is required before any purchase: a link (valid one hour) is sent at sign-up through Resend and can be sent again from the account page; Google sign-ins arrive verified (ADR 0028).
+- Email verification is required before any purchase: a link (valid one hour) is sent at sign-up through Resend and can be sent again from Settings; Google sign-ins arrive verified (ADR 0028).
 - Forgot password: a reset link (valid one hour, one use) by email; the answer is the same whether or not the account exists, and a new password signs the account out on every device.
 - Admin: also behind Cloudflare Access (Google sign-in + MFA), on `admin.siliconbox.in`, with a short session.
 - Login throttling, generic errors, alert on new-device sign-in.
@@ -28,4 +28,4 @@ The session gives the watermark its identity. See `docs/security/watermarking.md
 
 ## Account
 
-Data export and delete (DPDP Act). Deletion removes personal data but keeps the audit and order records the law requires.
+Data export and delete (DPDP Act), both in Settings. The download is a JSON file of everything held about the learner (`GET /api/v1/me/export`). Deleting uses Better Auth's delete with the password, or for a Google-only account a sign-in within the last day; what goes and what stays is in `data-model.md`. Both are audit-logged (`data_export`, `account_deleted`).

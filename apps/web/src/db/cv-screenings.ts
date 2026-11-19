@@ -28,16 +28,20 @@ export async function saveScreening(
   return screening;
 }
 
-export async function listScreenings(userId: string): Promise<CvScreening[]> {
+/** The learner's screenings, newest first; a limit of 0 means all of them. */
+async function screeningsOf(userId: string, limit: number): Promise<CvScreening[]> {
   const documents = await getDb()
     .collection(COLLECTIONS.cvScreenings)
-    .find(
-      { userId },
-      { sort: { createdAt: -1 }, limit: HISTORY_LIMIT, projection: { _id: 0, userId: 0 } },
-    )
+    .find({ userId }, { sort: { createdAt: -1 }, limit, projection: { _id: 0, userId: 0 } })
     .toArray();
   return documents.map((document) => CvScreeningSchema.parse(document));
 }
+
+/** The recent screenings the CV screening page lists. */
+export const listScreenings = (userId: string) => screeningsOf(userId, HISTORY_LIMIT);
+
+/** Every screening of the learner, for their data download. */
+export const findAllScreenings = (userId: string) => screeningsOf(userId, 0);
 
 /** Deletes one screening, or every screening of the learner when `publicId` is omitted. */
 export async function deleteScreenings(userId: string, publicId?: string): Promise<number> {

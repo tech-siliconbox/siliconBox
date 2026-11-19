@@ -28,3 +28,23 @@ export async function findLastSignInCountry(userId: string): Promise<string | nu
   const parsed = SignInCountrySchema.safeParse(entry);
   return parsed.success ? parsed.data.metadata.country : null;
 }
+
+const SignInSchema = z.object({
+  createdAt: z.date(),
+  metadata: z.object({ country: z.string().nullable().optional() }).optional(),
+});
+
+/** Every recorded sign-in of the learner, newest first: when, and from which country. */
+export async function findSignIns(userId: string): Promise<{ at: Date; country: string | null }[]> {
+  const entries = await getDb()
+    .collection(COLLECTIONS.auditLog)
+    .find(
+      { action: 'sign_in', subjectId: userId },
+      { sort: { createdAt: -1 }, projection: { _id: 0, createdAt: 1, 'metadata.country': 1 } },
+    )
+    .toArray();
+  return entries.map((entry) => {
+    const { createdAt, metadata } = SignInSchema.parse(entry);
+    return { at: createdAt, country: metadata?.country ?? null };
+  });
+}

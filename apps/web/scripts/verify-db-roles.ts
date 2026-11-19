@@ -23,9 +23,35 @@ const CHECKS: Record<User, Check[]> = {
       run: (db) => db.collection('users').findOne({}),
     },
     {
+      what: 'read the Help questions',
+      allowed: true,
+      run: (db) => db.collection('faqs').findOne({}),
+    },
+    {
       what: 'read paid answers',
       allowed: false,
       run: (db) => db.collection('answers').findOne({}),
+    },
+    {
+      what: 'read assessments and capstones',
+      allowed: true,
+      run: (db) =>
+        Promise.all(['assessments', 'capstones'].map((name) => db.collection(name).findOne({}))),
+    },
+    {
+      what: 'read assessment answer keys',
+      allowed: false,
+      run: (db) => db.collection('assessment_keys').findOne({}),
+    },
+    {
+      what: 'record attempts and capstone submissions',
+      allowed: true,
+      run: (db) =>
+        Promise.all(
+          ['assessment_attempts', 'capstone_submissions', 'capstone_files'].map((name) =>
+            db.collection(name).updateOne(NOTHING, { $set: { x: 1 } }),
+          ),
+        ),
     },
     {
       what: 'read Drill solutions',
@@ -42,6 +68,16 @@ const CHECKS: Record<User, Check[]> = {
       what: 'edit lessons',
       allowed: false,
       run: (db) => db.collection('lessons').updateOne(NOTHING, { $set: { x: 1 } }),
+    },
+    {
+      what: 'save profiles and photos',
+      allowed: true,
+      run: (db) =>
+        Promise.all(
+          ['profiles', 'avatars'].map((name) =>
+            db.collection(name).updateOne(NOTHING, { $set: { x: 1 } }),
+          ),
+        ),
     },
     {
       what: 'record Drill runs and cached results',
@@ -67,6 +103,11 @@ const CHECKS: Record<User, Check[]> = {
       what: 'read Drill solutions and bug variants',
       allowed: true,
       run: (db) => db.collection('drill_privates').findOne({}),
+    },
+    {
+      what: 'read assessment answer keys',
+      allowed: true,
+      run: (db) => db.collection('assessment_keys').findOne({}),
     },
     {
       what: 'read paid answers',

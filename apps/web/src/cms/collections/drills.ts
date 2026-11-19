@@ -7,7 +7,7 @@ import {
 } from '@siliconbox/shared';
 import { APIError, type CollectionConfig } from 'payload';
 import { contentAccess } from '../access';
-import { orderField, titleField } from '../fields/common';
+import { moduleField, orderField, titleField } from '../fields/common';
 import { publicIdField } from '../fields/public-id';
 import { slugField } from '../fields/slug';
 import { levelOfModule, relationId } from '../level-of-module';
@@ -48,7 +48,7 @@ export const Drills: CollectionConfig = {
   fields: [
     titleField,
     slugField,
-    { name: 'module', type: 'relationship', relationTo: 'modules', required: true, index: true },
+    moduleField,
     orderField,
     { name: 'topic', type: 'text', maxLength: 100 },
     {

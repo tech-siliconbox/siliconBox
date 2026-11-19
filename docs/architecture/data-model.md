@@ -16,7 +16,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `questions` | Text, topics, company tags (company, year, internal source note), `publicId`; written by Payload with drafts | Public (published only; source note internal) |
 | `answers` | Private answer blocks, one per question (`question` unique); written by Payload | The answers-only database user, after the entitlement check (ADR 0019) |
 | `companies` | Name, slug (logo later, with permission and storage); written by Payload | Public |
-| `users` | Account, roles, MFA state (Better Auth) | Server |
+| `users` | Account: name, email, whether it is verified, role (Better Auth) | Server |
 | `sessions` | Active session, device, created, last seen (Better Auth) | Server |
 | `accounts`, `verifications` | Better Auth: sign-in methods (password, Google), email and reset tokens | Server |
 | `ended_sessions` | Hash of each session ended by a newer sign-in, kept 7 days to tell the old device why | Server |
@@ -27,8 +27,16 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `runs` | One learner run: user, Drill, request id, the learner's properties, state, result (with log and traces), hash, cached flag; kept 180 days | Owner |
 | `run_cache` | PASS/FAIL result by hash of design, properties and settings; kept 30 days | Server |
 | `services` | Industry Ready service cards and status (`open` or `locked`), locked reason, order | Public list |
+| `faqs` | Help page questions and answers, order; written by Payload with drafts | Public (published only) |
 | `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
 | `resumes` | One saved Resume Builder resume per learner | Owner, with delete |
+| `profiles` | One per learner: handle (unique once set), bio, links | Owner, with delete |
+| `avatars` | One photo per learner: a 256 px WebP (no EXIF) and when it changed, until object storage exists | Owner, with delete |
+| `assessments`, `capstones` | Graded course work (ADR 0029): questions and options; rubric and pass mark. Written by Payload with drafts | Server reads published only |
+| `assessment_keys` | Each assessment's answer key and explanations | The grader database user only |
+| `assessment_attempts` | One per learner and assessment: every attempt (answers, score, when), at most 3 | Owner |
+| `capstone_submissions` | Uploads: file name and size, when, status (`submitted`, `graded`), the expert's scores, feedback and who graded; one waiting per learner and capstone | Owner; experts grade |
+| `capstone_files` | Each submission's .zip, apart from the list, until object storage exists | Owner; experts download |
 | `cv_screenings` | CV screening reports only (score, checks, keywords, file name); uploaded files are never stored | Owner, with delete |
 | `audit_log` | Append-only: sign-ins, purchases, admin edits, entitlement changes | Owner role |
 | `watermark_codes` | Invisible watermark code to learner, for tracing leaks; `{ code, userId }` unique | Server |
@@ -39,6 +47,10 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 - `{ userId, level, kind }`, `{ userId, lessonId }` for progress, `{ userId, createdAt }` for runs.
 - TTL on `runs` (180 days) and `run_cache` (30 days), expired `sessions` and `verifications`, and `ended_sessions` after 7 days. Run logs are kept in the run document (capped at 64 KB) until object storage exists.
 - Text index on public question text.
+
+## Deleting an account
+
+A learner deletes their account from Settings (DPDP). Better Auth deletes `users`, `sessions` and `accounts`; first, `deleteLearnerData` empties `entitlements`, `progress`, `runs`, `resumes`, `cv_screenings`, `profiles`, `avatars`, `assessment_attempts`, `capstone_submissions`, `capstone_files`, `watermark_codes`, `ended_sessions` and their pending `verifications`. Kept: `audit_log` (including the `account_deleted` entry), `security-alerts` and Payload's `access-grants` (the site cannot change them; they are security and admin records), and `orders` once payments exist (the law needs them). Kept records refer to the account by id; grants also name the email they were for.
 
 ## Integrity
 

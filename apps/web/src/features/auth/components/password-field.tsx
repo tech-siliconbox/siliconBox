@@ -1,15 +1,21 @@
 'use client';
 
+import { MIN_PASSWORD_LENGTH } from '@siliconbox/shared';
 import { useId, useState } from 'react';
 import { CONTROL_CLASS, Field } from '@/components/ui/field';
 import { cn } from '@/lib/cn';
 
 type PasswordFieldProps = {
-  /** "current-password" to sign in; "new-password" to choose one. */
+  /** The form field's name; "password" unless a form holds two. */
+  name?: string;
+  /** "current-password" to sign in; "new-password" to choose one (with the length rule). */
   autoComplete: 'current-password' | 'new-password';
   label?: string;
-  placeholder?: string;
-  minLength?: number;
+};
+
+const NEW_PASSWORD_RULES = {
+  placeholder: `At least ${MIN_PASSWORD_LENGTH} characters`,
+  minLength: MIN_PASSWORD_LENGTH,
 };
 
 /** The eye: open to show the password, struck through to hide it again. */
@@ -33,10 +39,9 @@ function EyeIcon({ struck }: { struck: boolean }) {
 
 /** The `password` field, with a button that shows or hides what was typed. */
 export function PasswordField({
+  name = 'password',
   autoComplete,
   label = 'Password',
-  placeholder,
-  minLength,
 }: PasswordFieldProps) {
   const id = useId();
   const [shown, setShown] = useState(false);
@@ -45,11 +50,10 @@ export function PasswordField({
       <div className="relative">
         <input
           id={id}
-          name="password"
+          name={name}
           type={shown ? 'text' : 'password'}
           autoComplete={autoComplete}
-          placeholder={placeholder}
-          minLength={minLength}
+          {...(autoComplete === 'new-password' ? NEW_PASSWORD_RULES : {})}
           required
           className={cn('h-10 w-full pr-10', CONTROL_CLASS)}
         />

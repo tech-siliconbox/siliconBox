@@ -178,12 +178,26 @@ const DrillEmbedBlock = z.object({
   drill: SlugSchema,
 });
 
+/** A course's graded assessment, answered in the page (ADR 0029). */
+const AssessmentEmbedBlock = z.object({
+  blockType: z.literal('assessmentEmbed'),
+  assessment: SlugSchema,
+});
+
+/** A course's capstone project: its rubric, the upload and the expert's grade (ADR 0029). */
+const CapstoneEmbedBlock = z.object({
+  blockType: z.literal('capstoneEmbed'),
+  capstone: SlugSchema,
+});
+
 export const LessonBlockSchema = z.discriminatedUnion('blockType', [
   ...CONTENT_BLOCKS,
   StateGraphBlock,
   RevealBlock,
   HtmlBlock,
   DrillEmbedBlock,
+  AssessmentEmbedBlock,
+  CapstoneEmbedBlock,
 ]);
 export type LessonBlock = z.infer<typeof LessonBlockSchema>;
 export type LessonBlockType = LessonBlock['blockType'];
@@ -224,7 +238,11 @@ export const OutlineLessonSchema = z.object({
   sections: z.array(LessonSectionSchema).nullish(),
 });
 /** Public outline data for a Drill: its title only. */
-export const OutlineDrillSchema = z.object({ slug: SlugSchema, title: z.string().min(1) });
+export const OutlineDrillSchema = z.object({
+  publicId: PublicIdSchema,
+  slug: SlugSchema,
+  title: z.string().min(1),
+});
 export const OutlineModuleSchema = z.object({
   title: z.string().min(1),
   summary: z.string().nullish(),

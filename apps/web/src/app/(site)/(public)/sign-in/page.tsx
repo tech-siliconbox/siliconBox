@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import {
+  ACCOUNT_DELETED,
   ERRORS,
   PASSWORD_CHANGED,
   ROUTES,
@@ -18,11 +19,12 @@ type SignInPageProps = {
   searchParams: Promise<{ reason?: string | string[]; error?: string | string[] }>;
 };
 
-/** Why the learner is here: signed out by another device, or a Google sign-in that failed. */
+/** Why the learner is here: signed out by another device or a change, or a failed Google sign-in. */
 function signInNotice(reason: unknown, error: unknown): string | null {
   if (reason === SIGNED_OUT_ELSEWHERE) return ERRORS.SESSION_REPLACED.message;
   if (reason === PASSWORD_CHANGED)
     return 'Your password was changed. Sign in with your new password.';
+  if (reason === ACCOUNT_DELETED) return 'Your account and its data were deleted.';
   return typeof error === 'string' ? googleSignInMessage(error) : null;
 }
 

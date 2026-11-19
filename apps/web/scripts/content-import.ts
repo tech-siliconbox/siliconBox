@@ -1,16 +1,23 @@
-// `pnpm content:import <file.json> [check] [prune]`: loads courses, modules, lessons and Drills
+// `pnpm content:import <file.json> [check] [prune]`: loads courses, modules, lessons, Drills,
+// assessments (with their keys) and capstones
 // through Payload, so every document gets its public id, version history and validation exactly
 // as if an editor had typed it in. Documents are matched by slug: importing again updates them in
 // place. `check` validates the file and writes nothing. Lessons or Drills left in an imported
 // module that the file no longer lists are reported; `prune` deletes them.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { type ContentImport, ContentImportSchema, type ImportDrill } from '@siliconbox/shared';
+import {
+  type ContentImport,
+  ContentImportSchema,
+  type ImportAssessment,
+  type ImportCapstone,
+  type ImportDrill,
+} from '@siliconbox/shared';
 import { type Payload, getPayload } from 'payload';
 import { SCRIPT_CONTEXT } from '../src/cms/hooks/clear-lesson-cache';
 import config from '../src/payload.config';
 
-type Collection = 'courses' | 'modules' | 'lessons' | 'drills';
+type Collection = 'courses' | 'modules' | 'lessons' | 'drills' | 'assessments' | 'capstones';
 type Status = 'draft' | 'published';
 type Run = {
   payload: Payload;
@@ -31,7 +38,8 @@ function describe(content: ContentImport): string {
   const modules = content.courses.flatMap((course) => course.modules);
   const lessons = modules.flatMap((module) => module.lessons).length;
   const drills = modules.flatMap((module) => module.drills).length;
-  return `${content.courses.length} courses, ${modules.length} modules, ${lessons} lessons, ${drills} Drills`;
+  const graded = modules.filter((module) => module.assessment ?? module.capstone).length;
+  return `${content.courses.length} courses, ${modules.length} modules, ${lessons} lessons, ${drills} Drills, ${graded} modules with graded work`;
 }
 
 /** Optional fields a file may leave out. Leaving one out clears it: the file is the source of truth. */
@@ -40,6 +48,8 @@ const OPTIONAL_FIELDS: Record<Collection, string[]> = {
   modules: ['summary'],
   lessons: ['durationMinutes'],
   drills: ['topic', 'designCode'],
+  assessments: [],
+  capstones: [],
 };
 
 /** Creates or updates the document with this slug and returns its id. */
@@ -77,34 +87,31 @@ async function upsert(
   return existing.id;
 }
 
-/** The private half sits in its own collection, one document per Drill. */
-async function upsertPrivate(run: Run, drillId: string, data: ImportDrill['private']) {
+type PrivatePart =
+  | { collection: 'drill_private'; owner: 'drill' }
+  | { collection: 'assessment_keys'; owner: 'assessment' };
+
+/** A private half sits in its own collection, one document per owner (a Drill, an assessment). */
+async function upsertPrivate(
+  run: Run,
+  { collection, owner }: PrivatePart,
+  ownerId: string,
+  data: Record<string, unknown>,
+) {
   const { docs } = await run.payload.find({
-    collection: 'drill_private',
-    where: { drill: { equals: drillId } },
+    collection,
+    where: { [owner]: { equals: ownerId } },
     limit: 1,
     depth: 0,
     pagination: false,
     overrideAccess: true,
   });
   const existing = docs[0];
-  // The CMS stores an absent optional field as null.
-  const document = {
-    drill: drillId,
-    referenceSolution: data.referenceSolution,
-    referenceDesign: data.referenceDesign ?? null,
-    hiddenProperties: data.hiddenProperties ?? null,
-    bugVariants: data.bugVariants.map((variant) => ({ ...variant, note: variant.note ?? null })),
-  };
+  const document = { ...data, [owner]: ownerId } as never;
   if (existing === undefined) {
-    await run.payload.create({ collection: 'drill_private', data: document, ...WRITE });
+    await run.payload.create({ collection, data: document, ...WRITE });
   } else {
-    await run.payload.update({
-      collection: 'drill_private',
-      id: existing.id,
-      data: document,
-      ...WRITE,
-    });
+    await run.payload.update({ collection, id: existing.id, data: document, ...WRITE });
   }
 }
 
@@ -115,7 +122,31 @@ async function importDrill(run: Run, moduleId: string, drill: ImportDrill) {
     { collection: 'drills', slug, status },
     { ...visible, module: moduleId },
   );
-  await upsertPrivate(run, drillId, hidden);
+  // The CMS stores an absent optional field as null.
+  await upsertPrivate(run, { collection: 'drill_private', owner: 'drill' }, drillId, {
+    referenceSolution: hidden.referenceSolution,
+    referenceDesign: hidden.referenceDesign ?? null,
+    hiddenProperties: hidden.hiddenProperties ?? null,
+    bugVariants: hidden.bugVariants.map((variant) => ({ ...variant, note: variant.note ?? null })),
+  });
+}
+
+/** An assessment, and its answer key in the collection the site cannot read (ADR 0029). */
+async function importAssessment(run: Run, moduleId: string, assessment: ImportAssessment) {
+  const { slug, status, key, ...visible } = assessment;
+  const assessmentId = await upsert(
+    run,
+    { collection: 'assessments', slug, status },
+    { ...visible, module: moduleId },
+  );
+  await upsertPrivate(run, { collection: 'assessment_keys', owner: 'assessment' }, assessmentId, {
+    answers: key.map((line) => ({ correct: line.correct, why: line.why ?? null })),
+  });
+}
+
+async function importCapstone(run: Run, moduleId: string, capstone: ImportCapstone) {
+  const { slug, status, ...fields } = capstone;
+  await upsert(run, { collection: 'capstones', slug, status }, { ...fields, module: moduleId });
 }
 
 /** Lessons or Drills in the module that the file no longer lists: reported, or deleted on prune. */
@@ -144,7 +175,7 @@ async function sweep(run: Run, collection: 'lessons' | 'drills', moduleId: strin
 type ImportModule = ContentImport['courses'][number]['modules'][number];
 
 async function importModule(run: Run, courseId: string, module: ImportModule) {
-  const { lessons, drills, slug, ...fields } = module;
+  const { lessons, drills, assessment, capstone, slug, ...fields } = module;
   const moduleId = await upsert(
     run,
     { collection: 'modules', slug },
@@ -158,6 +189,8 @@ async function importModule(run: Run, courseId: string, module: ImportModule) {
     );
   }
   for (const drill of drills) await importDrill(run, moduleId, drill);
+  if (assessment) await importAssessment(run, moduleId, assessment);
+  if (capstone) await importCapstone(run, moduleId, capstone);
   // Only the kinds this file lists are swept, so a Drills-only file never touches lessons.
   if (lessons.length > 0)
     await sweep(

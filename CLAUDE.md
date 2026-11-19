@@ -95,6 +95,7 @@ Clean, readable code made of reusable parts, with no redundant code. Full rules:
 | Task | Read |
 | --- | --- |
 | Product rules, tiers, upgrades | `docs/product/access-model.md` |
+| Learner's own pages (Overview, Settings, Help) | `docs/product/member-area.md` |
 | Data collections | `docs/architecture/data-model.md` |
 | API routes and gates | `docs/architecture/api-design.md` |
 | Sign-in, sessions | `docs/architecture/auth-and-sessions.md` |

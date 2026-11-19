@@ -1,16 +1,25 @@
 import 'server-only';
-import { MIN_PASSWORD_LENGTH } from '@siliconbox/shared';
+import { MAX_NAME_LENGTH, MIN_PASSWORD_LENGTH } from '@siliconbox/shared';
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { nextCookies } from 'better-auth/next-js';
 import { haveIBeenPwned } from 'better-auth/plugins';
+import { appendAudit } from '@/db/audit-log';
 import { getDb, getMongoClient } from '@/db/client';
+import { deleteLearnerData } from '@/db/learner-data';
 import { getConfig } from '@/server/config';
 import { type Email, sendEmail } from '@/server/email';
 import { AppError } from '@/server/errors';
 import { log } from '@/server/log';
 import { passwordResetEmail, verificationEmail } from '@/server/account-emails';
 import { onSessionCreated } from './on-session-created';
+
+/** A name within the form's limit whatever the client (or Google's profile) sends. */
+function fitName<T extends { name?: string }>(user: T): Promise<{ data: T }> {
+  const data =
+    user.name === undefined ? user : { ...user, name: user.name.trim().slice(0, MAX_NAME_LENGTH) };
+  return Promise.resolve({ data });
+}
 
 export function isGoogleSignInEnabled(): boolean {
   return getConfig().GOOGLE_CLIENT_ID !== undefined;
@@ -77,8 +86,22 @@ function createAuth() {
         // Admin roles are granted by an owner, never chosen at sign-up.
         role: { type: 'string', required: false, defaultValue: 'learner', input: false },
       },
+      // DPDP: a learner deletes their account from Settings, with their password or, for a
+      // Google account, a sign-in within the last day. Our data goes first, then the account.
+      deleteUser: {
+        enabled: true,
+        beforeDelete: (user) => deleteLearnerData(user.id),
+        afterDelete: (user) =>
+          appendAudit({
+            action: 'account_deleted',
+            actorId: user.id,
+            subjectId: user.id,
+            createdAt: new Date(),
+          }),
+      },
     },
     databaseHooks: {
+      user: { create: { before: fitName }, update: { before: fitName } },
       session: { create: { after: onSessionCreated } },
     },
     // One rate limiter, not two: withDelegatedGate applies the Redis limits before Better Auth runs.
@@ -98,4 +121,10 @@ let cached: ReturnType<typeof createAuth> | undefined;
 export function getAuth(): ReturnType<typeof createAuth> {
   cached ??= createAuth();
   return cached;
+}
+
+/** Whether the signed-in account can sign in with a password (Google-only accounts cannot). */
+export async function hasPassword(headers: Headers): Promise<boolean> {
+  const accounts = await getAuth().api.listUserAccounts({ headers });
+  return accounts.some((account) => account.providerId === 'credential');
 }

@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { AssessmentQuestionSchema, KeyAnswerSchema, OPTION_LETTERS } from './assessment';
+import { RubricItemSchema } from './capstone';
 import { DRILL_MODES, DRILL_SOLVERS, DRILL_TARGETS, TOP_MODULE_PATTERN } from './drill';
 import { COURSE_HTML_MAX, LessonBlockSchema, SlugSchema } from './lesson';
 import { LevelSchema } from './level';
@@ -67,6 +69,37 @@ const ImportDrillSchema = z.strictObject({
 });
 export type ImportDrill = z.infer<typeof ImportDrillSchema>;
 
+/** A graded assessment and its hidden key, one line per question (ADR 0029). */
+const ImportAssessmentSchema = z
+  .strictObject({
+    slug: SlugSchema,
+    title,
+    passMark: z.number().int().min(1),
+    status: StatusSchema,
+    questions: z.array(AssessmentQuestionSchema).min(1),
+    key: z.array(KeyAnswerSchema),
+  })
+  .refine(
+    ({ questions, key }) =>
+      key.length === questions.length &&
+      key.every(
+        (line, index) =>
+          OPTION_LETTERS.indexOf(line.correct) < (questions[index]?.options.length ?? 0),
+      ),
+    { message: 'The key needs one valid answer per question' },
+  );
+export type ImportAssessment = z.infer<typeof ImportAssessmentSchema>;
+
+/** A capstone project and the rubric it is scored on (ADR 0029). */
+const ImportCapstoneSchema = z.strictObject({
+  slug: SlugSchema,
+  title,
+  passMark: z.number().int().min(1),
+  status: StatusSchema,
+  rubric: z.array(RubricItemSchema).min(1),
+});
+export type ImportCapstone = z.infer<typeof ImportCapstoneSchema>;
+
 // A module lists lessons, Drills or both; a file may carry only Drills for modules whose
 // lessons were imported before (pruning only touches the kinds a file lists).
 const ImportModuleSchema = z
@@ -77,6 +110,8 @@ const ImportModuleSchema = z
     order,
     lessons: z.array(ImportLessonSchema).default([]),
     drills: z.array(ImportDrillSchema).default([]),
+    assessment: ImportAssessmentSchema.optional(),
+    capstone: ImportCapstoneSchema.optional(),
   })
   .refine((module) => module.lessons.length + module.drills.length > 0, {
     message: 'A module needs at least one lesson or Drill',

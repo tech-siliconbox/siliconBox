@@ -6,10 +6,10 @@ Check here before writing a component, hook or helper. Add a row when you create
 
 | Name | Purpose | Status |
 | --- | --- | --- |
-| Button, `buttonVariants` | Actions; `primary`/`secondary`, `lg`/`md`/`sm`. Use `buttonVariants` to style a `Link` | Built |
+| Button, `buttonVariants` | Actions; `primary`/`secondary`/`danger` (what cannot be undone), `lg`/`md`/`sm`. Use `buttonVariants` to style a `Link` | Built |
 | Badge | Small mono label (`outline`, `muted`, `inverted`) | Built |
 | Card | Bordered surface, no shadow | Built |
-| Eyebrow | Mono uppercase label above headings | Built |
+| Eyebrow, EYEBROW_CLASS | Mono uppercase label above headings; its classes for a heading or table cell | Built |
 | Field, TextField, TextAreaField | Label plus control; input and textarea share one wrapper | Built |
 | CspImage | `next/image` without the inline style the CSP blocks; use it instead of `next/image` | Built |
 | Tabs | Tab list and panels | Planned |
@@ -57,17 +57,33 @@ Check here before writing a component, hook or helper. Add a row when you create
 
 | Name | Purpose | Status |
 | --- | --- | --- |
-| auth: AuthForm, useAuthAction, AuthPanel, FormError, formValue | Shared frame, submit and error handling for sign-in and sign-up | Built |
-| auth: SignInForm, SignUpForm, GoogleButton, SignOutButton | The auth actions (email and password, Google; ADR 0025) | Built |
-| auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset) | Built |
+| ActionForm, useFormAction, FormError | A form whose submit calls an action (auth or our API): pending state, its error, then where to go; used by account, assessment and capstone forms (`components/shared/action-form.tsx`, `hooks/use-form-action.ts`, `components/ui/form-error.tsx`) | Built |
+| FileInput | A file picker in the site's button style (photo, capstone upload) (`components/ui/file-input.tsx`) | Built |
+| auth: AuthPanel, formValue | The sign-in and sign-up frame; a form field's text | Built |
+| auth: SignInForm, SignUpForm, GoogleButton | The auth actions (email and password, Google; ADR 0025) | Built |
+| auth: PasswordField | The password input with a show/hide button (sign-in, sign-up, reset, Settings); a new password carries the length rule | Built |
+| auth: NameField, NameForm, ChangePasswordForm | The name input (sign-up, Settings); change the name; change the password, signing other devices out | Built |
+| auth: ProfileForm, PhotoForm | Handle, bio and links, checked in the browser with the server's `ProfileSchema`; upload or remove the photo | Built |
+| auth: DeleteAccountForm | Deletes the account from Settings: the password, or for a Google account the email typed out and a sign-in within a day | Built |
 | auth: ForgotPasswordForm, ResetPasswordForm | Ask for a reset link (same answer for any email); set a new password from the link | Built |
-| auth: VerifyEmailButton | Sends the email verification link again from the account page (ADR 0028) | Built |
-| auth: AccountActions | The header's Account link and sign-out, on member and public pages when signed in | Built |
+| auth: VerifyEmailButton | Sends the email verification link again from Settings (ADR 0028) | Built |
+| auth: AccountMenu | The header's avatar menu when signed in: name, email, the member pages (`MEMBER_PAGES`), Sign out; closes on Escape or a click outside | Built |
+| dashboard: DashboardFrame, DashboardNav | The member area's page frame with its sidebar (Overview, Activity, Settings, Help; Help keeps it when signed in); a row of tabs on phones | Built |
+| dashboard: StatTiles, Panel, RecentActivity | A row of numbers; a bordered section with a heading row and optional count; the latest finished lessons and runs (Overview, Activity) | Built |
+| dashboard: ProfileCard | The Overview's profile at a glance: photo, name, handle, bio, links, Edit profile | Built |
+| dashboard: ActivityGraph | A year of activity, a square a day in the heat colours, scrolling to this week on phones; no client code | Built |
+| dashboard: windowText | An access window in words ("Open until 18 Feb 2027") | Built |
 | courses: CourseOutlineView, CourseLevelBadge | Public outline: modules with lesson and Drill titles only, done marks for signed-in learners | Built |
 | courses: CourseIndexLayout, ModuleIndex | A lesson beside its course's modules (sticky sidebar on wide screens, fold-out list on phones): each module folds out to its parts (theory, lab, practice, project, the practice tool) with times; done marks, current module, locked modules; pure rules in `features/courses/course-progress.ts` | Built |
+| courses: CourseProgressBar, modulesDone, nextLesson | "N of M modules done" with a bar (module index, Overview); the next lesson a learner may open | Built |
+| Avatar | The learner's photo, or their initials on a dark circle; `sm` (menu) and `lg` (Settings, Overview) (`components/shared/avatar.tsx`) | Built |
 | PageIntro | The top of a section page: label, heading, a sentence (Courses, Pricing, Questions, Industry Ready) | Built |
 | SiteLink | Every link within the site; never prefetches (golden rule, ADR 0027). Lint allows `next/link` only here (`components/ui/site-link.tsx`) | Built |
 | admin-tools: TraceForm, TraceResults | Watermark trace tool: paste leaked text, see the accounts it points to | Built |
+| admin-tools: AdminToolHeader, CapstoneGradeForm | An admin tool's heading; scores per rubric criterion and feedback for a capstone, saved by `gradeCapstoneAction` | Built |
+| AssessmentEmbed, CapstoneEmbed | Graded course work in a module's page (ADR 0029): questions as radio groups, then the review with the key once finished; the rubric, upload, scores and feedback (`components/lesson/`) | Built |
+| assessments: AssessmentForm, CapstoneUpload | Sends an attempt (an answer per question) or the project .zip, then shows the page again at its block | Built |
+| InlineCourseHtml | A short piece of the author's markup inside a line (a question, an option, a rubric line), sanitised (`components/lesson/course-html.tsx`) | Built |
 | drills: DrillWorkspace, CodeEditor, RunOutput, WaveformView | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
 | drills: useDrillRun, useDrillDraft, waveRows | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser; trace to waveform rows | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
@@ -98,16 +114,36 @@ Check here before writing a component, hook or helper. Add a row when you create
 | readDrill | One published Drill for one learner: paced, readable with content access, `canRun` with tool access too, brief watermarked (`server/drills.ts`) | Built |
 | markCode, embedMark, findMarks | Invisible per-learner watermark in text (`server/invisible-mark.ts`) | Built |
 | sanitizeSvg | Allow-listed inline SVG for diagrams | Built |
-| sanitizeCourseHtml, resolveCourseLinks, markCourseHtml | An author's page markup: allow-listed elements and attributes, `lesson:`/`course:` links to routes, the invisible watermark in its text (`server/course-html.ts`, ADR 0024) | Built |
+| sanitizeCourseHtml, resolveCourseLinks, markCourseHtml, markHtmlFragment | An author's page markup (or a short piece of it): allow-listed elements and attributes, `lesson:`/`course:` links to routes, the invisible watermark in its text (`server/course-html.ts`, ADR 0024) | Built |
 | enforceRateLimit | Throws RATE_LIMITED with Retry-After; used by the gate and by lesson reads | Built |
 | createMongoClient | Every database user's client, with the small pool free Atlas needs (`db/client.ts`) | Built |
+| findPublishedAssessment, findPublishedCapstone, findCourseWorkList | Published course work with its course and the page that shows it (`db/content.ts`, ADR 0029) | Built |
+| findAssessmentKey | An assessment's answer key, through the grader connection only (`db/grading.ts`) | Built |
+| findAttempts, findAllAttempts, recordAttempt | Assessment attempts; at most three, enforced in one write (`db/assessment-attempts.ts`) | Built |
+| findSubmissions, saveSubmission, listSubmissionsForReview, findSubmissionForReview, findSubmissionFile, saveGrade | Capstone submissions (one waiting per learner), their .zip files and grades (`db/capstone-submissions.ts`) | Built |
+| readAssessmentView, submitAttempt | The assessment for a page (key only once finished); an attempt scored on the server (`server/assessments.ts`) | Built |
+| readCapstoneView, submitCapstone | The capstone for a page; a .zip upload checked by its bytes (`server/capstones.ts`) | Built |
+| expertSession, gradeCapstoneAction | Editors and the Owner grading capstones; the grade saved and audit-logged (`server/capstone-reviews.ts`, `server/capstone-grade-action.ts`) | Built |
+| readPerformance, courseWorkAccess | Each course's assessment and capstone with where the learner stands; the access both need (`server/performance.ts`, `server/course-work.ts`) | Built |
 | findPublishedLesson, findPublishedDrill, findPublishedDrillForRun, findCourseOutlines, findLessonCourses | Published content reads, sharing one published-with-level query; lessons and Drills by slug with their course; each linked lesson's course for links between pages (`db/content.ts`, ADR 0018) | Built |
 | registerMarkCode | Watermark code to learner trace table (`db/watermark-codes.ts`) | Built |
 | buildAdminGrant, applyAdminGrant | Admin grant to entitlement plus audit entry (`server/grants.ts`) | Built |
 | replaceEntitlement | Replaces one window and audits it in one transaction (`db/entitlements.ts`) | Built |
 | findUserIdByEmail | Learner id for an email (`db/users.ts`) | Built |
 | findPublishedQuestions | Published questions with company tags, search, filters, pages (`db/questions.ts`) | Built |
-| setLessonDone, findDoneLessonIds | Lesson progress (`db/progress.ts`) | Built |
+| setLessonDone, findDoneLessonIds, findCompletions | Lesson progress; finished lessons with their dates (`db/progress.ts`) | Built |
+| findRunOutcomes, runSolved | A learner's runs, newest first, and whether one solved its Drill (`db/runs.ts`, `server/runs.ts`) | Built |
+| readActivity, dayCounts, activeDays, doneLessonIds, solvedDrillIds | A learner's finished lessons and runs as one newest-first list, and what it adds up to: per day, days, lessons, Drills (`server/activity.ts`) | Built |
+| readOverview | The Overview's data: every course with the learner's access, and their activity (`server/overview.ts`) | Built |
+| hasPassword | Whether the signed-in account has a password (Google-only accounts do not) (`server/auth/auth.ts`) | Built |
+| findPublishedFaqs | The Help page's published questions, in order (`db/faqs.ts`) | Built |
+| readProfile, readPhotoUrl | A learner's profile with their photo's versioned address; the address alone for the header, once per request (`server/profile.ts`) | Built |
+| findProfile, saveProfile, findPhoto, findPhotoVersion, savePhoto, deletePhoto | Profiles (a taken handle is reported, not thrown) and photos as WebP bytes (`db/profiles.ts`) | Built |
+| toProfilePhoto | An upload checked by its bytes (JPEG, PNG, WebP), decoded with a pixel cap, turned upright and re-encoded as a 256 px WebP without EXIF (`server/profile-photo.ts`) | Built |
+| readUpload, startsWith | A multipart upload's file, size-checked before and after reading; a file signature check (`server/upload.ts`, `server/file-bytes.ts`) | Built |
+| buildDataExport | Everything held about a learner in plain fields, for the download in Settings; never tokens, Drill code or watermark codes (`server/data-export.ts`) | Built |
+| deleteLearnerData | Empties a learner's own collections when they delete the account; the audit log and security alerts stay (`db/learner-data.ts`) | Built |
+| findSignIns, findAllScreenings | A learner's sign-ins (when, country); all their CV reports (`db/audit-log.ts`, `db/cv-screenings.ts`) | Built |
 | recordProgress | Progress for a published lesson the learner may read (`server/progress.ts`) | Built |
 | optionalPageIdentity | The signed-in learner on a public page, or null | Built |
 | readLessonPreview | Latest lesson draft for a signed-in CMS admin (`server/preview.ts`) | Built |
@@ -125,7 +161,10 @@ Check here before writing a component, hook or helper. Add a row when you create
 | extractCvText | PDF or .docx text, type checked by file bytes (`server/cv-text.ts`) | Built |
 | renderResumePdf, ResumeDocument | Server-side ATS-friendly resume PDF (`server/resume-pdf/`) | Built |
 | assertEntitled, isEntitled | The one entitlement check used by every route; the same as a yes or no for what a page may offer | Built |
-| errorMessage | Message from an API error body, for client hooks (`lib/api-error.ts`) | Built |
+| errorMessage, sendToApi | Message from an API error body, for client hooks; a form's call to our API as its result (`lib/api-error.ts`) | Built |
+| formatDate, formatMonth, formatTimeAgo | "18 Feb 2027", "Feb" and "3 hours ago", in India time (`lib/format-date.ts`) | Built |
+| countOf | A number with its noun, plural unless one: "1 day", "3 Drills" (`lib/count-of.ts`) | Built |
+| MEMBER_PAGES | The learner's own pages in order, for the avatar menu and the sidebar (`lib/member-pages.ts`) | Built |
 | visibleMark | Builds the visible watermark text per user (`server/watermark.ts`) | Built |
 | redisRateLimiter, RATE_LIMITS | Fixed-window limiter (one Redis command a request) and per-route budgets | Built |
 | AppError, toResponse | Typed errors and the single error-to-response mapper | Built |
@@ -141,30 +180,39 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Name | Purpose | Status |
 | --- | --- | --- |
 | contentAccess, hasRole, isAdmin, isOwnerField | Payload access: admins read, authors draft, editors publish, owners manage admins | Built |
-| titleField, orderField, slugField, publicIdField | Shared collection fields | Built |
+| titleField, orderField, slugField, publicIdField, moduleField, markupField, passMarkField | Shared collection fields | Built |
 | LESSON_BLOCKS | Editor forms for the shared lesson block types | Built |
 | AccessGrants | Append-only grants collection; hooks apply the grant (`cms/collections/access-grants.ts`) | Built |
 | Companies, Questions, Answers | Question bank collections; answers admins-only | Built |
 | Drills, DrillPrivate | Drill authoring; private part never readable by the site | Built |
 | Services, SecurityAlerts | Industry Ready services; read-only alerts for Support | Built |
+| Faqs | The Help page's questions and answers, drafted and published like lessons | Built |
+| Assessments, AssessmentKeys, Capstones | Graded course work (ADR 0029): questions; the answer key, which the site cannot read; the capstone rubric | Built |
 | levelOfModule, relationId | Level of a module's course; id from a relationship value | Built |
 | content-import script | `pnpm content:import <file> [check] [prune]` (`scripts/content-import.ts`): courses, modules, lessons and Drills with their private part; reports or prunes what a file no longer lists; writes with `SCRIPT_CONTEXT` so CMS hooks skip server-only work | Built |
-| content-convert script | `pnpm content:convert` (`scripts/content-convert.ts`, `scripts/course-html/`): course HTML to an import file, one page per module with its markup word for word, diagram colours written onto the SVG, Drills after their labs; notes on anything changed (ADR 0024) | Built |
+| content-convert script | `pnpm content:convert` (`scripts/content-convert.ts`, `scripts/course-html/`): course HTML to an import file, one page per module with its markup word for word, diagram colours written onto the SVG, Drills after their labs, an assessment section and rubric table turned into graded course work (`course-work.ts`, ADR 0029); notes on anything changed (ADR 0024) | Built |
 
 ## Shared package (`packages/shared`)
 
 | Name | Purpose | Status |
 | --- | --- | --- |
-| constants | Level labels, prices in paise, content and tool window lengths | Built |
+| constants | Level labels, prices in paise, content and tool window lengths, password and name lengths | Built |
 | schemas | Level, role, user id, entitlement, audit entry, lesson blocks (with `stateGraphProblems`), published lesson, course outline | Built |
 | slugify | Readable slugs for addresses and anchors (`packages/shared/src/slug.ts`) | Built |
 | inline-text | The lesson text format: `parseInlineText` for rendering, `escapeInlineText` and `inlineCode` for writing it | Built |
 | ERRORS, ErrorCode | Stable error codes with status and client message | Built |
 | ROUTES, API_ROUTES | Every page and API path | Built |
+| outlineLinks | Lesson and Drill ids to their titles and page links, from course outlines (`outline-links.ts`) | Built |
 | priceFor, quotePurchase | Pure pricing, including upgrade difference and downgrade refusal | Built |
 | grantFor, highestActiveLevel | Pure grant rules | Built |
 | decideAccess | Pure access decision for lessons, Drills, answers and career tools | Built |
 | isActive, addMonths, windowFrom | Window arithmetic (UTC calendar months) | Built |
+| contentStatus, toolStatus | A level's (or the tool's) window for display: open until, ended, or never bought (`entitlements/status.ts`) | Built |
+| activityDay, dayDate, currentStreak, longestStreak, activityWeeks, SITE_TIME_ZONE | Activity days in India time, day streaks (a streak lasts until the day without activity ends) and the year graph's weeks (`activity.ts`) | Built |
+| PublishedAssessmentSchema, KeyAnswerSchema, AttemptInputSchema, scoreAttempt, assessmentStanding, ASSESSMENT_ATTEMPTS | Assessments: questions, the key, an attempt, its score, where a learner stands (`schemas/assessment.ts`) | Built |
+| PublishedCapstoneSchema, CapstoneGradeSchema, gradeProblems, rubricTotal | Capstones: rubric, an expert's grade and its checks (`schemas/capstone.ts`) | Built |
+| FaqSchema | One Help question and its answer (`schemas/faq.ts`) | Built |
+| ProfileSchema, PROFILE_LINKS, emptyProfile, PhotoQuerySchema | Handle (3 to 30 of a-z, 0-9, _; a few reserved), bio up to 500, https links (LinkedIn and GitHub on their own sites); the links' labels; the photo address's version (`schemas/profile.ts`) | Built |
 | formatInr | Paise to "₹5,000" | Built |
 | DRILL_LIMITS, drillLimitProblem, TOP_MODULE_PATTERN | Per-level Drill caps and safe top-module names | Built |
 | RunInputSchema, RunResultSchema, RunViewSchema, isDrillSolved, DRILL_RUN_DAILY_QUOTA, dailyRunQuota | Drill run input, solver result, learner view, solved rule and daily quota by level (`schemas/run.ts`, `entitlements/run-quota.ts`) | Built |

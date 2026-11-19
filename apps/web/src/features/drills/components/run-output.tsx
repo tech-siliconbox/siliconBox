@@ -1,5 +1,6 @@
 import type { CheckResult, GradingView, PublishedDrill, RunView } from '@siliconbox/shared';
 import { cn } from '@/lib/cn';
+import { countOf } from '@/lib/count-of';
 import type { RunPhase } from '../hooks/use-drill-run';
 import { WaveformView } from './waveform-view';
 
@@ -60,7 +61,7 @@ function CheckRow({ check }: { check: CheckResult }) {
 /** How the checker did on the Drill's hidden designs: counts only, never the designs. */
 function gradingText(grading: GradingView): string {
   if (grading.state === 'pending') {
-    return `Checking your properties against ${grading.total} hidden design${grading.total === 1 ? '' : 's'}…`;
+    return `Checking your properties against ${countOf(grading.total, 'hidden design')}…`;
   }
   if (grading.kind === 'bugVariants') {
     return `Your properties caught ${grading.met} of ${grading.total} seeded bugs.`;

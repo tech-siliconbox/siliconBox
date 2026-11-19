@@ -7,6 +7,7 @@ import parse, {
   Text,
   domToReact,
 } from 'html-react-parser';
+import { cn } from '@/lib/cn';
 import { sanitizeCourseHtml } from '@/server/course-html';
 import { CopyCodeButton } from './copy-code-button';
 
@@ -55,4 +56,11 @@ const options: HTMLReactParserOptions = {
  */
 export function CourseHtml({ html }: { html: string }) {
   return <div className="course-html">{parse(sanitizeCourseHtml(html), options)}</div>;
+}
+
+/** A short piece of the author's markup (a question, an option, a rubric line) inside a line. */
+export function InlineCourseHtml({ html, className }: { html: string; className?: string }) {
+  return (
+    <span className={cn('course-html', className)}>{parse(sanitizeCourseHtml(html), options)}</span>
+  );
 }

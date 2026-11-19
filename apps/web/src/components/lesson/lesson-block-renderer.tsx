@@ -3,6 +3,8 @@ import type { LessonBlock, LessonBlockType } from '@siliconbox/shared';
 import type { ReactNode } from 'react';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { sanitizeSvg } from '@/server/sanitize-svg';
+import { AssessmentEmbed } from './assessment-embed';
+import { CapstoneEmbed } from './capstone-embed';
 import { CopyCodeButton } from './copy-code-button';
 import { CourseHtml } from './course-html';
 import { DrillEmbed } from './drill-embed';
@@ -101,6 +103,8 @@ const RENDERERS: Renderers = {
   stateGraph: (block) => <StateGraphFigure graph={block} />,
   html: ({ html }) => <CourseHtml html={html} />,
   drillEmbed: ({ drill }) => <DrillEmbed slug={drill} renderBlocks={renderBlocks} />,
+  assessmentEmbed: ({ assessment }) => <AssessmentEmbed slug={assessment} />,
+  capstoneEmbed: ({ capstone }) => <CapstoneEmbed slug={capstone} />,
 };
 
 function renderBlocks(blocks: LessonBlock[]) {

@@ -100,6 +100,19 @@ const insideCode = (element: Element): boolean =>
   isTag(element.parent) &&
   (UNMARKED_INSIDE.has(element.parent.name) || insideCode(element.parent));
 
+function markFirstWord(node: { data: string } | null, code: number): void {
+  if (node === null) return;
+  const start = node.data.search(/\S/);
+  node.data = node.data.slice(0, start) + embedMark(node.data.slice(start), code);
+}
+
+/** A short piece of markup (an assessment question or option): the mark after its first word. */
+export function markHtmlFragment(html: string, code: number): string {
+  const document = parseHtml(html);
+  markFirstWord(firstText(document.children), code);
+  return renderHtml(document);
+}
+
 /** The learner's invisible mark after the first word of every passage; code stays untouched. */
 export function markCourseHtml(html: string, code: number): string {
   const document = parseHtml(html);
@@ -107,10 +120,7 @@ export function markCourseHtml(html: string, code: number): string {
     (node) => MARKED.has(node.name) && !insideCode(node),
     document.children,
   )) {
-    const node = firstText(element.children);
-    if (node === null) continue;
-    const start = node.data.search(/\S/);
-    node.data = node.data.slice(0, start) + embedMark(node.data.slice(start), code);
+    markFirstWord(firstText(element.children), code);
   }
   return renderHtml(document);
 }

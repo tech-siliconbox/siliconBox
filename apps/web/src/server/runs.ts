@@ -19,6 +19,7 @@ import {
   saveCachedResult,
   saveGrading,
   updateRunState,
+  type RunOutcome,
 } from '@/db/runs';
 import type { Identity } from './auth/authenticate';
 import { jobHash, solverJob } from './drill-jobs';
@@ -30,6 +31,10 @@ import { readJob, submitJob } from './solver-client';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Whether a run solves its Drill (its target, then the hidden designs); null while grading. */
+export const runSolved = (run: Pick<RunOutcome, 'target' | 'status' | 'grading'>) =>
+  drillSolved(run.target, run.status, gradingView(run.grading));
+
 function toView(run: RunRecord): RunView {
   const grading = gradingView(run.grading);
   return {
@@ -39,7 +44,7 @@ function toView(run: RunRecord): RunView {
     position: run.position,
     result: run.result,
     grading,
-    solved: drillSolved(run.target, run.result?.status ?? null, grading),
+    solved: runSolved({ ...run, status: run.result?.status ?? null }),
     createdAt: run.createdAt.toISOString(),
   };
 }

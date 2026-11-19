@@ -32,3 +32,4 @@ Each file records one hard-to-reverse decision. Add a new one with `/new-adr <ti
 | [0026](0026-readable-page-addresses.md) | Readable page addresses: slugs, never ids |
 | [0027](0027-content-only-in-its-page.md) | Golden rule: copyrighted content leaves the server only inside its page |
 | [0028](0028-email-through-resend.md) | Email through Resend; verify the address before a purchase |
+| [0029](0029-assessments-and-capstone-grading.md) | Graded assessments and capstone projects |

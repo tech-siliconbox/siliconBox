@@ -9,6 +9,8 @@ export const buttonVariants = cva(
       variant: {
         primary: 'border-foreground bg-foreground text-background hover:opacity-90',
         secondary: 'border-border bg-background text-foreground hover:border-foreground',
+        // For what cannot be undone, such as deleting the account.
+        danger: 'border-danger bg-danger text-background hover:opacity-90',
       },
       size: {
         lg: 'h-12 rounded-button px-8 text-base',

@@ -33,6 +33,6 @@ A filmed screen or hand-typed copy can still carry the visible mark, but a cropp
 
 - Visible: `Watermarked` tiles `visibleMark` (last six characters of the user id, the first three letters of the email with its domain, and the date) as an SVG pattern at 7% opacity over every signed-in page.
 - Invisible: `markCode` derives a 32-bit code from the user id with a keyed hash; `embedMark` hides it as zero-width characters after the first word of every paragraph, callout and list item (including those inside reveals). Code samples are left untouched so they still run when copied. `findMarks` reads codes back from pasted text.
-- Trace table: `watermark_codes` maps codes to learners; each sign-in registers the learner's code.
+- Trace table: `watermark_codes` maps codes to learners; each sign-in registers the learner's code. Deleting an account deletes its codes (DPDP), so text leaked before the deletion no longer traces to a person.
 - Trace tool (2026-11-18): `/admin-tools/trace`, Support and Owner only (Payload session). Paste leaked text or a visible mark read off a screenshot; it decodes hidden codes (`findMarks`) and parses visible marks (`parseVisibleMarks`), then lists the matching accounts. Text goes by POST, is never stored or logged, lookups are rate-limited (20 an hour per admin), and each trace is audit-logged as `watermark_trace`.
 - Tests: unit tests for encoding and round trips; the lesson end-to-end test checks both marks on a paid view.
