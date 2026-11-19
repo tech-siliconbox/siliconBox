@@ -7,6 +7,8 @@ export const ROUTES = {
   industryReady: '/industry-ready',
   resumeBuilder: '/industry-ready/resume-builder',
   cvScreening: '/industry-ready/cv-screening',
+  // Praman, the formal tool page (ADR 0031).
+  tool: '/tool',
   courses: '/courses',
   course: (slug: string) => `/courses/${slug}`,
   // Page addresses are readable slugs; database and public ids stay out of them.
