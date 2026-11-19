@@ -50,6 +50,19 @@ export const API_ROUTES = {
   cvScreeningFeedback: (screeningId: string) => `/api/v1/cv-screenings/${screeningId}/feedback`,
   drillRuns: (drillId: string) => `/api/v1/drills/${drillId}/runs`,
   run: (runId: string) => `/api/v1/runs/${runId}`,
+  // Praman, the formal tool page (ADR 0031).
+  toolSessions: '/api/v1/tool/sessions',
+  toolSession: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}`,
+  toolSessionOpen: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/open`,
+  toolSessionPoll: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/poll`,
+  toolSessionCommands: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/commands`,
+  toolSessionStop: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/stop`,
+  toolSessionFiles: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/files`,
+  toolSessionTrace: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/trace`,
+  toolSessionScript: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/script`,
+  toolRuns: '/api/v1/tool/runs',
+  toolRun: (runId: string) => `/api/v1/tool/runs/${runId}`,
+  toolRunTrace: (runId: string) => `/api/v1/tool/runs/${runId}/trace`,
 } as const;
 
 /** Query value the sign-in page reads to explain a sign-out caused by another device. */
