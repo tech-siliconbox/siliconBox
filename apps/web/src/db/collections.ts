@@ -36,4 +36,9 @@ export const COLLECTIONS = {
   capstoneSubmissions: 'capstone_submissions',
   capstoneFiles: 'capstone_files',
   avatars: 'avatars',
+  // Praman, the formal tool page (ADR 0031): sessions, file texts by hash, runs and traces.
+  toolSessions: 'tool_sessions',
+  toolFiles: 'tool_files',
+  toolRuns: 'tool_runs',
+  toolTraces: 'tool_traces',
 } as const;
