@@ -157,7 +157,7 @@ def test_in_a_scan_the_proof_engines_go_first_when_the_batched_check_did_not_dec
             return SbyResult(status="TIMEOUT", return_code=-1, error_message="simulated")
         return real(sby_file, work_dir, timeout)
     monkeypatch.setattr(svc, "_run_sby", run_sby)
-    svc.scans = [20, 120]           # SiliconBox: room for slower CI runners (formal-verify: [5, 20])
+    svc.scans = [5, 20]
     svc.build_seconds = 0.0
     sva = SVA.replace("q != 4'd12", "q != 4'd3")           # ap_slow now fails (q reaches 3)
     job = svc.run_formal(sva_code=sva, dut_code=DUT, dut_filename="d.sv", dut_top="d", mode="prove", depth=12,

@@ -189,6 +189,19 @@ def test_an_engine_process_is_held_to_the_proof_ceiling() -> None:
     assert time.monotonic() - started < 5
 
 
+def test_a_command_is_done_when_it_exits_though_a_stray_child_holds_its_output() -> None:
+    # sby runs each engine in a process group of its own; a losing engine slow to stop must not
+    # hold the run open until its time limit (it did on CI's x64 runners: a FAIL became TIMEOUT).
+    code = (
+        "import subprocess; subprocess.Popen(['sleep', '10'], start_new_session=True); "
+        "print('decided')"
+    )
+    started = time.monotonic()
+    done = run_tree([sys.executable, "-c", code], timeout=20)
+    assert done.stdout.strip() == "decided"
+    assert time.monotonic() - started < 5
+
+
 def test_depth_and_time_are_lowered_to_the_ceilings() -> None:
     ceilings.set_ceilings(ceilings.Ceilings(proof_seconds=300, trace_length=50, seconds_left=600))
     assert ceilings.depth(500) == 50

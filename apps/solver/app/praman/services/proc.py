@@ -6,6 +6,11 @@ native engine's worker -> yices) so that none of them outlives it.
 solver underneath is orphaned and keeps a CPU core busy (one ran for 27 hours
 after its job had timed out).  `run_tree` starts the command in a process
 group of its own and, on a timeout or any error, kills the whole group.
+
+SiliconBox: the output goes to temporary files and run_tree waits for the
+command itself, not for its pipes to close.  sby runs each engine in a process
+group of its own; a losing engine slow to stop held the pipes open after sby
+had decided, and the run counted as a timeout (seen on CI's x64 runners).
 """
 
 from __future__ import annotations
@@ -15,6 +20,7 @@ import os
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 
@@ -103,12 +109,13 @@ def tree_rss_mb(root: int) -> float:
     return total_kb / 1024
 
 
-def _communicate(proc: subprocess.Popen, cmd, timeout, cancel):
-    """proc.communicate(timeout), giving up early (TimeoutExpired) once `cancel` is set,
+def _wait(proc: subprocess.Popen, cmd, timeout, cancel) -> None:
+    """proc.wait(timeout), giving up early (TimeoutExpired) once `cancel` is set,
     and (MemoryLimitExceeded) when the command uses more than PRAMAN_JOB_MEMORY_MB."""
     limit = memory_limit_mb() if os.path.isdir("/proc") else 0
     if cancel is None and not limit:
-        return proc.communicate(timeout=timeout)
+        proc.wait(timeout=timeout)
+        return
     deadline = None if timeout is None else time.monotonic() + timeout
     next_look = time.monotonic() + MEMORY_LOOK
     while True:
@@ -121,10 +128,17 @@ def _communicate(proc: subprocess.Popen, cmd, timeout, cancel):
                 raise MemoryLimitExceeded(cmd, used, limit)
         step = 0.2 if deadline is None else min(0.2, max(0.0, deadline - time.monotonic()))
         try:
-            return proc.communicate(timeout=step)
+            proc.wait(timeout=step)
+            return
         except subprocess.TimeoutExpired:
             if deadline is not None and time.monotonic() >= deadline:
                 raise
+
+
+def _read(captured, text: bool):
+    captured.seek(0)
+    data = captured.read()
+    return data.decode("utf-8", errors="replace") if text else data
 
 
 def run_tree(cmd, timeout=None, cancel=None, **kwargs) -> subprocess.CompletedProcess:
@@ -138,28 +152,27 @@ def run_tree(cmd, timeout=None, cancel=None, **kwargs) -> subprocess.CompletedPr
     timeout = ceilings.engine_timeout(timeout)      # SiliconBox: the learner's ceilings (ADR 0031)
     if timeout is not None and timeout <= 0:        # no proof time left today: nothing starts
         raise subprocess.TimeoutExpired(cmd, 0)
-    kwargs.setdefault("text", True)
-    kwargs.setdefault("stdout", subprocess.PIPE)
-    kwargs.setdefault("stderr", subprocess.PIPE)
+    text = kwargs.pop("text", True)
     kwargs.pop("capture_output", None)
     posix = os.name == "posix"
-    with ceilings.engine_running(), subprocess.Popen(cmd, start_new_session=posix, **kwargs) as proc:
+    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr, ceilings.engine_running(), \
+            subprocess.Popen(cmd, start_new_session=posix, stdout=stdout, stderr=stderr, **kwargs) as proc:
         try:
-            out, err = _communicate(proc, cmd, timeout, cancel)
+            _wait(proc, cmd, timeout, cancel)
         except MemoryLimitExceeded:
             if posix:
                 _stop(proc)
             else:
                 proc.kill()
-            proc.communicate()
+            proc.wait()
             raise
         except subprocess.TimeoutExpired:
             if posix:
                 _stop(proc)
             else:
                 proc.kill()
-            out, err = proc.communicate()
-            raise subprocess.TimeoutExpired(cmd, timeout, output=out, stderr=err)
+            proc.wait()
+            raise subprocess.TimeoutExpired(cmd, timeout, output=_read(stdout, text), stderr=_read(stderr, text))
         except BaseException:
             if posix:
                 _kill_group(proc)
@@ -168,7 +181,7 @@ def run_tree(cmd, timeout=None, cancel=None, **kwargs) -> subprocess.CompletedPr
             raise
         if posix:                       # a child left behind by a tool that exited (none expected)
             _kill_group(proc)
-    return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
+        return subprocess.CompletedProcess(cmd, proc.returncode, _read(stdout, text), _read(stderr, text))
 
 
 # ── sby ───────────────────────────────────────────────────────
