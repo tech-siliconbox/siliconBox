@@ -11,6 +11,7 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 - Solver API `/v1/sessions/{id}` (scope `sessions`): open (waits in line), requests and late replies, close. Another learner's session is 404; a learner has one session at a time.
 - The learner's ceilings are enforced where engines start: settings above them are lowered with a log line, every engine process is capped at the proof ceiling and the proof time left today, and the real engine time is reported for the allowance. File system tasks are refused in Praman; its deletes go through the workspace checks.
 - The solver image gets Tcl 8.6; CI installs Tcl. Solver hardening findings 14 to 21 are fixed on the solver's side with regression and attack tests.
+- Praman's ported tests run inside the solver image, the toolchain sessions use in production (`pnpm --filter @siliconbox/solver test:image`, and in CI); the rest of the solver tests run as before.
 
 ### Added (Praman, the formal tool page: decisions, ADR 0031)
 

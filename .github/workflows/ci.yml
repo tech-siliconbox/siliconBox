@@ -122,11 +122,13 @@ jobs:
       - run: .venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/vulture
       # The runner image, so the container tests (isolation and attacks) run instead of skipping.
       - run: docker build -t siliconbox-solver:ci .
-      - run: .venv/bin/pytest -q
+      - run: .venv/bin/pytest -q --ignore=tests/praman
         env:
           SOLVER_REQUIRE_SBY: '1'
           SOLVER_REQUIRE_IMAGE: '1'
           SOLVER_TEST_IMAGE: siliconbox-solver:ci
+      # Praman's ported tests run in the image, the toolchain sessions use in production (ADR 0031).
+      - run: sh scripts/praman-tests-in-image.sh siliconbox-solver:ci
 
   security:
     runs-on: ubuntu-latest

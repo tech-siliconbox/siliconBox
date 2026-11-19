@@ -8,6 +8,7 @@
     "supervisor": ".venv/bin/python -m app.supervisor",
     "lint": ".venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/vulture",
     "test": ".venv/bin/pytest -q",
+    "test:image": "sh scripts/praman-tests-in-image.sh",
     "gate": ".venv/bin/python -m app.gate"
   }
 }

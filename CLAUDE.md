@@ -59,7 +59,7 @@ pnpm --filter @siliconbox/web db:verify-roles   prove each database user's acces
 ```
 
 Content: `pnpm content:convert <course folder> <level> <out.json>` (course HTML to JSON), `pnpm drills:verify <file.json>` (publish gate: every Drill on the real solver) and `pnpm content:import <file.json> [check] [prune]` (JSON into Payload). See `content/README.md`.
-Solver checks: `pnpm --filter @siliconbox/solver lint` and `... test`.
+Solver checks: `pnpm --filter @siliconbox/solver lint` and `... test`; `... test:image` runs Praman's ported tests inside the solver image (build it first), as CI does.
 
 ## Engineering standard: write like a senior engineer
 
