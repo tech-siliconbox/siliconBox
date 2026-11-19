@@ -11,7 +11,7 @@ Read this file first, then the doc the task points to. Details live in `docs/`; 
 3. **The word "kata" is banned.** The exercise unit is a **Drill**, everywhere: code, UI, docs, DB, URLs. See `docs/product/glossary.md`.
 4. **One active device per learner.** A second sign-in ends the first session.
 5. **Every page a signed-in learner sees carries their watermark** (visible and invisible). See `docs/security/watermarking.md`.
-6. **Learners never choose solver, depth, timeout or top module.** The server attaches the Drill's own settings. See `docs/architecture/solver-integration.md`.
+6. **Learners never choose solver, depth, timeout or top module.** The server attaches the Drill's own settings. One exception: on Praman, the formal tool page (`/tool`), the learner sets the top module, proof time and trace length within the server's ceilings for their level, never past them and never for a Drill (ADR 0031). See `docs/architecture/solver-integration.md`.
 7. **No video.** Lessons are text, code and inline SVG diagrams.
 8. **Money is INR, no GST for now.** The tax rate is a setting, default 0. Prices are decided on the server only.
 9. **Light theme only**, Geist and Geist Mono, tokens in `docs/design/formal-tokens-light.css`.

@@ -4,6 +4,11 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman, the formal tool page: decisions, ADR 0031)
+
+- ADR 0031 (accepted): Praman at `/tool`, ported from formal-verify, for learners with an active tool window and plan. Each open session runs in its own sandboxed container; the learner chooses top module, proof time and trace length within ceilings per level (the one exception to hard rule 6); proof minutes a day per level; saved sessions and run history kept 180 days. The confirmed plan is in `docs/roadmap/tool-page-plan.md`.
+- Docs follow it: CLAUDE.md rule 6, the access model, the glossary, solver integration, and the solver rules. Solver hardening has new findings 14 to 21 for Praman sessions, with their own gate before the page opens to learners.
+
 ### Added (Industry Ready: Resume Builder with the industry feature set)
 
 - Several resumes per learner (up to 5): switch, rename, new, duplicate, delete. Resumes save themselves a moment after typing stops (and on Ctrl/Cmd+S), with undo and redo and a warning before leaving unsaved edits. Migration `20261011000000-many-resumes` gives existing resumes an id and a name; run `pnpm db:migrate`.

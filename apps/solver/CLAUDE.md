@@ -11,7 +11,7 @@ Read before editing: `../../docs/security/solver-hardening.md`, `../../docs/arch
 - No unauthenticated route. No wildcard CORS. Signed service token on every call.
 - Work folders are server-generated UUIDs; resolved paths are checked before any delete.
 - `.sby` files come from a fixed template; `mode` and `solver` are allow-listed; `top_module` is validated.
-- `timeout` and `depth` are set by the server per level.
+- `timeout` and `depth` are set by the server per level. Praman sessions (ADR 0031): the learner chooses within the ceilings the web app signs, and the solver's own ceilings in `app/limits.py` still apply.
 - Jobs are persisted; ids are UUIDv4; results belong to a user.
 - No synchronous run endpoint for learners.
 - No RAG or LLM packages in this image.
