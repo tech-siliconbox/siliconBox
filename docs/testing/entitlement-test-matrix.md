@@ -19,16 +19,16 @@ Run by `pnpm test:entitlements`. Dates are relative to purchase date `d`; "m" is
 
 ## Access
 
-| # | State | Lesson | Drill run | Answer | Resume Builder, CV screening |
-| --- | --- | --- | --- | --- | --- |
-| 11 | No account | outline only | no | no | no |
-| 12 | Signed in, nothing bought | outline and first lesson | no | no | no |
-| 13 | Content active, tool ended | yes | no | yes | yes |
-| 14 | Content ended, tool active | no | no | no | no |
-| 15 | Level not held (another level is active) | no for that level | no for that level | no for that level | yes, while any content entitlement is active |
-| 16 | Window ended | locked; outline public | no | no | no |
+| # | State | Lesson | Drill run | Answer | Resume Builder, CV screening | Praman (`/tool`) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 11 | No account | outline only | no | no | no | no |
+| 12 | Signed in, nothing bought | outline and first lesson | no | no | no | no |
+| 13 | Content active, tool ended | yes | no | yes | yes | no |
+| 14 | Content ended, tool active | no | no | no | no | no (no plan, no tool access) |
+| 15 | Level not held (another level is active) | no for that level | no for that level | no for that level | yes, while any content entitlement is active | yes, with the active level's ceilings |
+| 16 | Window ended | locked; outline public | no | no | no | no |
 
-A Drill run needs both an active content entitlement for that Drill's level and an active tool entitlement. Reading a Drill (brief and files) needs only the content entitlement for its level, so row 13 can read Drills but not run them.
+A Drill run needs both an active content entitlement for that Drill's level and an active tool entitlement. Reading a Drill (brief and files) needs only the content entitlement for its level, so row 13 can read Drills but not run them. Praman needs an active tool entitlement and any active content entitlement; the highest active level sets its ceilings and proof minutes (ADR 0031; `packages/shared/src/entitlements/praman.test.ts`).
 
 ## Integrity
 

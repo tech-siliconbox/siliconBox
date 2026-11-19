@@ -26,6 +26,10 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 | `progress` | Lesson progress: `{ userId, lessonId (public id), completedAt }`; Drill progress later | Owner |
 | `runs` | One learner run: user, Drill, request id, the learner's properties, state, result (with log and traces), hash, cached flag; kept 180 days | Owner |
 | `run_cache` | PASS/FAIL result by hash of design, properties and settings; kept 30 days | Server |
+| `tool_sessions` | A learner's Praman sessions (ADR 0031): name, dates, phase, top, journal, settings, Praman's state, file references and the last 20,000 log lines; up to 20 per learner; removed 180 days after last use (TTL on `expiresAt`) | Owner, with delete |
+| `tool_files` | The texts of session and run files, once per learner by SHA-256; collected when no session or run refers to them | Owner |
+| `tool_runs` | A learner's Praman runs: command, top, clock, reset, settings, script, file references, status, summary and each property's result; the newest 50 kept, extended while their session is in use | Owner, with delete |
+| `tool_traces` | Counterexample and cover traces of a run, one per property, up to 2 MB each (a longer one is not kept) | Owner |
 | `services` | Industry Ready service cards and status (`open` or `locked`), locked reason, order | Public list |
 | `faqs` | Help page questions and answers, order; written by Payload with drafts | Public (published only) |
 | `security-alerts` | Alerts for review: kind, learner, details, reviewed flag | Support, Owner (site inserts only) |
