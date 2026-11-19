@@ -4,6 +4,14 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman, the formal tool page: the web app's data and API, ADR 0031)
+
+- `/api/v1/tool` routes for a learner's Praman sessions (list, create, rename, delete, open, poll, commands, stop, files, trace, script) and runs (list, read, delete, trace), each through the four gates. They need a tool window and a plan (`praman` access); the learner's highest active level sets the ceilings sent with every call.
+- Proof minutes: the engine time each session's host reports is counted per 24 hours in Redis (60, 120 and 240 minutes a day by level), separate from Drill runs.
+- Sessions, file texts (once per learner by hash), runs and traces in MongoDB (migration `20261012000000-praman-sessions`: run `pnpm db:migrate`, and re-apply the database roles), kept 180 days after the session's last use. Up to 20 sessions and the newest 50 runs; traces over 2 MB are not kept.
+- The data download includes Praman sessions and runs; deleting a session, a run or the account removes them (and closes the open session on the solver).
+- The solver hands a closed session's last records over once (`DELETE /v1/sessions/{id}/final`). CI's end-to-end job starts the session supervisor.
+
 ### Added (Praman, the formal tool page: the solver, ADR 0031)
 
 - Praman's engine is ported into the solver (`apps/solver/app/praman`) from formal-verify `1bfa69ba`: the session and its 40+ Tcl commands, the SystemVerilog/SVA front end on pyslang 12.0.0, the proof services and the native engines. Not ported: the Formal Agent, Certifaiger, Praman's accounts, database, routers and folder queue. Its tests come along (those built on formal-verify's agent and evaluation cases stay there).
