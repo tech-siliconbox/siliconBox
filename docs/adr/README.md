@@ -33,3 +33,5 @@ Each file records one hard-to-reverse decision. Add a new one with `/new-adr <ti
 | [0027](0027-content-only-in-its-page.md) | Golden rule: copyrighted content leaves the server only inside its page |
 | [0028](0028-email-through-resend.md) | Email through Resend; verify the address before a purchase |
 | [0029](0029-assessments-and-capstone-grading.md) | Graded assessments and capstone projects |
+| [0030](0030-ai-feedback-through-claude.md) | AI feedback on CVs and resumes through Claude (proposed) |
+| [0031](0031-praman-formal-tool-page.md) | Praman, the formal tool page: one sandboxed container per session |
