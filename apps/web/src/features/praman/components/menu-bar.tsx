@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
+import { PramanMark } from '@/components/shared/praman-mark';
 import { useDismiss } from '@/hooks/use-dismiss';
 import type { Menu, MenuItem } from '../menus';
 import type { ToolAction } from '../tool-actions';
@@ -23,14 +24,8 @@ export function MenuBar({ menus, onAction, children }: MenuBarProps) {
   };
   return (
     <div ref={bar} className="flex h-8 items-center border-b border-border bg-muted text-[13px]">
-      <h1 className="flex items-center gap-1.5 px-3 font-bold text-info">
-        <span
-          aria-hidden="true"
-          className="grid size-[17px] place-items-center rounded-[3px] bg-info text-[11px] text-background"
-        >
-          P
-        </span>
-        Praman
+      <h1 className="px-3">
+        <PramanMark />
       </h1>
       <div role="menubar" aria-label="Praman" className="flex h-full items-stretch">
         {menus.map((menu) => (
