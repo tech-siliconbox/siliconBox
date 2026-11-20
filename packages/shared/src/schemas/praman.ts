@@ -89,6 +89,9 @@ const PinSchema = z.strictObject({
 /** A what-if or cover trace of the session (`<session id>_w…` or `_c…`), for its drivers. */
 const TraceJobSchema = z.string().regex(/^[0-9a-f-]{36}_[wc][0-9a-f]{8}$/);
 
+/** A trace of the session another one must differ from: its proof run, a what-if or a cover. */
+const DifferFromSchema = z.string().regex(/^[0-9a-f-]{36}_(r\d{1,6}|[wc][0-9a-f]{8})$/);
+
 /**
  * Body of `POST /api/v1/tool/sessions/:id/what-if`: a trace of the property with these values
  * pinned (and, with `differFrom`, other inputs than that trace), or its quietest trace.
@@ -96,7 +99,7 @@ const TraceJobSchema = z.string().regex(/^[0-9a-f-]{36}_[wc][0-9a-f]{8}$/);
 export const ToolWhatIfSchema = z.strictObject({
   property: NameSchema,
   pins: z.array(PinSchema).max(TOOL_WHAT_IF_PINS_MAX).default([]),
-  differFrom: z.union([TraceJobSchema, z.literal('')]).default(''),
+  differFrom: z.union([DifferFromSchema, z.literal('')]).default(''),
   quiet: z.boolean().default(false),
 });
 

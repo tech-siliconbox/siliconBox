@@ -31,6 +31,11 @@ describe('readPramanTrace', () => {
   it("reads Praman's waveform data into SiliconBox's trace", () => {
     expect(readPramanTrace(PAYLOAD)).toEqual({
       explanation: 'ap_bad fails at cycle 2: q is 5.',
+      debug: null,
+      kind: 'ASSERT',
+      property: 'ap_bad',
+      jobId: 's_r1',
+      failCycle: 2,
       trace: {
         timescale: '1ns',
         endTime: 30,
@@ -48,6 +53,27 @@ describe('readPramanTrace', () => {
         ],
       },
     });
+  });
+
+  it("reads the property's own account, cycle by cycle, and the kind of trace", () => {
+    const debug = {
+      cycles: [0, 1, 2],
+      event_cycle: 2,
+      trigger_cycle: 1,
+      antecedent: { text: 'start', start: 1, end: 1 },
+      conditions: [{ text: 'q < 5', role: 'consequent', values: [1, 1, 0] }],
+      signals: [{ name: 'q', path: 'pair.q', width: 3, values: ['0', '0', '5'] }],
+      explanation: ['`ap_bad` fails at cycle 2.'],
+    };
+    const read = readPramanTrace({ ...PAYLOAD, debug, assertion: { name: 'c_q', type: 'COVER' } });
+    expect(read?.kind).toBe('COVER');
+    expect(read?.failCycle).toBe(2);
+    expect(read?.debug?.conditions[0]?.values).toEqual([1, 1, 0]);
+    expect(read?.debug?.signal_paths).toEqual([]);
+  });
+
+  it('keeps the trace when its account does not read', () => {
+    expect(readPramanTrace({ ...PAYLOAD, debug: { cycles: 'many' } })?.debug).toBeNull();
   });
 
   it('answers null for anything else', () => {

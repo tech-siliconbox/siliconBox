@@ -1,23 +1,35 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
-import type { TraceAnalysis } from '../hooks/use-trace-tools';
-import { TracePanel } from './trace-panel';
+import type { Reset } from '../praman-snapshot';
+import type { TraceAnalysis } from '../trace-tools';
+import { VisualizeWindow } from './visualize/visualize-window';
 
-/** A trace to open under a result panel: where to read it, its title, and its tools. */
+/** A trace to open in Visualize: where to read it, its title, and what its tools may ask. */
 export type OpenTrace = { url: string; title: string; analysis?: TraceAnalysis };
 
-/** Shows a result panel, and the trace it opened under it. */
-export function TraceHost({
-  children,
-}: {
+type TraceHostProps = {
+  /** The design's top module and reset: the rows shown first, and the cycles the reset holds. */
+  top: string;
+  reset: Reset | null;
   children: (open: (trace: OpenTrace) => void) => ReactNode;
-}) {
+};
+
+/** Shows a result panel, and opens a trace it asks for in Visualize. */
+export function TraceHost({ top, reset, children }: TraceHostProps) {
   const [trace, setTrace] = useState<OpenTrace | null>(null);
   return (
     <>
       {children(setTrace)}
-      {trace !== null && <TracePanel key={trace.url} {...trace} onClose={() => setTrace(null)} />}
+      {trace !== null && (
+        <VisualizeWindow
+          key={trace.url}
+          {...trace}
+          top={top}
+          reset={reset}
+          onClose={() => setTrace(null)}
+        />
+      )}
     </>
   );
 }

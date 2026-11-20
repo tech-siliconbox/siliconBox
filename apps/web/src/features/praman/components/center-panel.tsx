@@ -124,7 +124,10 @@ function Properties({ session, can, onAction, instance, now }: PropertiesProps) 
   const traceOf = (id: string) =>
     `${API_ROUTES.toolSessionTrace(session.id)}?${new URLSearchParams({ property: id })}`;
   return (
-    <TraceHost>
+    <TraceHost
+      top={session.state.snapshot?.top ?? ''}
+      reset={session.state.snapshot?.reset ?? null}
+    >
       {(open) => (
         <PropertyTable
           properties={snapshot.properties}
@@ -181,7 +184,10 @@ function CoverageReport({ session, can, onAction }: PanelProps) {
   const traceOf = (item: CoverageItem) =>
     `${API_ROUTES.toolSessionCoverageTrace(session.id)}?${new URLSearchParams({ label: item.label, instance: item.instance })}`;
   return (
-    <TraceHost>
+    <TraceHost
+      top={session.state.snapshot?.top ?? ''}
+      reset={session.state.snapshot?.reset ?? null}
+    >
       {(open) => (
         <CoveragePanel
           coverage={session.state.snapshot?.coverage ?? null}
@@ -208,7 +214,10 @@ function CoverageReport({ session, can, onAction }: PanelProps) {
 
 function EquivalenceReport({ session, can, onAction }: PanelProps) {
   return (
-    <TraceHost>
+    <TraceHost
+      top={session.state.snapshot?.top ?? ''}
+      reset={session.state.snapshot?.reset ?? null}
+    >
       {(open) => (
         <EquivalencePanel
           equivalence={session.state.snapshot?.equivalence ?? null}

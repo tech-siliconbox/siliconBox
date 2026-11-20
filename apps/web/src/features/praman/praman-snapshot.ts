@@ -69,13 +69,17 @@ export const PramanPropertySchema = z.object({
 });
 export type PramanProperty = z.infer<typeof PramanPropertySchema>;
 
+/** The design's reset: its signal, and whether it is held low. */
+const ResetSchema = z.object({ signal: z.string(), active_low: z.boolean() });
+export type Reset = z.infer<typeof ResetSchema>;
+
 export const PramanSnapshotSchema = z.object({
   label: z.string(),
   phase: z.enum(['empty', 'analyzed', 'elaborated']),
   busy: z.boolean(),
   top: z.string(),
   clock: z.string().nullable(),
-  reset: z.object({ signal: z.string(), active_low: z.boolean() }).nullable(),
+  reset: ResetSchema.nullable(),
   tree: TreeNodeSchema.nullable(),
   files: z.array(
     z.object({
