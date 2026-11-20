@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn';
 import { type Abilities, SESSION_SCRIPT } from '../abilities';
+import { type ProofProgress, clockText } from '../proof-clock';
 import type { ToolAction } from '../tool-actions';
 import { TOOL_ICONS, type ToolIcon } from './tool-icons';
 
@@ -89,9 +90,12 @@ const TONE = { go: 'enabled:text-ok enabled:font-semibold', halt: 'enabled:text-
 export function ToolBar({
   can,
   onAction,
+  progress,
 }: {
   can: Abilities;
   onAction: (action: ToolAction) => void;
+  /** The proof's clock and how many properties are decided; null before a design. */
+  progress: ProofProgress | null;
 }) {
   return (
     <div
@@ -121,6 +125,28 @@ export function ToolBar({
           ))}
         </div>
       ))}
+      {progress !== null && <Progress progress={progress} />}
+    </div>
+  );
+}
+
+/** The proof's time against its limit, and how many properties are decided. */
+function Progress({ progress }: { progress: ProofProgress }) {
+  return (
+    <div className="ml-auto flex items-center gap-4 font-mono text-[12px] tabular-nums text-muted-foreground">
+      {progress.elapsed !== null && (
+        <span
+          title="Time of the proof / its time limit"
+          className={cn(progress.running && 'font-semibold text-info')}
+        >
+          {clockText(progress.elapsed)} / {clockText(progress.limit)}
+        </span>
+      )}
+      {progress.total > 0 && (
+        <span title="Properties decided / properties to prove">
+          {progress.decided} of {progress.total}
+        </span>
+      )}
     </div>
   );
 }
