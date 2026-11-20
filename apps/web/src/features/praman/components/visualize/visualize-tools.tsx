@@ -101,6 +101,12 @@ function CursorTools({ view, cycles, trace }: ToolsProps) {
       <Tool label="◀" title="Previous cycle" onClick={() => view.moveCursor(view.cursor - 1)} />
       <span aria-live="polite" className="px-1">
         cycle <b className="text-info">{view.cursor}</b>
+        {view.marker !== null && (
+          <span title="From the second cursor (Shift+click a wave to move or remove it)">
+            {' '}
+            · Δ {Math.abs(view.cursor - view.marker)} from {view.marker}
+          </span>
+        )}
       </span>
       <Tool label="▶" title="Next cycle" onClick={() => view.moveCursor(view.cursor + 1)} />
       <Tool label="▶|" title="Last cycle" onClick={() => view.moveCursor(cycles.count - 1)} />

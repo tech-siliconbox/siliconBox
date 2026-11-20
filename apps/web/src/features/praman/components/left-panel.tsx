@@ -25,7 +25,7 @@ export function LeftPanel({ snapshot, instance, onInstance, onOpen, onDelete }: 
     { id: 'files', label: files.length === 0 ? 'Files' : `Files (${files.length})` },
   ];
   return (
-    <aside className="flex w-72 shrink-0 flex-col border border-border bg-background">
+    <aside className="flex w-[var(--pm-left,18rem)] shrink-0 flex-col border border-border bg-background">
       <PanelTabs label="Design" tabs={tabs} active={tab} onSelect={setTab} />
       <div role="tabpanel" className="min-h-0 flex-1 overflow-auto">
         {tab === 'files' ? (

@@ -72,6 +72,7 @@ export const API_ROUTES = {
   toolSessionEquivalenceTrace: (sessionId: string) =>
     `/api/v1/tool/sessions/${sessionId}/equivalence-trace`,
   toolSessionReport: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/report`,
+  toolSessionSignalLists: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/signal-lists`,
   toolRuns: '/api/v1/tool/runs',
   toolRun: (runId: string) => `/api/v1/tool/runs/${runId}`,
   toolRunTrace: (runId: string) => `/api/v1/tool/runs/${runId}/trace`,

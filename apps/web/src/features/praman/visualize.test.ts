@@ -1,4 +1,4 @@
-import type { Trace } from '@siliconbox/shared';
+import type { ToolSignalList, Trace } from '@siliconbox/shared';
 import { describe, expect, it } from 'vitest';
 import {
   cyclesOf,
@@ -7,11 +7,16 @@ import {
   expressionValues,
   findCycle,
   formatValue,
+  moveRow,
   resetCycles,
+  savedRows,
   segmentsOf,
+  stepRow,
   traceToVcd,
   valueAt,
+  withList,
   xOf,
+  type Row,
 } from './visualize';
 
 // An invented trace of a counter: four cycles of 10 time units, smt_step marking each.
@@ -130,5 +135,53 @@ describe("Visualize's model of a trace", () => {
     expect(findCycle(CYCLES, 'top', '$rose(rst_n)', { from: 0, step: 1 })).toBe(1);
     expect(findCycle(CYCLES, 'top', 'count == 7', { from: 0, step: 1 })).toBeNull();
     expect(() => expressionValues(CYCLES, 'top', 'nothing == 1')).toThrow(/no signal nothing/);
+  });
+});
+
+describe("Visualize's rows", () => {
+  const ROWS = [
+    { key: 'g:property', kind: 'group', label: 'Property' },
+    { key: 'c:0', kind: 'cond', label: 'count < 5', role: 'consequent', values: [1, 1, 0, 1] },
+    { key: 's:top.count', kind: 'signal', path: 'top.count' },
+    { key: 's:top.clk', kind: 'signal', path: 'top.clk' },
+    { key: 'x:count == 3', kind: 'expr', text: 'count == 3' },
+  ] as const satisfies Row[];
+  const keys = (rows: readonly Row[]) => rows.map((row) => row.key);
+
+  it('moves a row before the one it is dropped on going up, after it going down', () => {
+    expect(keys(moveRow(ROWS, 'x:count == 3', 's:top.count')).slice(2)).toEqual([
+      'x:count == 3',
+      's:top.count',
+      's:top.clk',
+    ]);
+    expect(keys(moveRow(ROWS, 's:top.count', 'x:count == 3')).slice(2)).toEqual([
+      's:top.clk',
+      'x:count == 3',
+      's:top.count',
+    ]);
+    expect(keys(stepRow(ROWS, 's:top.clk', -1)).slice(2, 4)).toEqual(['s:top.clk', 's:top.count']);
+    expect(keys(stepRow(ROWS, 'x:count == 3', 1))).toEqual(keys(ROWS));
+  });
+
+  it("keeps a view's signals and expressions in a list, and shows a list with the property", () => {
+    const rows = savedRows(ROWS);
+    expect(rows).toEqual([
+      { kind: 'signal', path: 'top.count' },
+      { kind: 'signal', path: 'top.clk' },
+      { kind: 'expr', text: 'count == 3' },
+    ]);
+    const list: ToolSignalList = {
+      name: 'mine',
+      top: 'top',
+      rows: [...rows, { kind: 'signal', path: 'top.gone' }],
+    };
+    expect(keys(withList(ROWS, CYCLES, list))).toEqual([
+      'g:property',
+      'c:0',
+      'g:list',
+      's:top.count',
+      's:top.clk',
+      'x:count == 3',
+    ]);
   });
 });

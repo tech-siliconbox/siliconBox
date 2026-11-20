@@ -27,6 +27,19 @@ export type TraceAnalysis = {
   whatIf: boolean;
 };
 
+/** A trace to open in Visualize: where to read it, its title, and what its tools may ask. */
+export type OpenTrace = { url: string; title: string; analysis?: TraceAnalysis };
+
+/** A property's trace in the open session: what-if and drivers can be asked of it. */
+export const propertyTrace = (
+  sessionId: string,
+  property: { id: string; name: string },
+): OpenTrace => ({
+  url: `${API_ROUTES.toolSessionTrace(sessionId)}?${new URLSearchParams({ property: property.id })}`,
+  title: property.name,
+  analysis: { sessionId, property: property.id, job: '', whatIf: true },
+});
+
 export type Answer<T> = { ok: true; value: T } | { ok: false; message: string };
 
 /** A value pinned for a what-if: the signal holds it at that cycle of the trace. */

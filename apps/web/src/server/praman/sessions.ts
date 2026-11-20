@@ -1,10 +1,12 @@
 import 'server-only';
 import {
   TOOL_SESSIONS_KEPT,
+  TOOL_SIGNAL_LISTS_MAX,
   ToolEventSchema,
   type ToolPollView,
   type ToolSessionState,
   type ToolSessionSummary,
+  type ToolSignalList,
 } from '@siliconbox/shared';
 import { z } from 'zod';
 import { collectUnusedFiles, readFiles } from '@/db/tool-files';
@@ -15,6 +17,7 @@ import {
   insertToolSession,
   listToolSessions,
   renameToolSession,
+  setSignalLists,
   toSessionSummary,
 } from '@/db/tool-sessions';
 import type { Identity } from '../auth/authenticate';
@@ -230,4 +233,41 @@ export async function sessionScript(identity: Identity, sessionId: string): Prom
   await access(identity, new Date());
   const session = await requireSession(identity.userId, sessionId);
   return `# Praman session script: the commands run in ${session.name}\n${session.journal.join('\n')}\n`;
+}
+
+/** Visualize's saved signal lists of the session. */
+export async function readSignalLists(
+  identity: Identity,
+  sessionId: string,
+): Promise<ToolSignalList[]> {
+  await access(identity, new Date());
+  return (await requireSession(identity.userId, sessionId)).signalLists;
+}
+
+/** Saves a signal list, replacing one of the same name and top module; the newest are kept. */
+export async function saveSignalList(identity: Identity, sessionId: string, list: ToolSignalList) {
+  await access(identity, new Date());
+  const session = await requireSession(identity.userId, sessionId);
+  const others = session.signalLists.filter((each) => !sameList(each, list));
+  const kept = [...others, list].slice(-TOOL_SIGNAL_LISTS_MAX);
+  await setSignalLists(identity.userId, sessionId, kept);
+}
+
+export async function deleteSignalList(identity: Identity, sessionId: string, key: ListKey) {
+  await access(identity, new Date());
+  const session = await requireSession(identity.userId, sessionId);
+  const kept = session.signalLists.filter((each) => !sameList(each, key));
+  await setSignalLists(identity.userId, sessionId, kept);
+}
+
+type ListKey = Pick<ToolSignalList, 'name' | 'top'>;
+const sameList = (a: ListKey, b: ListKey) => a.name === b.name && a.top === b.top;
+
+/**
+ * Closes the session on the formal tool when its page goes away, freeing its place; its files,
+ * log and runs stay, and it opens again from its last save.
+ */
+export async function closeSession(identity: Identity, sessionId: string): Promise<void> {
+  await requireSession(identity.userId, sessionId);
+  await closeSolverSession(identity.userId, sessionId);
 }

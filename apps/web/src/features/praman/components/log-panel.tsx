@@ -4,9 +4,9 @@ import type { ToolEvent } from '@siliconbox/shared';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import {
-  DEFAULT_LOG_FILTER,
-  type LogFilter,
+  DEFAULT_LOG_VIEW,
   type LogGroup,
+  type LogView,
   countOf,
   lineText,
   locationOf,
@@ -43,15 +43,18 @@ type LineLinks = {
   onProperty?: (id: string) => void;
 };
 
-type LogPanelProps = LineLinks & { events: ToolEvent[] };
+/** The property chosen in the table: the log can show only its engine detail. */
+type Focus = { id: string; name: string };
+
+type LogPanelProps = LineLinks & { events: ToolEvent[]; focus?: Focus | null };
 
 /** The session's log, newest at the bottom: chips show or hide kinds of lines; Clear empties
  * the view (the session keeps its log). */
-export function LogPanel({ events, ...links }: LogPanelProps) {
-  const [filter, setFilter] = useState<LogFilter>(DEFAULT_LOG_FILTER);
-  const [search, setSearch] = useState('');
-  const [clearedAt, setClearedAt] = useState(0);
-  const { lines, hidden } = visibleLines(events, filter, search, clearedAt);
+export function LogPanel({ events, focus = null, ...links }: LogPanelProps) {
+  // `only` is on or off here; it means the property chosen when there is one.
+  const [view, setView] = useState<LogView>(DEFAULT_LOG_VIEW);
+  const only = view.only !== null && focus !== null ? focus.id : null;
+  const { lines, hidden } = visibleLines(events, { ...view, only });
   const box = useRef<HTMLDivElement>(null);
   // Follows new lines unless the learner scrolled up to read.
   const stuck = useRef(true);
@@ -65,15 +68,7 @@ export function LogPanel({ events, ...links }: LogPanelProps) {
     <section aria-label="Log" className="flex h-full min-h-0 flex-col">
       <div className={PANEL_STRIP}>
         <h2 className="px-3 font-semibold">Log</h2>
-        <LogTools
-          events={events}
-          filter={filter}
-          clearedAt={clearedAt}
-          search={search}
-          onFilter={setFilter}
-          onSearch={setSearch}
-          onClear={setClearedAt}
-        />
+        <LogTools events={events} view={view} focus={focus} onView={setView} />
       </div>
       <div
         ref={box}
@@ -96,38 +91,46 @@ export function LogPanel({ events, ...links }: LogPanelProps) {
 
 type LogToolsProps = {
   events: ToolEvent[];
-  filter: LogFilter;
-  clearedAt: number;
-  search: string;
-  onFilter: (filter: LogFilter) => void;
-  onSearch: (search: string) => void;
-  onClear: (seq: number) => void;
+  view: LogView;
+  focus: Focus | null;
+  onView: (view: LogView) => void;
 };
 
-/** The chips that show or hide kinds of lines, the search box and Clear. */
-function LogTools({ events, filter, clearedAt, search, ...on }: LogToolsProps) {
+/** The chips that show or hide kinds of lines, the chosen property's only, search and Clear. */
+function LogTools({ events, view, focus, onView }: LogToolsProps) {
+  const { filter, clearedAt } = view;
+  const set = (change: Partial<LogView>) => onView({ ...view, ...change });
   return (
     <div className="ml-auto flex items-center gap-1.5 px-2">
       {CHIPS.map(({ group, label, counted }) => (
         <Chip
           key={group}
           on={filter[group]}
-          onClick={() => on.onFilter({ ...filter, [group]: !filter[group] })}
+          onClick={() => set({ filter: { ...filter, [group]: !filter[group] } })}
           count={shownCount(counted, countOf(events, group, clearedAt))}
           alarm={group === 'error'}
         >
           {label}
         </Chip>
       ))}
+      {focus !== null && filter.engine && (
+        <Chip
+          on={view.only !== null}
+          title={`Engine detail of ${focus.name} only`}
+          onClick={() => set({ only: view.only === null ? focus.id : null })}
+        >
+          Only this property
+        </Chip>
+      )}
       <input
         type="search"
         aria-label="Search the log"
         placeholder="Search the log"
-        value={search}
-        onChange={(event) => on.onSearch(event.target.value)}
+        value={view.search}
+        onChange={(event) => set({ search: event.target.value })}
         className="h-6 w-44 rounded-[3px] border border-border bg-background px-1.5 text-[12px] outline-none focus:border-info"
       />
-      <Chip onClick={() => on.onClear(events.at(-1)?.seq ?? 0)}>Clear</Chip>
+      <Chip onClick={() => set({ clearedAt: events.at(-1)?.seq ?? 0 })}>Clear</Chip>
     </div>
   );
 }
@@ -195,14 +198,16 @@ type ChipProps = {
   onClick: () => void;
   count?: number | null;
   alarm?: boolean;
+  title?: string;
   children: string;
 };
 
-function Chip({ on, onClick, count = null, alarm = false, children }: ChipProps) {
+function Chip({ on, onClick, count = null, alarm = false, title, children }: ChipProps) {
   return (
     <button
       type="button"
       aria-pressed={on}
+      title={title}
       onClick={onClick}
       className={cn(
         'flex h-6 items-center gap-1 rounded-[3px] border px-2 text-[12px]',

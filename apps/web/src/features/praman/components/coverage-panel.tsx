@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Coverage, CoverageItem, CoveragePart } from '../praman-reports';
+import type { Coverage, CoverageItem, CoveragePart, InstanceCoverage } from '../praman-reports';
 import {
   BAD,
   GOOD,
@@ -98,9 +98,13 @@ const part = (title: string, of: CoveragePart | null) =>
 
 function Branches({ coverage, canRun, onRun, onSource, onTrace }: ShownProps) {
   const [view, setView] = useState<'items' | 'toggles'>('items');
+  // An instance chosen in the per-instance table: only its items show.
+  const [instance, setInstance] = useState('');
+  const items = coverage[view].filter((item) => instance === '' || item.instance === instance);
   return (
     <div>
       <BranchesHead coverage={coverage} canRun={canRun} onRun={onRun} />
+      <PerInstance instances={coverage.instances} chosen={instance} onChoose={setInstance} />
       <div role="group" aria-label="Show" className="flex gap-1.5 px-4 py-2">
         {(['items', 'toggles'] as const).map((each) => (
           <button
@@ -113,9 +117,57 @@ function Branches({ coverage, canRun, onRun, onSource, onTrace }: ShownProps) {
             {each === 'items' ? 'Branches' : 'Toggles'} {coverage[each].length}
           </button>
         ))}
+        {instance !== '' && (
+          <button
+            type="button"
+            aria-label={`Show every instance, not only ${instance}`}
+            onClick={() => setInstance('')}
+            className="h-6 rounded-[3px] border border-info bg-info-light px-2 font-mono text-[12px]"
+          >
+            {instance} ×
+          </button>
+        )}
       </div>
-      <CoverageItems items={coverage[view]} onSource={onSource} onTrace={onTrace} />
+      <CoverageItems items={items} onSource={onSource} onTrace={onTrace} />
     </div>
+  );
+}
+
+const percentOf = (part: CoveragePart) => (part.total > 0 ? `${part.percent}%` : '–');
+
+type PerInstanceProps = {
+  instances: InstanceCoverage[];
+  chosen: string;
+  onChoose: (instance: string) => void;
+};
+
+/** Each instance's scores, when there are several; choosing one shows only its items. */
+function PerInstance({ instances, chosen, onChoose }: PerInstanceProps) {
+  if (instances.length < 2) return null;
+  return (
+    <section aria-label="Per instance" className="px-4 pt-2">
+      <ReportTable head={['Instance', 'Module', 'Branches', 'Statements', 'Toggles']}>
+        {instances.map((each) => (
+          <tr key={each.instance} className={each.instance === chosen ? 'bg-info-light' : ''}>
+            <td className="px-3 py-1">
+              <button
+                type="button"
+                aria-pressed={each.instance === chosen}
+                title="Show only this instance"
+                onClick={() => onChoose(each.instance === chosen ? '' : each.instance)}
+                className="font-mono underline-offset-2 hover:underline"
+              >
+                {each.instance}
+              </button>
+            </td>
+            <td className="px-3 py-1 text-muted-foreground">{each.module}</td>
+            <td className="px-3 py-1 font-mono">{percentOf(each.branches)}</td>
+            <td className="px-3 py-1 font-mono">{percentOf(each.statements)}</td>
+            <td className="px-3 py-1 font-mono">{percentOf(each.toggles)}</td>
+          </tr>
+        ))}
+      </ReportTable>
+    </section>
   );
 }
 
@@ -141,11 +193,22 @@ function BranchesHead({
           {coverage.unreachable} branches unreachable: dead code, or ruled out by the assumptions.
         </p>
       )}
+      {(coverage.toggle_summary?.unreachable ?? 0) > 0 && (
+        <p className={BAD}>
+          {coverage.toggle_summary?.unreachable} toggles cannot happen: a bit stuck at a value.
+        </p>
+      )}
       {coverage.undetermined > 0 && (
         <p>{coverage.undetermined} branches not decided in the time limit.</p>
       )}
       {coverage.reset > 0 && (
         <p>{coverage.reset} branches taken only while the reset is held; not counted.</p>
+      )}
+      {coverage.toggle_bits_left_out > 0 && (
+        <p>
+          {coverage.toggle_bits_left_out} signal bits not measured for toggles (no clock in their
+          module).
+        </p>
       )}
       <Again canRun={canRun} onRun={onRun} />
     </ReportHead>

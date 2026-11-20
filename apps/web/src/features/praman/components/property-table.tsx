@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import type { MenuItem } from '../menus';
 import type { PramanProperty } from '../praman-snapshot';
@@ -185,9 +185,11 @@ type PropertyRowProps = Omit<PropertyTableProps, 'selected' | 'onSelect'> & {
 
 function PropertyRow({ row, selected, onSelect, onTrace, onSource, ...rest }: PropertyRowProps) {
   const { property, depth } = row;
+  const [menu, setMenu] = useState(false);
   return (
     <tr
       aria-selected={selected}
+      onContextMenu={rightClick(rest.menuOf !== undefined, onSelect, () => setMenu(true))}
       title={[STATUS_LABEL[property.status], property.detail].filter(Boolean).join(': ')}
       className={cn(
         'cursor-default border-b border-border/60',
@@ -224,10 +226,19 @@ function PropertyRow({ row, selected, onSelect, onTrace, onSource, ...rest }: Pr
         {timeText(runningSeconds(property, rest.now))}
       </td>
       <td className="whitespace-nowrap px-2 py-1 text-muted-foreground">{sourceOf(property)}</td>
-      <ActionsCell property={property} onTrace={onTrace} {...rest} />
+      <ActionsCell property={property} onTrace={onTrace} menu={menu} onMenu={setMenu} {...rest} />
     </tr>
   );
 }
+
+/** A right click on a row chooses it and opens its ⋯ menu, when it has one. */
+const rightClick =
+  (hasMenu: boolean, choose: () => void, open: () => void) => (event: MouseEvent) => {
+    if (!hasMenu) return;
+    event.preventDefault();
+    choose();
+    open();
+  };
 
 /** A running property's time so far (from when its engines took it up), else its own time. */
 function runningSeconds(property: PramanProperty, now: number): number | null {
@@ -276,10 +287,13 @@ const sourceOf = (p: PramanProperty) =>
 
 type ActionsCellProps = Pick<PropertyTableProps, 'onTrace' | 'menuOf' | 'onChoose'> & {
   property: PramanProperty;
+  /** Whether the ⋯ menu is open (a right click on the row opens it too). */
+  menu: boolean;
+  onMenu: (open: boolean) => void;
 };
 
 /** The row's waveform (when it has a trace) and its ⋯ menu. */
-function ActionsCell({ property, onTrace, menuOf, onChoose }: ActionsCellProps) {
+function ActionsCell({ property, onTrace, menuOf, onChoose, menu, onMenu }: ActionsCellProps) {
   return (
     <td className="whitespace-nowrap px-2 py-1 text-right">
       {property.has_trace && (
@@ -292,7 +306,13 @@ function ActionsCell({ property, onTrace, menuOf, onChoose }: ActionsCellProps) 
         </button>
       )}
       {menuOf !== undefined && onChoose !== undefined && (
-        <RowMenu name={property.name} items={menuOf(property)} onChoose={onChoose} />
+        <RowMenu
+          name={property.name}
+          items={menuOf(property)}
+          onChoose={onChoose}
+          open={menu}
+          onOpenChange={onMenu}
+        />
       )}
     </td>
   );

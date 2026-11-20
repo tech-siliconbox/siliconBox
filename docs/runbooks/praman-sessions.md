@@ -10,8 +10,8 @@ running out too fast.
   sessions on its host, each in its own container `siliconbox-session-<session id>` (1 CPU,
   1.5 GB, no network, read-only root; gVisor in production).
 - More learners than slots wait in line, up to `MAX_WAITING_SESSIONS` (50); the page shows their
-  place. A session with no command for 15 minutes and no proof closes, and its slot goes to the
-  next in line. Closing hands its last records to the web app, which keeps them in MongoDB.
+  place. A session with no command for 15 minutes and no proof closes, as does one whose page is
+  closed, and its slot goes to the next in line. Closing hands its last records to the web app, which keeps them in MongoDB.
 - A session's container exits when the supervisor stops (its input closes), and Docker removes it.
 - Measured (2026-11-20, `docs/roadmap/load-test-results.md`): an open session uses about 100 MB
   and at most 1 CPU while it proves; CPU, not memory, limits how many a host holds.

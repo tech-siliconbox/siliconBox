@@ -27,15 +27,7 @@ export function CommandDialog({ spec, onRun, onClose }: CommandDialogProps) {
       <form action={run} className="flex flex-col gap-3">
         {spec.fields.map((field) => (
           <div key={field.name} className="flex flex-col gap-1">
-            <TextField
-              label={field.label}
-              name={field.name}
-              type={field.type}
-              defaultValue={field.defaultValue}
-              min={field.type === 'number' ? 1 : undefined}
-              max={field.max}
-              required={field.type === 'number'}
-            />
+            <FormField field={field} />
             {field.hint !== undefined && (
               <p className="text-[12px] text-muted-foreground">{field.hint}</p>
             )}
@@ -51,5 +43,33 @@ export function CommandDialog({ spec, onRun, onClose }: CommandDialogProps) {
         </div>
       </form>
     </ToolDialog>
+  );
+}
+
+/** One field of the form: a text or number box, or a check box. */
+function FormField({ field }: { field: CommandSpec['fields'][number] }) {
+  if (field.type === 'check') {
+    return (
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          name={field.name}
+          defaultChecked={field.defaultValue === 'on'}
+          className="accent-info"
+        />
+        {field.label}
+      </label>
+    );
+  }
+  return (
+    <TextField
+      label={field.label}
+      name={field.name}
+      type={field.type}
+      defaultValue={field.defaultValue}
+      min={field.type === 'number' ? 1 : undefined}
+      max={field.max}
+      required={field.type === 'number'}
+    />
   );
 }

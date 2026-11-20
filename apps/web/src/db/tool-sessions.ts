@@ -5,6 +5,8 @@ import {
   ToolEventSchema,
   type ToolSessionSummary,
   ToolSessionSummarySchema,
+  type ToolSignalList,
+  ToolSignalListSchema,
 } from '@siliconbox/shared';
 import { z } from 'zod';
 import { getDb } from './client';
@@ -31,6 +33,8 @@ const ToolSessionRecordSchema = z.object({
   state: z.record(z.string(), z.unknown()),
   files: z.array(FileRefSchema),
   events: z.array(ToolEventSchema),
+  /** Visualize's saved signal lists (none in sessions made before they were). */
+  signalLists: z.array(ToolSignalListSchema).default([]),
 });
 export type ToolSessionRecord = z.infer<typeof ToolSessionRecordSchema>;
 
@@ -162,6 +166,15 @@ export async function saveToolSession(
       $push: { events: { $each: newEvents, $slice: -EVENTS_KEPT } },
     },
   );
+}
+
+/** Replaces the session's saved signal lists. */
+export async function setSignalLists(
+  userId: string,
+  publicId: string,
+  lists: readonly ToolSignalList[],
+): Promise<void> {
+  await sessions().updateOne({ userId, publicId }, { $set: { signalLists: [...lists] } });
 }
 
 export async function deleteToolSession(userId: string, publicId: string): Promise<boolean> {

@@ -10,11 +10,16 @@ type RowMenuProps = {
   name: string;
   items: (MenuItem | null)[];
   onChoose: (item: MenuItem) => void;
+  /** Open or not, when the row decides (a right click opens it); else the menu does. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
-/** A table row's own menu, behind a ⋯ button. */
-export function RowMenu({ name, items, onChoose }: RowMenuProps) {
-  const [open, setOpen] = useState(false);
+/** A table row's own menu, behind a ⋯ button (or a right click on the row). */
+export function RowMenu({ name, items, onChoose, ...control }: RowMenuProps) {
+  const [own, setOwn] = useState(false);
+  const open = control.open ?? own;
+  const setOpen = control.onOpenChange ?? setOwn;
   const box = useDismiss<HTMLDivElement>(open, () => setOpen(false));
   return (
     <div ref={box} className="relative inline-block">

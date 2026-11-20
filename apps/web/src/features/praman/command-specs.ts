@@ -7,7 +7,8 @@ type CommandField = {
   name: string;
   label: string;
   defaultValue: string;
-  type: 'text' | 'number';
+  /** A check box sends 'on' when ticked (its default is 'on' or ''). */
+  type: 'text' | 'number' | 'check';
   max?: number;
   hint?: string;
 };
@@ -28,8 +29,23 @@ const minutes = (seconds: number) => String(Math.max(1, Math.round(seconds / 60)
 function elaborateSpec(snapshot: PramanSnapshot | null): CommandSpec {
   return {
     title: 'Elaborate',
-    fields: [{ name: 'top', label: 'Top module', defaultValue: snapshot?.top ?? '', type: 'text' }],
-    build: ({ top = '' }) => tclCommand('elaborate', '-top', top.trim()),
+    fields: [
+      { name: 'top', label: 'Top module', defaultValue: snapshot?.top ?? '', type: 'text' },
+      {
+        name: 'witness',
+        label: 'Witness covers, besides the precondition covers',
+        defaultValue: 'on',
+        type: 'check',
+        hint: 'For an assertion a |-> b: a cover that a happens and b holds.',
+      },
+    ],
+    build: ({ top = '', witness = '' }) =>
+      tclCommand(
+        'elaborate',
+        '-top',
+        top.trim(),
+        ...(witness === 'on' ? [] : ['-create_related_covers', 'precondition']),
+      ),
   };
 }
 
@@ -73,6 +89,14 @@ function limitsSpec(snapshot: PramanSnapshot | null, ceilings: PramanCeilings): 
         hint: `Your level allows up to ${proofMinutes} minutes a proof.`,
       },
       {
+        name: 'each',
+        label: 'Limit of one engine run (minutes)',
+        defaultValue: minutes(settings?.per_property_time_limit ?? ceilings.proofSeconds),
+        type: 'number',
+        max: proofMinutes,
+        hint: 'The longest any one property may take, so a hard one cannot hold up the rest.',
+      },
+      {
         name: 'cycles',
         label: 'Trace length (cycles)',
         defaultValue: String(settings?.max_trace_length ?? 20),
@@ -81,8 +105,12 @@ function limitsSpec(snapshot: PramanSnapshot | null, ceilings: PramanCeilings): 
         hint: `Your level allows up to ${ceilings.traceLength} cycles.`,
       },
     ],
-    build: ({ minutes: time = '1', cycles = '20' }) =>
-      `set_prove_time_limit ${Number(time)}m; set_max_trace_length ${Number(cycles)}`,
+    build: ({ minutes: time = '1', each = time, cycles = '20' }) =>
+      [
+        `set_prove_time_limit ${Number(time)}m`,
+        `set_prove_per_property_time_limit ${Number(each)}m`,
+        `set_max_trace_length ${Number(cycles)}`,
+      ].join('; '),
   };
 }
 

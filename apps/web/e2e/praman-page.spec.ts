@@ -1,5 +1,5 @@
 import { ROUTES } from '@siliconbox/shared';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { grantAccess, signInAsAdmin } from './cms/publish';
 import { expect, failOnCspViolation, newLearner, signUp, test } from './helpers';
 
@@ -44,6 +44,60 @@ async function startAndProveTheExample(page: Page) {
   await tools.getByRole('button', { name: 'Prove' }).click();
 }
 
+/** Keys move Visualize's cursor; Shift+click sets a second one, and the cycles between show. */
+async function moveTheCursor(page: Page, visualize: Locator) {
+  const cursorTools = visualize.getByRole('toolbar', { name: 'Visualize tools' });
+  await page.keyboard.press('Home');
+  await expect(cursorTools).toContainText('cycle 0');
+  await page.keyboard.press('ArrowRight');
+  await expect(cursorTools).toContainText('cycle 1');
+  await visualize
+    .getByRole('button', { name: /^Move the cursor here/ })
+    .first()
+    .click({ modifiers: ['Shift'], position: { x: 4, y: 8 } });
+  await expect(cursorTools).toContainText('Δ 1 from 0');
+}
+
+/** The log grows from the bar above it; View > Reset Layout puts it back. */
+async function resizeTheLog(page: Page) {
+  const log = page.getByRole('region', { name: 'Log' });
+  const height = async () => (await log.boundingBox())?.height ?? 0;
+  const before = await height();
+  await page.getByRole('button', { name: /^Resize the log/ }).press('ArrowUp');
+  await page.getByRole('button', { name: /^Resize the log/ }).press('ArrowUp');
+  await expect.poll(height).toBeGreaterThan(before + 20);
+  await page.getByRole('menuitem', { name: 'View', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Reset Layout' }).click();
+  await expect.poll(height).toBeLessThanOrEqual(before + 1);
+}
+
+/** A file dragged onto the tool is added; File > Run Script From File adds a script, runs it. */
+async function addFilesFromTheComputer(page: Page) {
+  const dropped = await page.evaluateHandle(() => {
+    const data = new DataTransfer();
+    data.items.add(new File(['module extra; endmodule\n'], 'extra.sv'));
+    return data;
+  });
+  await page.getByRole('menubar').dispatchEvent('dragover', { dataTransfer: dropped });
+  await page
+    .getByText('Drop the files to add them to the session')
+    .dispatchEvent('drop', { dataTransfer: dropped });
+  await expect(page.getByRole('tab', { name: 'Files (4)' })).toBeVisible();
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('menuitem', { name: 'File', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Run Script From File…' }).click();
+  await (
+    await chooser
+  ).setFiles({
+    name: 'summary.tcl',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('report\n'),
+  });
+  await expect(
+    page.getByRole('log').getByText('% source summary.tcl', { exact: true }),
+  ).toBeVisible();
+}
+
 test('a learner proves the example and opens the waveform of the failing assertion', async ({
   page,
 }) => {
@@ -79,7 +133,11 @@ test('a learner proves the example and opens the waveform of the failing asserti
   await expect(visualize.getByRole('button', { name: 'Go to failure' })).toBeVisible();
   await expect(visualize).toContainText('count');
   await expect(visualize.getByRole('region', { name: 'Details' })).toContainText('fails at cycle');
+  await moveTheCursor(page, visualize);
   await visualize.getByRole('button', { name: 'Close' }).click();
+
+  await resizeTheLog(page);
+  await addFilesFromTheComputer(page);
 
   // Help reopens how Praman works.
   await page.getByRole('menuitem', { name: 'Help', exact: true }).click();

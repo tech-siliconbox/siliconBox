@@ -4,6 +4,21 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman, the rest of the tool's experience, phase 2)
+
+- **Visualize:**
+  - keys: ← → move the cursor (Home, End), + − zoom, Delete removes the chosen row, Alt+↑ ↓ moves it;
+  - Shift+click sets a second cursor, and the cycles between the two show beside the cursor;
+  - rows are dragged by their names to a new place; Clear pins;
+  - **Signal lists:** the signals and expressions shown are saved by name with the session (the newest 20), shown again beside the property's own rows, or deleted. New routes: `GET`/`PUT`/`DELETE /api/v1/tool/sessions/:id/signal-lists`.
+- **Files:** files dragged onto the tool are added to the session; File > Run Script From File adds a Tcl script and runs it.
+- **Layout:** the bars between the design panel, the log and the console resize them (drag, or the arrow keys); View > Reset Layout; the layout is remembered in the browser.
+- **Menus and table:** Prove > Prove Selected Property; the row menu's View Trace and Copy Name, and a right click on a row opens it.
+- **Checks:** Elaborate's witness covers can be turned off (`-create_related_covers precondition`); Proof Limits sets the limit of one engine run; coverage shows each instance's scores (choose one to see only its items), toggles that cannot happen and bits not measured.
+- **Log:** "Only this property" shows the chosen property's engine detail only.
+- **Session:** a light beside the session shows whether the server answers (green), is slow (amber) or does not (red). Closing the page closes the session on the tool, freeing its place (`DELETE /api/v1/tool/sessions/:id/open`); it opens again from its last save.
+- **How Praman Works:** how a property is proved (engines racing, rising time limits, related covers, case splits) and an example script.
+
 ### Added (Praman, the rest of the tool's experience, phase 1)
 
 - **To the line:** Show Source, a hierarchy instance (double click, or its Source button), a coverage or proof-core item and a `file(line)` in the log open the file at that line, selected and marked. A result in the log chooses its property in the table.

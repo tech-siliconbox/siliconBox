@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { type PramanTrace, readPramanTrace as readTrace } from '../praman-trace';
 import { type Pin, type TraceAnalysis, askWhatIf } from '../trace-tools';
-import { type Cycles, type Radix, type Row, defaultRows } from '../visualize';
+import { type Cycles, type Radix, type Row, defaultRows, stepRow } from '../visualize';
 
 const LABEL_WIDTH = 300;
 const [MIN_ZOOM, MAX_ZOOM] = [6, 160];
@@ -57,6 +57,8 @@ export function useView(cycles: Cycles, trace: PramanTrace, top: string) {
   const [rows, setRows] = useState<Row[]>(() => defaultRows(cycles, trace.debug, top));
   const [selected, setSelected] = useState<string | null>(null);
   const [cursor, setCursor] = useState(fail ?? 0);
+  // The second cursor (Shift+click): the cycles between the two show beside the cursor.
+  const [marker, setMarker] = useState<number | null>(null);
   const [zoom, setZoom] = useState(40);
   const [radix, setRadix] = useState<Radix>('hex');
   const waves = useFit(cycles.count, setZoom);
@@ -70,6 +72,12 @@ export function useView(cycles: Cycles, trace: PramanTrace, top: string) {
     setSelected,
     cursor,
     moveCursor: (cycle: number) => setCursor(Math.max(0, Math.min(cycles.count - 1, cycle))),
+    marker,
+    setMarker,
+    /** Moves the chosen row one place up or down. */
+    stepChosen: (step: 1 | -1) => selected !== null && setRows(stepRow(rows, selected, step)),
+    /** Removes the chosen row (not one of the property's own conditions). */
+    removeChosen: () => setRows(rows.filter((row) => row.key !== selected || row.kind === 'cond')),
     zoom,
     zoomBy: (factor: number) => setZoom(clampZoom(Math.round(zoom * factor))),
     fit,

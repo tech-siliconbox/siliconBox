@@ -84,6 +84,16 @@ test('a property opens at its line, the log finds it, and the check dialogs run'
   await abstract.getByRole('button', { name: 'Abstract' }).click();
   await expectRan(page, 'abstract -init_value count');
 
+  // The chosen property: only its engine detail in the log, and Prove Selected Property.
+  await page.getByRole('button', { name: /^Engine detail/ }).click();
+  await page.getByRole('button', { name: 'Only this property' }).click();
+  await expect(page.getByRole('button', { name: 'Only this property' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await menu(page, 'Prove', 'Prove Selected Property');
+  await expectRan(page, new RegExp(`^% prove -property \\S*${PROPERTY}$`));
+
   await menu(page, 'Prove', 'Check Dead Ends');
   await expectRan(page, 'check_assumptions -dead_end');
 
@@ -150,13 +160,26 @@ test('the equivalence check shows where a revised design differs', async ({ page
   ).toBeVisible();
 });
 
+/** The rows shown in Visualize saved as a signal list, kept with the session, and shown again. */
+async function saveAndShowAList(visualize: Locator) {
+  await visualize.getByLabel('Signal lists').selectOption('save');
+  await visualize.getByLabel('Name of the signal list').fill('counting');
+  await visualize.getByRole('button', { name: 'Save list' }).click();
+  await expect(visualize.getByText('Saved the list counting.')).toBeVisible();
+  await visualize.getByLabel('Signal lists').selectOption('show:counting');
+  await expect(visualize.getByText('List: counting')).toBeVisible();
+  await expect(visualize.getByRole('button', { name: 'count == 3', exact: true })).toBeVisible();
+}
+
 test('Visualize shows why, what drove a signal, expressions, and what if', async ({ page }) => {
   test.setTimeout(300_000);
   await provedSession(page);
   await openTool(page);
 
+  // A right click on the row opens its menu: View Trace.
   const row = page.getByRole('row').filter({ hasText: PROPERTY }).filter({ hasText: 'CEX' });
-  await row.first().getByRole('button', { name: 'Waveform' }).click();
+  await row.first().click({ button: 'right' });
+  await page.getByRole('menuitem', { name: /^View Trace/ }).click();
   const visualize = page.getByRole('dialog', { name: /Waveform of/ });
   await expect(visualize.getByText(/fails at cycle \d+ · \d+ cycles/)).toBeVisible();
 
@@ -177,6 +200,8 @@ test('Visualize shows why, what drove a signal, expressions, and what if', async
   await visualize.getByLabel('Find a cycle where an expression holds').press('Enter');
   await expect(visualize.getByText(/cannot|does not hold/)).toHaveCount(0);
 
+  await saveAndShowAList(visualize);
+
   await visualize.getByRole('button', { name: 'Quiet trace' }).click();
   await expect(visualize.getByRole('button', { name: 'Original trace' })).toBeVisible({
     timeout: CHECK_TIMEOUT,
@@ -194,6 +219,11 @@ test('Visualize shows why, what drove a signal, expressions, and what if', async
   // Hold en at its value in cycle 2 and prove again: a new trace, or why there is none.
   await visualize.getByRole('button', { name: 'en', exact: true }).first().click();
   await visualize.getByRole('button', { name: '▶|' }).click();
+  await visualize.getByRole('button', { name: 'Pin value' }).click();
+  await visualize.getByRole('button', { name: 'Pin', exact: true }).click();
+  // Clear pins takes them all away; pin again and prove.
+  await visualize.getByRole('button', { name: 'Clear pins' }).click();
+  await expect(visualize.getByRole('button', { name: /^Prove with/ })).toHaveCount(0);
   await visualize.getByRole('button', { name: 'Pin value' }).click();
   await visualize.getByRole('button', { name: 'Pin', exact: true }).click();
   await visualize.getByRole('button', { name: /^Prove with/ }).click();

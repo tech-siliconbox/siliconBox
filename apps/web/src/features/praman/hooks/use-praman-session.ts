@@ -12,6 +12,10 @@ const OPEN_RETRY_MS = 2_000;
 
 type Place = 'opening' | 'waiting' | 'open' | 'closed';
 
+/** How the server answers the page's polls: quickly, slowly (over SLOW_MS), or not at all. */
+export type Link = { state: 'unknown' | 'live' | 'slow' | 'down'; ms: number | null };
+const SLOW_MS = 3_000;
+
 export type SessionState = {
   place: Place;
   /** In the waiting line: 1 for the next session to open. */
@@ -22,6 +26,7 @@ export type SessionState = {
   proofRunning: boolean;
   secondsLeft: number | null;
   error: string | null;
+  link: Link;
 };
 
 const INITIAL: SessionState = {
@@ -33,6 +38,7 @@ const INITIAL: SessionState = {
   proofRunning: false,
   secondsLeft: null,
   error: null,
+  link: { state: 'unknown', ms: null },
 };
 
 type Answer = { ok: boolean; status: number; code: string | null; body: unknown };
@@ -81,13 +87,19 @@ async function openSession(sessionId: string, cursor: Cursor, update: Update): P
   return false;
 }
 
+/** How the server answered: not at all (no reply), slowly, or quickly. */
+const linkOf = (answer: Answer, ms: number): Link =>
+  answer.status === 0 ? { state: 'down', ms: null } : { state: ms > SLOW_MS ? 'slow' : 'live', ms };
+
 /** One poll: new log lines and state; true while the session is working. */
 async function pollOnce(sessionId: string, cursor: Cursor, update: Update): Promise<boolean> {
   const url = `${API_ROUTES.toolSessionPoll(sessionId)}?after=${cursor.after}&version=${cursor.version}`;
+  const started = performance.now();
   const answer = await call(url);
+  const link = linkOf(answer, Math.round(performance.now() - started));
   const view = answer.ok ? ToolPollViewSchema.safeParse(answer.body) : null;
   if (view?.success !== true) {
-    update((now) => ({ ...now, error: messageOf(answer) }));
+    update((now) => ({ ...now, error: messageOf(answer), link }));
     return false;
   }
   const next = view.data;
@@ -104,6 +116,7 @@ async function pollOnce(sessionId: string, cursor: Cursor, update: Update): Prom
     proofRunning: next.proofRunning,
     secondsLeft: next.secondsLeft,
     error: null,
+    link,
   }));
   return next.busy || next.proofRunning;
 }
@@ -154,6 +167,16 @@ class SessionClient {
     this.cursor.alive = false;
   }
 
+  /**
+   * Closes the session on the formal tool as the page goes away, so its place is free for
+   * someone else; the browser finishes the request after the page is gone. It opens again from
+   * its last save next time.
+   */
+  leave(): void {
+    const url = API_ROUTES.toolSessionOpen(this.sessionId);
+    void fetch(url, { method: 'DELETE', keepalive: true }).catch(() => undefined);
+  }
+
   private async run(mine: Cursor): Promise<void> {
     if (!(await openSession(this.sessionId, mine, this.update))) return;
     while (mine.alive) {
@@ -174,7 +197,12 @@ export function usePramanSession(sessionId: string) {
   const [client] = useState(() => new SessionClient(sessionId, setState));
   useEffect(() => {
     client.start();
-    return () => client.stop();
+    const leave = () => client.leave();
+    window.addEventListener('pagehide', leave);
+    return () => {
+      window.removeEventListener('pagehide', leave);
+      client.stop();
+    };
   }, [client]);
   return { state, actions: client.actions };
 }

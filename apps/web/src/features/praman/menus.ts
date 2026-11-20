@@ -48,6 +48,7 @@ function fileMenu(can: Abilities): Menu {
       null,
       { label: 'Add Files…', action: { kind: 'addFiles' }, enabled: can.open },
       command('Run Script', `source ${SESSION_SCRIPT}`, can.script),
+      { label: 'Run Script From File…', action: { kind: 'scriptFile' }, enabled: can.idle },
       { label: 'Load Example Files', action: { kind: 'example' }, enabled: can.open },
       null,
       { label: 'Save Session Script', action: { kind: 'download' }, enabled: can.session },
@@ -65,7 +66,13 @@ function viewMenu(shown: Readonly<Record<Panel, boolean>>): Menu {
   });
   return {
     label: 'View',
-    items: [toggle('Design Hierarchy', 'left'), toggle('Log', 'log'), toggle('Console', 'console')],
+    items: [
+      toggle('Design Hierarchy', 'left'),
+      toggle('Log', 'log'),
+      toggle('Console', 'console'),
+      null,
+      { label: 'Reset Layout', action: { kind: 'resetLayout' }, enabled: true },
+    ],
   };
 }
 
@@ -89,11 +96,17 @@ function designMenu(can: Abilities): Menu {
   };
 }
 
-function proveMenu(can: Abilities): Menu {
+function proveMenu(can: Abilities, selected: PramanProperty | null): Menu {
+  const provesSelected = selected !== null && provable(selected, can);
   return {
     label: 'Prove',
     items: [
       command('Prove All', 'prove -all', can.elaborated),
+      command(
+        'Prove Selected Property',
+        selected === null ? 'prove -property' : `prove -property ${propertyWord(selected)}`,
+        provesSelected,
+      ),
       { label: 'Stop', action: { kind: 'stop' }, enabled: can.stop, hint: 'stop' },
       null,
       command('Check Assumptions', 'check_assumptions', can.elaborated),
@@ -136,12 +149,17 @@ const TOOLS_MENU: Menu = {
 };
 
 /** Praman's menu bar: every item, enabled only when it can run now. */
-export function pramanMenus(can: Abilities, shown: Readonly<Record<Panel, boolean>>): Menu[] {
+export function pramanMenus(
+  can: Abilities,
+  shown: Readonly<Record<Panel, boolean>>,
+  /** The property chosen in the table, for Prove Selected Property. */
+  selected: PramanProperty | null,
+): Menu[] {
   return [
     fileMenu(can),
     viewMenu(shown),
     designMenu(can),
-    proveMenu(can),
+    proveMenu(can, selected),
     reportsMenu(can),
     TOOLS_MENU,
     {
@@ -154,6 +172,9 @@ export function pramanMenus(can: Abilities, shown: Readonly<Record<Panel, boolea
     },
   ];
 }
+
+/** A property's name as a Tcl word (a case or related cover by its assertion's). */
+const propertyWord = (p: PramanProperty) => tclWord(p.name.split(':')[0] ?? p.name);
 
 const provable = (p: PramanProperty, can: Abilities) =>
   can.elaborated && p.supported && (p.type === 'assert' || p.type === 'cover');
@@ -172,12 +193,17 @@ export function propertyMenu(
   properties: readonly PramanProperty[],
   can: Abilities,
 ): (MenuItem | null)[] {
-  const name = tclWord(property.name.split(':')[0] ?? property.name);
+  const name = propertyWord(property);
   const ownOrCase = property.parent === '' || property.related === 'case';
   const split = properties.some((p) => p.parent === property.id && p.related === 'case');
   const toggle = property.disabled ? '-enable' : '-disable';
   return [
     command('Prove Property', `prove -property ${name}`, provable(property, can)),
+    {
+      label: 'View Trace',
+      action: { kind: 'trace', property: property.id },
+      enabled: property.has_trace,
+    },
     command(
       'Needed Assumptions',
       `get_needed_assumptions -property ${name}`,
@@ -206,5 +232,7 @@ export function propertyMenu(
       enabled: shapeable(property, can) && property.type === 'assert',
     },
     command('Remove Case Split', `case_split -property ${name} -clear`, can.elaborated && split),
+    null,
+    { label: 'Copy Name', action: { kind: 'copy', text: property.name }, enabled: true },
   ];
 }

@@ -80,7 +80,9 @@ supervisor ──stdin/stdout────▶ session container: Praman session (
   by replaying its journal, as Praman restores sessions today.
 - **Idle close.** A session's container closes after **15 minutes** without a command while no
   proof is running. Praman waits 4 hours, but here each open session holds a slot on a shared
-  host. The value is set once in the solver's limits and tuned by the load test.
+  host. The value is set once in the solver's limits and tuned by the load test. The page also
+  closes its session when it goes away (`DELETE /tool/sessions/:id/open`), as Praman does, so a
+  closed tab frees its slot at once; the session opens again from its last save.
 - **Capacity.** One open session per learner. Each host runs a fixed number of session
   containers. When it is full, learners wait in line and see their position. Past the line's
   length limit they are told the tool is busy and to try again.

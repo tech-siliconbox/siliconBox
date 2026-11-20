@@ -33,9 +33,12 @@ const specs = commandSpecs(null, PRAMAN_CEILINGS.basic);
 
 describe('commandSpecs', () => {
   it('builds the Tcl line a learner would type', () => {
-    expect(specs.elaborate.build({ top: 'fifo' })).toBe('elaborate -top fifo');
-    expect(specs.limits.build({ minutes: '3', cycles: '40' })).toBe(
-      'set_prove_time_limit 3m; set_max_trace_length 40',
+    expect(specs.elaborate.build({ top: 'fifo', witness: 'on' })).toBe('elaborate -top fifo');
+    expect(specs.elaborate.build({ top: 'fifo', witness: '' })).toBe(
+      'elaborate -top fifo -create_related_covers precondition',
+    );
+    expect(specs.limits.build({ minutes: '3', each: '2', cycles: '40' })).toBe(
+      'set_prove_time_limit 3m; set_prove_per_property_time_limit 2m; set_max_trace_length 40',
     );
   });
 
@@ -67,8 +70,9 @@ describe('commandSpecs', () => {
   });
 
   it("caps the limits at the learner's ceilings", () => {
-    const [time, cycles] = specs.limits.fields;
+    const [time, each, cycles] = specs.limits.fields;
     expect(time?.max).toBe(5);
+    expect(each?.max).toBe(5);
     expect(cycles?.max).toBe(50);
   });
 });

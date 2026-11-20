@@ -8,6 +8,7 @@ import { tclWord } from '../tcl';
 import type { CoverageItem } from '../praman-reports';
 import type { PramanProperty } from '../praman-snapshot';
 import type { FileLine, ReportTab, ToolAction } from '../tool-actions';
+import type { OpenTrace } from '../trace-tools';
 import { CoveragePanel } from './coverage-panel';
 import { EquivalencePanel } from './equivalence-panel';
 import { HowItWorks } from './how-it-works';
@@ -16,7 +17,6 @@ import { PropertyTable } from './property-table';
 import { RunHistory } from './run-history';
 import { SourceEditor } from './source-editor';
 import { StrengthPanel } from './strength-panel';
-import { TraceHost } from './trace-host';
 import { DesignGuide, NoSessionGuide } from './welcome';
 
 /** The centre's tabs: the property table always, then results, open files and the run history. */
@@ -57,6 +57,8 @@ type CenterPanelProps = {
   /** The property chosen in the table (the log can choose one too). */
   selected: string | null;
   onSelectProperty: (id: string) => void;
+  /** Opens a coverage or equivalence trace in Visualize (a property's is an action). */
+  onOpenTrace: (trace: OpenTrace) => void;
 };
 
 /** The property table, the deeper checks' results, the files open in tabs, and the run history. */
@@ -108,7 +110,15 @@ function TabBody({ session, active, onCloseTab, onAction, ...rest }: TabBodyProp
   }
   const report = REPORT_TABS.find((tab) => reportTab(tab) === active);
   if (report !== undefined) {
-    return <Report tab={report} session={session} can={rest.can} onAction={onAction} />;
+    return (
+      <Report
+        tab={report}
+        session={session}
+        can={rest.can}
+        onAction={onAction}
+        onOpenTrace={rest.onOpenTrace}
+      />
+    );
   }
   return <Properties session={session} onAction={onAction} {...rest} />;
 }
@@ -135,39 +145,27 @@ function Properties({ session, can, onAction, ...rest }: PropertiesProps) {
       />
     );
   }
-  const traceOf = (id: string) =>
-    `${API_ROUTES.toolSessionTrace(session.id)}?${new URLSearchParams({ property: id })}`;
   return (
-    <TraceHost top={snapshot.top} reset={snapshot.reset}>
-      {(open) => (
-        <PropertyTable
-          properties={snapshot.properties}
-          instance={rest.instance}
-          now={rest.now}
-          selected={rest.selected}
-          onSelect={rest.onSelectProperty}
-          tasks={snapshot.tasks}
-          task={snapshot.task}
-          onTask={(task) => onAction({ kind: 'command', line: taskLine(task) })}
-          onSource={(p) =>
-            hasSource(p) && onAction({ kind: 'openFile', name: p.file, line: p.line })
-          }
-          onTrace={(property) =>
-            open({
-              url: traceOf(property.id),
-              title: property.name,
-              analysis: { sessionId: session.id, property: property.id, job: '', whatIf: true },
-            })
-          }
-          menuOf={(property) => propertyMenu(property, snapshot.properties, can)}
-          onChoose={(item) => onAction(item.action)}
-        />
-      )}
-    </TraceHost>
+    <PropertyTable
+      properties={snapshot.properties}
+      instance={rest.instance}
+      now={rest.now}
+      selected={rest.selected}
+      onSelect={rest.onSelectProperty}
+      tasks={snapshot.tasks}
+      task={snapshot.task}
+      onTask={(task) => onAction({ kind: 'command', line: taskLine(task) })}
+      onSource={(p) => hasSource(p) && onAction({ kind: 'openFile', name: p.file, line: p.line })}
+      onTrace={(property) => onAction({ kind: 'trace', property: property.id })}
+      menuOf={(property) => propertyMenu(property, snapshot.properties, can)}
+      onChoose={(item) => onAction(item.action)}
+    />
   );
 }
 
-function Report({ tab, session, can, onAction }: PanelProps & { tab: ReportTab }) {
+type ReportProps = PanelProps & Pick<CenterPanelProps, 'onOpenTrace'>;
+
+function Report({ tab, session, can, onAction, onOpenTrace }: ReportProps & { tab: ReportTab }) {
   const snapshot = session.state.snapshot;
   if (tab === 'strength') {
     return (
@@ -179,64 +177,41 @@ function Report({ tab, session, can, onAction }: PanelProps & { tab: ReportTab }
       />
     );
   }
-  return tab === 'coverage' ? (
-    <CoverageReport session={session} can={can} onAction={onAction} />
-  ) : (
-    <EquivalenceReport session={session} can={can} onAction={onAction} />
+  const parts = { session, can, onAction, onOpenTrace };
+  return tab === 'coverage' ? <CoverageReport {...parts} /> : <EquivalenceReport {...parts} />;
+}
+
+/** The trace that reaches a coverage item: drivers can be asked of it, not a what-if. */
+const coverageTrace = (sessionId: string, item: CoverageItem): OpenTrace => ({
+  url: `${API_ROUTES.toolSessionCoverageTrace(sessionId)}?${new URLSearchParams({ label: item.label, instance: item.instance })}`,
+  title: item.what || item.label,
+  analysis: { sessionId, property: item.label, job: item.job_id, whatIf: false },
+});
+
+function CoverageReport({ session, can, onAction, onOpenTrace }: ReportProps) {
+  return (
+    <CoveragePanel
+      coverage={session.state.snapshot?.coverage ?? null}
+      canRun={can.elaborated}
+      onRun={(line) => onAction({ kind: 'command', line })}
+      onSource={(name, line) => onAction({ kind: 'openFile', name, line })}
+      onTrace={(item) => onOpenTrace(coverageTrace(session.id, item))}
+    />
   );
 }
 
-function CoverageReport({ session, can, onAction }: PanelProps) {
-  const traceOf = (item: CoverageItem) =>
-    `${API_ROUTES.toolSessionCoverageTrace(session.id)}?${new URLSearchParams({ label: item.label, instance: item.instance })}`;
+function EquivalenceReport({ session, can, onAction, onOpenTrace }: ReportProps) {
   return (
-    <TraceHost
-      top={session.state.snapshot?.top ?? ''}
-      reset={session.state.snapshot?.reset ?? null}
-    >
-      {(open) => (
-        <CoveragePanel
-          coverage={session.state.snapshot?.coverage ?? null}
-          canRun={can.elaborated}
-          onRun={(line) => onAction({ kind: 'command', line })}
-          onSource={(name, line) => onAction({ kind: 'openFile', name, line })}
-          onTrace={(item) =>
-            open({
-              url: traceOf(item),
-              title: item.what || item.label,
-              analysis: {
-                sessionId: session.id,
-                property: item.label,
-                job: item.job_id,
-                whatIf: false,
-              },
-            })
-          }
-        />
-      )}
-    </TraceHost>
-  );
-}
-
-function EquivalenceReport({ session, can, onAction }: PanelProps) {
-  return (
-    <TraceHost
-      top={session.state.snapshot?.top ?? ''}
-      reset={session.state.snapshot?.reset ?? null}
-    >
-      {(open) => (
-        <EquivalencePanel
-          equivalence={session.state.snapshot?.equivalence ?? null}
-          canRun={can.elaborated}
-          onCheck={() => onAction({ kind: 'dialog', dialog: 'equivalence' })}
-          onTrace={() =>
-            open({
-              url: API_ROUTES.toolSessionEquivalenceTrace(session.id),
-              title: 'Equivalence difference',
-            })
-          }
-        />
-      )}
-    </TraceHost>
+    <EquivalencePanel
+      equivalence={session.state.snapshot?.equivalence ?? null}
+      canRun={can.elaborated}
+      onCheck={() => onAction({ kind: 'dialog', dialog: 'equivalence' })}
+      onTrace={() =>
+        onOpenTrace({
+          url: API_ROUTES.toolSessionEquivalenceTrace(session.id),
+          title: 'Equivalence difference',
+        })
+      }
+    />
   );
 }
