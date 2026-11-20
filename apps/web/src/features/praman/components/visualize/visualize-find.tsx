@@ -5,6 +5,7 @@ import type { View } from '../../hooks/use-visualize';
 import { ExprError } from '../../trace-expr';
 import { type Signal, findCycle, isInternal } from '../../visualize';
 import { Choice } from '../choice';
+import { SignalLists } from './signal-lists';
 import { SMALL_CONTROL } from '../small-control';
 import { type BodyProps, TOOL } from './visualize-common';
 
@@ -20,6 +21,15 @@ export function VisualizeFind(props: FindProps) {
       <AddExpression {...props} onNote={setNote} />
       <Find {...props} onNote={setNote} />
       <Pins {...props} />
+      {props.analysis !== undefined && (
+        <SignalLists
+          analysis={props.analysis}
+          top={props.top}
+          cycles={props.cycles}
+          view={props.view}
+          onNote={setNote}
+        />
+      )}
       {props.whatIf.status.busy && <span className="text-info">Proving the what-if…</span>}
       {message !== '' && (
         <span role="status" className="text-warning">
@@ -171,6 +181,16 @@ function Pins({ whatIf }: FindProps) {
           className={`${TOOL} font-semibold text-info`}
         >
           Prove with {pins.length === 1 ? 'this value' : 'these values'}
+        </button>
+      )}
+      {pins.length > 0 && (
+        <button
+          type="button"
+          disabled={whatIf.status.busy}
+          onClick={() => whatIf.setPins([])}
+          className={TOOL}
+        >
+          Clear pins
         </button>
       )}
     </div>

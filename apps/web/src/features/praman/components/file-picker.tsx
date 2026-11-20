@@ -1,29 +1,29 @@
 'use client';
 
 import type { ChangeEvent, Ref } from 'react';
-
-/** File types Praman reads: design, SVA, Tcl, file lists and connectivity sheets. */
-const ACCEPT = '.sv,.v,.svh,.vh,.tcl,.f,.csv,.txt';
+import { ACCEPT, type TextFile, readTextFiles } from '../read-files';
 
 type FilePickerProps = {
   ref: Ref<HTMLInputElement>;
-  onAdd: (files: { name: string; text: string }[]) => Promise<unknown>;
+  onAdd: (files: TextFile[]) => Promise<unknown>;
+  /** The file types to offer (all Praman reads unless said), and whether several may be chosen. */
+  accept?: string;
+  multiple?: boolean;
 };
 
-/** The hidden file input behind Add Files: reads the chosen files as text. */
-export function FilePicker({ ref, onAdd }: FilePickerProps) {
+/** A hidden file input (behind Add Files, or Run Script From File): reads the chosen files. */
+export function FilePicker({ ref, onAdd, accept = ACCEPT, multiple = true }: FilePickerProps) {
   const add = async (event: ChangeEvent<HTMLInputElement>) => {
     const chosen = Array.from(event.target.files ?? []);
     event.target.value = '';
-    const read = chosen.map(async (file) => ({ name: file.name, text: await file.text() }));
-    await onAdd(await Promise.all(read));
+    await onAdd(await readTextFiles(chosen));
   };
   return (
     <input
       ref={ref}
       type="file"
-      multiple
-      accept={ACCEPT}
+      multiple={multiple}
+      accept={accept}
       onChange={(event) => void add(event)}
       className="sr-only"
       tabIndex={-1}

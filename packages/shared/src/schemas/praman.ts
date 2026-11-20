@@ -206,3 +206,30 @@ export const ToolRunDiffSchema = z.object({
   removed: z.array(PropertyNameSchema.extend({ before: z.string() })),
 });
 export type ToolRunDiff = z.infer<typeof ToolRunDiffSchema>;
+
+/** Signal lists a session keeps, and rows a list holds (the newest lists are kept). */
+export const TOOL_SIGNAL_LISTS_MAX = 20;
+const TOOL_SIGNAL_LIST_ROWS_MAX = 200;
+const TOOL_EXPRESSION_MAX_CHARS = 500;
+
+/** A row of Visualize a list keeps: a signal by its path, or an expression. */
+const SignalListRowSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('signal'), path: NameSchema }),
+  z.strictObject({
+    kind: z.literal('expr'),
+    text: z.string().trim().min(1).max(TOOL_EXPRESSION_MAX_CHARS),
+  }),
+]);
+
+/** Which list: its name, for the design's top module (body of a save, query of a delete). */
+export const ToolSignalListKeySchema = z.strictObject({ name: NameSchema, top: NameSchema });
+
+/** Body of `PUT /api/v1/tool/sessions/:id/signal-lists`: Visualize's rows, saved by name. */
+export const ToolSignalListSchema = ToolSignalListKeySchema.extend({
+  rows: z.array(SignalListRowSchema).min(1).max(TOOL_SIGNAL_LIST_ROWS_MAX),
+});
+export type ToolSignalList = z.infer<typeof ToolSignalListSchema>;
+
+/** A run's log: the session's lines from its prove command to its end (none once trimmed). */
+export const ToolRunLogSchema = z.object({ events: z.array(ToolEventSchema) });
+export type ToolRunLog = z.infer<typeof ToolRunLogSchema>;

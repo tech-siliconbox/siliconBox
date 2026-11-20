@@ -1,4 +1,4 @@
-import type { Trace } from '@siliconbox/shared';
+import type { ToolSignalList, Trace } from '@siliconbox/shared';
 import type { Reset } from './praman-snapshot';
 import type { TraceDebug } from './praman-trace';
 import { ExprError, type Read, evaluate, fromBits, parse, toBits } from './trace-expr';
@@ -151,6 +151,46 @@ export type Row =
   | { key: string; kind: 'cond'; label: string; role: string; values: (number | null)[] }
   | { key: string; kind: 'signal'; path: string }
   | { key: string; kind: 'expr'; text: string };
+
+/** The rows with `key`'s row moved to `to`'s place: before it moving up, after it moving down. */
+export function moveRow(rows: readonly Row[], key: string, to: string): Row[] {
+  const moved = rows.find((row) => row.key === key);
+  const at = rows.findIndex((row) => row.key === to);
+  if (moved === undefined || at < 0 || key === to) return [...rows];
+  const rest = rows.filter((row) => row.key !== key);
+  rest.splice(at, 0, moved);
+  return rest;
+}
+
+/** The rows with `key`'s row one place up (-1) or down (1), when there is room. */
+export function stepRow(rows: readonly Row[], key: string, step: 1 | -1): Row[] {
+  const next = rows[rows.findIndex((row) => row.key === key) + step];
+  return next === undefined ? [...rows] : moveRow(rows, key, next.key);
+}
+
+/** A row a signal list keeps: a signal or an expression (the property's own rows always show). */
+export type SavedRow = ToolSignalList['rows'][number];
+
+export const savedRows = (rows: readonly Row[]): SavedRow[] =>
+  rows.flatMap((row): SavedRow[] => {
+    if (row.kind === 'signal') return [{ kind: 'signal', path: row.path }];
+    return row.kind === 'expr' ? [{ kind: 'expr', text: row.text }] : [];
+  });
+
+/**
+ * The view's rows with a saved list in place of its signals and expressions: the property's own
+ * rows first, then the list's (signals this trace does not have are left out).
+ */
+export function withList(rows: readonly Row[], cycles: Cycles, list: ToolSignalList): Row[] {
+  const own = rows.filter((row) => row.kind === 'cond' || row.key === 'g:property');
+  const listed = list.rows.flatMap((saved): Row[] => {
+    if (saved.kind === 'expr') return [{ key: `x:${saved.text}`, kind: 'expr', text: saved.text }];
+    return cycles.byPath.has(saved.path)
+      ? [{ key: `s:${saved.path}`, kind: 'signal', path: saved.path }]
+      : [];
+  });
+  return [...own, { key: 'g:list', kind: 'group', label: `List: ${list.name}` }, ...listed];
+}
 
 /** The property's conditions and the signals it reads, then the top module's own signals. */
 export function defaultRows(cycles: Cycles, debug: TraceDebug | null, top: string): Row[] {

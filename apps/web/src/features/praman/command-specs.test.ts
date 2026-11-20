@@ -1,17 +1,27 @@
 import { PRAMAN_CEILINGS } from '@siliconbox/shared';
 import { describe, expect, it } from 'vitest';
-import { commandSpecs } from './command-specs';
+import { clockResetDefaults, clockResetLine, commandSpecs } from './command-specs';
 import { PramanSnapshotSchema } from './praman-snapshot';
 
-/** An elaborated session's state, as Praman sends it, with the given reset. */
-const snapshotWith = (reset: { signal: string; active_low: boolean }) =>
+/** An elaborated session's state, as Praman sends it, with the given clock and reset. */
+const snapshotWith = (
+  clock: string | null,
+  reset: { signal: string; active_low: boolean } | null,
+  detected: object = {},
+) =>
   PramanSnapshotSchema.parse({
     label: 'Session 1',
     phase: 'elaborated',
     busy: false,
     top: 'fifo',
-    clock: 'clk',
+    clock,
     reset,
+    ports: [
+      { name: 'clk', direction: 'input', width: 1 },
+      { name: 'rst_n', direction: 'input', width: 1 },
+      { name: 'data', direction: 'input', width: 8 },
+    ],
+    detected,
     tree: null,
     files: [],
     properties: [],
@@ -23,25 +33,46 @@ const specs = commandSpecs(null, PRAMAN_CEILINGS.basic);
 
 describe('commandSpecs', () => {
   it('builds the Tcl line a learner would type', () => {
-    expect(specs.elaborate.build({ top: 'fifo' })).toBe('elaborate -top fifo');
-    expect(specs.setup.build({ clock: 'clk', reset: '!rst_n' })).toBe('clock clk; reset !rst_n');
-    expect(specs.setup.build({ clock: 'clk', reset: '' })).toBe('clock clk; reset -none');
-    expect(specs.limits.build({ minutes: '3', cycles: '40' })).toBe(
-      'set_prove_time_limit 3m; set_max_trace_length 40',
+    expect(specs.elaborate.build({ top: 'fifo', witness: 'on' })).toBe('elaborate -top fifo');
+    expect(specs.elaborate.build({ top: 'fifo', witness: '' })).toBe(
+      'elaborate -top fifo -create_related_covers precondition',
+    );
+    expect(specs.limits.build({ minutes: '3', each: '2', cycles: '40' })).toBe(
+      'set_prove_time_limit 3m; set_prove_per_property_time_limit 2m; set_max_trace_length 40',
     );
   });
 
-  it('suggests !rst_n until a reset is declared, and shows a declared one', () => {
-    expect(specs.setup.fields[1]?.defaultValue).toBe('!rst_n');
-    const declared = (reset: { signal: string; active_low: boolean }) =>
-      commandSpecs(snapshotWith(reset), PRAMAN_CEILINGS.basic).setup.fields[1]?.defaultValue;
-    expect(declared({ signal: 'rst', active_low: false })).toBe('rst');
-    expect(declared({ signal: '', active_low: false })).toBe('');
+  it('builds the clock and reset lines, or -none for either', () => {
+    expect(clockResetLine({ clock: 'clk', reset: 'rst_n', low: true })).toBe(
+      'clock clk; reset !rst_n',
+    );
+    expect(clockResetLine({ clock: 'clk', reset: 'rst', low: false })).toBe('clock clk; reset rst');
+    expect(clockResetLine({ clock: '', reset: '', low: true })).toBe('clock -none; reset -none');
+  });
+
+  it('suggests what Praman found until a clock and reset are declared', () => {
+    const found = { signal: 'rst_n', active_low: true, clocks: ['clk'] };
+    expect(clockResetDefaults(snapshotWith(null, null, found))).toEqual({
+      clock: 'clk',
+      reset: 'rst_n',
+      low: true,
+    });
+    expect(clockResetDefaults(snapshotWith('clk', { signal: 'rst', active_low: false }))).toEqual({
+      clock: 'clk',
+      reset: 'rst',
+      low: false,
+    });
+    expect(clockResetDefaults(snapshotWith('', { signal: '', active_low: false }))).toEqual({
+      clock: '',
+      reset: '',
+      low: false,
+    });
   });
 
   it("caps the limits at the learner's ceilings", () => {
-    const [time, cycles] = specs.limits.fields;
+    const [time, each, cycles] = specs.limits.fields;
     expect(time?.max).toBe(5);
+    expect(each?.max).toBe(5);
     expect(cycles?.max).toBe(50);
   });
 });

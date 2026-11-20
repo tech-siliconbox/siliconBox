@@ -1,6 +1,7 @@
 import {
   API_ROUTES,
   type ToolRunDetail,
+  type ToolRunLog,
   type ToolRunSummary,
   type ToolSessionSummary,
 } from '@siliconbox/shared';
@@ -68,6 +69,11 @@ async function expectTheRunKept(request: APIRequestContext): Promise<ToolRunDeta
   });
   expect(trace.status()).toBe(200);
   expect(JSON.stringify(await trace.json())).toContain('count');
+  // Its log, and its files as they were.
+  const log = (await (await request.get(API_ROUTES.toolRunLog(run.id))).json()) as ToolRunLog;
+  expect(log.events.map((event) => event.text).join('\n')).toContain('Completed proof');
+  const bind = await request.get(API_ROUTES.toolRunFiles(run.id), { params: { name: 'bind.sv' } });
+  expect(((await bind.json()) as { text: string }).text).toContain('bind counter');
   return run;
 }
 

@@ -72,11 +72,14 @@ export const API_ROUTES = {
   toolSessionEquivalenceTrace: (sessionId: string) =>
     `/api/v1/tool/sessions/${sessionId}/equivalence-trace`,
   toolSessionReport: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/report`,
+  toolSessionSignalLists: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/signal-lists`,
   toolRuns: '/api/v1/tool/runs',
   toolRun: (runId: string) => `/api/v1/tool/runs/${runId}`,
   toolRunTrace: (runId: string) => `/api/v1/tool/runs/${runId}/trace`,
   toolRunDiff: (runId: string) => `/api/v1/tool/runs/${runId}/diff`,
   toolRunRestore: (runId: string) => `/api/v1/tool/runs/${runId}/restore`,
+  toolRunLog: (runId: string) => `/api/v1/tool/runs/${runId}/log`,
+  toolRunFiles: (runId: string) => `/api/v1/tool/runs/${runId}/files`,
 } as const;
 
 /** Query value the sign-in page reads to explain a sign-out caused by another device. */

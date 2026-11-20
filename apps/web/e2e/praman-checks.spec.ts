@@ -1,7 +1,15 @@
 import { API_ROUTES, type ToolRunSummary, type ToolSessionSummary } from '@siliconbox/shared';
 import type { APIRequestContext } from '@playwright/test';
 import { expect, test } from './helpers';
-import { PROPERTY, WRITE, closeOpened, fixture, provedSession, runLine } from './praman';
+import {
+  PROPERTY,
+  WRITE,
+  closeOpened,
+  fixture,
+  openAndWait,
+  provedSession,
+  runLine,
+} from './praman';
 
 // Praman's deeper checks over the API (ADR 0031): what-if and quiet traces, drivers, the HTML
 // report, coverage and equivalence traces, and comparing and restoring runs. Each test proves
@@ -130,4 +138,36 @@ test('a run is compared with the one before and restored into a new session', as
   });
   expect(script.status()).toBe(200);
   expect(JSON.stringify(await script.json())).toContain('prove -all');
+});
+
+test('signal lists are kept with the session, and closing it keeps its work', async ({ page }) => {
+  test.setTimeout(CHECK_TIMEOUT);
+  const { request, sessionId } = await provedSession(page);
+  const lists = API_ROUTES.toolSessionSignalLists(sessionId);
+  const list = {
+    name: 'counting',
+    top: 'counter',
+    rows: [
+      { kind: 'signal', path: 'counter.count' },
+      { kind: 'expr', text: 'count == 3' },
+    ],
+  };
+  expect((await request.put(lists, { ...WRITE, data: list })).status()).toBe(204);
+  expect(await (await request.get(lists)).json()).toEqual([list]);
+  // A query operator in place of a path is refused.
+  const operator = { ...list, rows: [{ kind: 'signal', path: { $ne: '' } }] };
+  expect((await request.put(lists, { ...WRITE, data: operator })).status()).toBe(400);
+  const named = `${lists}?${new URLSearchParams({ name: 'counting', top: 'counter' })}`;
+  expect((await request.delete(named, WRITE)).status()).toBe(204);
+  expect(await (await request.get(lists)).json()).toEqual([]);
+
+  // The page going away closes the session on the tool; its files stay and it opens again.
+  const open = API_ROUTES.toolSessionOpen(sessionId);
+  expect((await request.delete(open, WRITE)).status()).toBe(204);
+  const file = await request.get(API_ROUTES.toolSessionFiles(sessionId), {
+    params: { name: 'bind.sv' },
+  });
+  expect(((await file.json()) as { text: string }).text).toContain('bind counter');
+  await openAndWait(request, sessionId);
+  expect(await runLine(request, sessionId, 'report')).toBeTruthy();
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import type { MouseEvent, ReactNode, RefObject } from 'react';
+import type { DragEvent, MouseEvent, ReactNode, RefObject } from 'react';
 import { BitWave, BusWave, type ShapeRun } from '@/components/shared/wave-shapes';
 import { cn } from '@/lib/cn';
 import type { View } from '../../hooks/use-visualize';
@@ -12,6 +12,7 @@ import {
   cycleTime,
   expressionValues,
   formatValue,
+  moveRow,
   resetCycles,
   segmentsOf,
   valueAt,
@@ -21,12 +22,13 @@ import type { BodyProps } from './visualize-common';
 
 const ROW = 24;
 
-/** What every row marks behind its wave: reset, the trigger, the failure and the cursor. */
+/** What every row marks behind its wave: reset, the trigger, the failure and the cursors. */
 type Marks = {
   reset: boolean[];
   trigger: [number, number] | null;
   fail: number | null;
   cursor: number;
+  marker: number | null;
   zoom: number;
   count: number;
 };
@@ -48,6 +50,7 @@ export function WaveTable(props: TableProps) {
     trigger: triggerOf(trace.debug),
     fail: view.fail,
     cursor: view.cursor,
+    marker: view.marker,
     zoom: view.zoom,
     count: cycles.count,
   };
@@ -106,6 +109,15 @@ function Backdrop({ marks }: { marks: Marks }) {
       )}
       {marks.trigger !== null && band(marks.trigger[0], marks.trigger[1], 'fill-warning/15')}
       {marks.fail !== null && band(marks.fail, marks.fail, 'fill-danger/10')}
+      {marks.marker !== null && (
+        <line
+          x1={(marks.marker + 0.5) * marks.zoom}
+          x2={(marks.marker + 0.5) * marks.zoom}
+          y1={0}
+          y2={ROW}
+          className="stroke-warning [stroke-dasharray:3_2] [stroke-width:1.5]"
+        />
+      )}
       <line
         x1={(marks.cursor + 0.5) * marks.zoom}
         x2={(marks.cursor + 0.5) * marks.zoom}
@@ -121,10 +133,32 @@ type RowProps = TableProps & { row: Row; marks: Marks };
 
 type RowLabelProps = { row: Row; view: View; chosen: boolean; name: ReactNode; value: string };
 
-/** A row's name (choose it), its value at the cursor, and (but for the property's own) remove. */
+const ROW_KEY = 'text/x-visualize-row';
+
+/** Dragging a row's name onto another row's moves it there. */
+function dragHandlers(row: Row, view: View) {
+  return {
+    draggable: true,
+    onDragStart: (event: DragEvent<HTMLDivElement>) => event.dataTransfer.setData(ROW_KEY, row.key),
+    onDragOver: (event: DragEvent<HTMLDivElement>) => {
+      if (event.dataTransfer.types.includes(ROW_KEY)) event.preventDefault();
+    },
+    onDrop: (event: DragEvent<HTMLDivElement>) => {
+      const key = event.dataTransfer.getData(ROW_KEY);
+      if (key !== '') view.setRows(moveRow(view.rows, key, row.key));
+    },
+  };
+}
+
+/**
+ * A row's name (choose it; drag it to move the row), its value at the cursor, and (but for the
+ * property's own) remove.
+ */
 function RowLabel({ row, view, chosen, name, value }: RowLabelProps) {
   return (
     <div
+      {...dragHandlers(row, view)}
+      title="Drag to move the row (or Alt+↑ ↓ once chosen)"
       className={cn(
         'sticky left-0 z-10 flex w-[300px] shrink-0 items-center gap-1 border-r border-border px-2',
         chosen ? 'bg-info-light' : 'bg-background',
@@ -164,16 +198,19 @@ function WaveRow(props: RowProps) {
   }
   const chosen = view.selected === row.key;
   const { name, value, wave } = rowParts(props);
+  // A click moves the cursor; Shift+click sets the second cursor there (or takes it away).
   const move = (event: MouseEvent<HTMLButtonElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
-    view.moveCursor(Math.floor((event.clientX - box.left) / view.zoom));
+    const cycle = Math.floor((event.clientX - box.left) / view.zoom);
+    if (event.shiftKey) view.setMarker(view.marker === cycle ? null : cycle);
+    else view.moveCursor(cycle);
   };
   return (
     <div className={cn('flex h-6 w-max border-b border-border/50', chosen && 'bg-info-light')}>
       <RowLabel row={row} view={view} chosen={chosen} name={name} value={value} />
       <button
         type="button"
-        aria-label="Move the cursor here"
+        aria-label="Move the cursor here (Shift: the second cursor)"
         onClick={move}
         className="block cursor-crosshair"
       >

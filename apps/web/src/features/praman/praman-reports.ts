@@ -62,6 +62,16 @@ const CoreLineSchema = z.object({
   detail: z.string().default(''),
 });
 
+/** One instance's scores, when the design has several. */
+const InstanceCoverageSchema = z.object({
+  instance: z.string(),
+  module: z.string().default(''),
+  branches: PartSchema,
+  statements: PartSchema,
+  toggles: PartSchema,
+});
+export type InstanceCoverage = z.infer<typeof InstanceCoverageSchema>;
+
 /** check_cov (branches, statements, toggles) or check_cov -type proof (the proof core). */
 export const CoverageSchema = z.object({
   status: z.string(),
@@ -76,6 +86,9 @@ export const CoverageSchema = z.object({
   toggles: z.array(CoverageItemSchema).default([]),
   statements: PartSchema.nullable().default(null),
   toggle_summary: PartSchema.extend({ unreachable: Count }).nullable().default(null),
+  /** Signal bits not measured for toggles (no clock in their module). */
+  toggle_bits_left_out: Count,
+  instances: z.array(InstanceCoverageSchema).catch([]),
   lines: z.array(CoreLineSchema).default([]),
   proven: z.array(z.string()).default([]),
   relied_on: Count,

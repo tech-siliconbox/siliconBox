@@ -6,11 +6,12 @@ import {
   type ToolRunDetail,
   ToolRunDetailSchema,
   type ToolRunDiff,
+  type ToolRunLog,
   type ToolRunSummary,
   type ToolSessionSummary,
 } from '@siliconbox/shared';
 import { z } from 'zod';
-import { collectUnusedFiles, keepFiles, putFiles } from '@/db/tool-files';
+import { collectUnusedFiles, keepFiles, putFiles, readFiles } from '@/db/tool-files';
 import {
   type ToolRunRecord,
   deleteToolRun,
@@ -21,6 +22,7 @@ import {
 } from '@/db/tool-runs';
 import {
   countToolSessions,
+  findToolSession,
   insertToolSession,
   keptUntil,
   toSessionSummary,
@@ -77,6 +79,29 @@ export async function runTrace(
   const trace = await findToolTrace(identity.userId, runId, property);
   if (trace === null) throw new AppError('NOT_FOUND', `no kept trace in ${runId}`);
   return trace;
+}
+
+/**
+ * The run's lines of its session's log: those written after the last line before it started, up
+ * to its end; none when the session is gone or has trimmed them.
+ */
+export async function runLog(identity: Identity, runId: string): Promise<ToolRunLog> {
+  await assertPraman(identity);
+  const run = await requireRun(identity.userId, runId);
+  const session = await findToolSession(identity.userId, run.sessionId);
+  const events = (session?.events ?? []).filter(
+    (event) => event.seq > run.logFrom && event.seq <= run.logTo,
+  );
+  return { events };
+}
+
+/** One file's text as it was when the run started. */
+export async function runFile(identity: Identity, runId: string, name: string): Promise<string> {
+  await assertPraman(identity);
+  const run = await requireRun(identity.userId, runId);
+  const ref = run.files.find((file) => file.name === name);
+  if (ref === undefined) throw new AppError('NOT_FOUND', `no such file in ${runId}`);
+  return (await readFiles(identity.userId, [ref]))[name] ?? '';
 }
 
 const PropertyResultSchema = z.object({ name: z.string(), type: z.string(), status: z.string() });

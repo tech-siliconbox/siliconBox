@@ -18,7 +18,11 @@ const snapshot = (phase: PramanSnapshot['phase'], files: string[]) =>
     proof: { running: false, started_at: null, total: 0, time_limit: 300 },
   });
 
-const state = (place: SessionState['place'], snap: PramanSnapshot | null, busy = false) => ({
+const state = (
+  place: SessionState['place'],
+  snap: PramanSnapshot | null,
+  busy = false,
+): SessionState => ({
   place,
   position: null,
   events: [],
@@ -27,6 +31,7 @@ const state = (place: SessionState['place'], snap: PramanSnapshot | null, busy =
   proofRunning: false,
   secondsLeft: 3600,
   error: null,
+  link: { state: 'live', ms: 40 },
 });
 
 describe('abilitiesOf', () => {

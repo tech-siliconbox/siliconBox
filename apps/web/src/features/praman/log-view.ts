@@ -3,9 +3,9 @@ import type { ToolEvent } from '@siliconbox/shared';
 /** The groups the log's chips show or hide. Engine detail is off until asked for. */
 const LOG_GROUPS = ['error', 'warning', 'info', 'cmd', 'engine'] as const;
 export type LogGroup = (typeof LOG_GROUPS)[number];
-export type LogFilter = Readonly<Record<LogGroup, boolean>>;
+type LogFilter = Readonly<Record<LogGroup, boolean>>;
 
-export const DEFAULT_LOG_FILTER: LogFilter = {
+const DEFAULT_LOG_FILTER: LogFilter = {
   error: true,
   warning: true,
   info: true,
@@ -41,17 +41,43 @@ export function lineText(event: ToolEvent): string {
   return tag === null ? event.text : `${tag} ${event.text}`;
 }
 
+/** A message about a place in a file starts with it: "counter.sv(12): …". */
+const LOCATION = /^([\w./-]+\.\w+)\((\d+)\): /;
+
+/** The file and line a message points at, if it does (commands and output never do). */
+export function locationOf(event: ToolEvent): { name: string; line: number } | null {
+  if (event.kind === 'cmd' || event.kind === 'out') return null;
+  const [, name, line] = LOCATION.exec(event.text) ?? [];
+  return name === undefined ? null : { name, line: Number(line) };
+}
+
+/** The property a line reports on (a result), if it does. */
+export const propertyOf = (event: ToolEvent): string | null =>
+  typeof event.prop === 'string' && event.prop !== '' ? event.prop : null;
+
+/**
+ * What the log shows: the groups shown, a search, the last Clear (a line number), and, for the
+ * engine detail, one property's lines only (null for all).
+ */
+export type LogView = { filter: LogFilter; search: string; clearedAt: number; only: string | null };
+
+export const DEFAULT_LOG_VIEW: LogView = {
+  filter: DEFAULT_LOG_FILTER,
+  search: '',
+  clearedAt: 0,
+  only: null,
+};
+
 /** The lines to draw: those after the last Clear, in a shown group, matching the search. */
 export function visibleLines(
   events: readonly ToolEvent[],
-  filter: LogFilter,
-  search: string,
-  clearedAt: number,
+  { filter, search, clearedAt, only }: LogView,
 ): { lines: ToolEvent[]; hidden: number } {
   const needle = search.trim().toLowerCase();
   const wanted = events.filter((event) => {
     const group = groupOf(event.kind);
     if (group === null || event.seq <= clearedAt || !filter[group]) return false;
+    if (group === 'engine' && only !== null && propertyOf(event) !== only) return false;
     return needle === '' || lineText(event).toLowerCase().includes(needle);
   });
   const hidden = Math.max(0, wanted.length - LOG_LINES_SHOWN);

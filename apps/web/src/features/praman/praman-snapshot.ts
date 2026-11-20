@@ -41,6 +41,9 @@ const PROPERTY_STATUSES = [
   'assumed',
 ] as const;
 
+/** A property's result, as Praman names it. */
+export const PropertyStatusSchema = z.enum(PROPERTY_STATUSES);
+
 export const PramanPropertySchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -49,7 +52,7 @@ export const PramanPropertySchema = z.object({
   file: z.string().default(''),
   line: z.number().int().default(0),
   related: z.string().default(''),
-  status: z.enum(PROPERTY_STATUSES).catch('undetermined'),
+  status: PropertyStatusSchema.catch('undetermined'),
   detail: z.string().default(''),
   bound: z.number().int().nullable().default(null),
   engine: z.string().default(''),
@@ -73,6 +76,16 @@ export type PramanProperty = z.infer<typeof PramanPropertySchema>;
 const ResetSchema = z.object({ signal: z.string(), active_low: z.boolean() });
 export type Reset = z.infer<typeof ResetSchema>;
 
+/** The clock and reset Praman found in the design, to suggest before any is declared. */
+const DetectedSchema = z.object({
+  signal: z.string().default(''),
+  active_low: z.boolean().nullable().default(null),
+  clocks: z.array(z.string()).default([]),
+});
+
+const PortSchema = z.object({ name: z.string(), direction: z.string(), width: z.number().int() });
+export type Port = z.infer<typeof PortSchema>;
+
 export const PramanSnapshotSchema = z.object({
   label: z.string(),
   phase: z.enum(['empty', 'analyzed', 'elaborated']),
@@ -80,6 +93,9 @@ export const PramanSnapshotSchema = z.object({
   top: z.string(),
   clock: z.string().nullable(),
   reset: ResetSchema.nullable(),
+  /** The top module's ports, and the clock and reset found in it. */
+  ports: z.array(PortSchema).catch([]),
+  detected: DetectedSchema.catch({ signal: '', active_low: null, clocks: [] }),
   tree: TreeNodeSchema.nullable(),
   files: z.array(
     z.object({

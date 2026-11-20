@@ -1,5 +1,5 @@
 import { API_ROUTES, ROUTES } from '@siliconbox/shared';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './helpers';
 import { PROPERTY, WRITE, closeOpened, fixture, provedSession } from './praman';
 
@@ -38,10 +38,31 @@ async function expectRan(page: Page, line: string | RegExp) {
   });
 }
 
-test('the row menu and the check dialogs run their Tcl commands', async ({ page }) => {
+/** The text the editor has selected: the line it was asked to show. */
+const selectedText = (editor: Locator) =>
+  editor.evaluate((area: HTMLTextAreaElement) =>
+    area.value.slice(area.selectionStart, area.selectionEnd),
+  );
+
+test('a property opens at its line, the log finds it, and the check dialogs run', async ({
+  page,
+}) => {
   test.setTimeout(300_000);
   await provedSession(page);
   await openTool(page);
+
+  // Show Source opens the file at the property's line.
+  await page.getByRole('button', { name: new RegExp(`Actions for .*${PROPERTY}$`) }).click();
+  await page.getByRole('menuitem', { name: /^Show Source/ }).click();
+  const editor = page.getByLabel('counter_props.sv', { exact: true });
+  await expect.poll(() => selectedText(editor)).toContain(`${PROPERTY}  : assert property`);
+  // A result in the log chooses its property in the table.
+  await page
+    .getByRole('log')
+    .getByRole('button', { name: new RegExp(PROPERTY) })
+    .first()
+    .click();
+  await expect(page.locator('tr[aria-selected="true"]')).toContainText(PROPERTY);
 
   await page.getByRole('button', { name: new RegExp(`Actions for .*${PROPERTY}$`) }).click();
   await page.getByRole('menuitem', { name: /^Case Split/ }).click();
@@ -62,6 +83,16 @@ test('the row menu and the check dialogs run their Tcl commands', async ({ page 
   await abstract.getByLabel('Register').fill('count');
   await abstract.getByRole('button', { name: 'Abstract' }).click();
   await expectRan(page, 'abstract -init_value count');
+
+  // The chosen property: only its engine detail in the log, and Prove Selected Property.
+  await page.getByRole('button', { name: /^Engine detail/ }).click();
+  await page.getByRole('button', { name: 'Only this property' }).click();
+  await expect(page.getByRole('button', { name: 'Only this property' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await menu(page, 'Prove', 'Prove Selected Property');
+  await expectRan(page, new RegExp(`^% prove -property \\S*${PROPERTY}$`));
 
   await menu(page, 'Prove', 'Check Dead Ends');
   await expectRan(page, 'check_assumptions -dead_end');
@@ -129,13 +160,26 @@ test('the equivalence check shows where a revised design differs', async ({ page
   ).toBeVisible();
 });
 
+/** The rows shown in Visualize saved as a signal list, kept with the session, and shown again. */
+async function saveAndShowAList(visualize: Locator) {
+  await visualize.getByLabel('Signal lists').selectOption('save');
+  await visualize.getByLabel('Name of the signal list').fill('counting');
+  await visualize.getByRole('button', { name: 'Save list' }).click();
+  await expect(visualize.getByText('Saved the list counting.')).toBeVisible();
+  await visualize.getByLabel('Signal lists').selectOption('show:counting');
+  await expect(visualize.getByText('List: counting')).toBeVisible();
+  await expect(visualize.getByRole('button', { name: 'count == 3', exact: true })).toBeVisible();
+}
+
 test('Visualize shows why, what drove a signal, expressions, and what if', async ({ page }) => {
   test.setTimeout(300_000);
   await provedSession(page);
   await openTool(page);
 
+  // A right click on the row opens its menu: View Trace.
   const row = page.getByRole('row').filter({ hasText: PROPERTY }).filter({ hasText: 'CEX' });
-  await row.first().getByRole('button', { name: 'Waveform' }).click();
+  await row.first().click({ button: 'right' });
+  await page.getByRole('menuitem', { name: /^View Trace/ }).click();
   const visualize = page.getByRole('dialog', { name: /Waveform of/ });
   await expect(visualize.getByText(/fails at cycle \d+ · \d+ cycles/)).toBeVisible();
 
@@ -156,6 +200,8 @@ test('Visualize shows why, what drove a signal, expressions, and what if', async
   await visualize.getByLabel('Find a cycle where an expression holds').press('Enter');
   await expect(visualize.getByText(/cannot|does not hold/)).toHaveCount(0);
 
+  await saveAndShowAList(visualize);
+
   await visualize.getByRole('button', { name: 'Quiet trace' }).click();
   await expect(visualize.getByRole('button', { name: 'Original trace' })).toBeVisible({
     timeout: CHECK_TIMEOUT,
@@ -173,6 +219,11 @@ test('Visualize shows why, what drove a signal, expressions, and what if', async
   // Hold en at its value in cycle 2 and prove again: a new trace, or why there is none.
   await visualize.getByRole('button', { name: 'en', exact: true }).first().click();
   await visualize.getByRole('button', { name: '▶|' }).click();
+  await visualize.getByRole('button', { name: 'Pin value' }).click();
+  await visualize.getByRole('button', { name: 'Pin', exact: true }).click();
+  // Clear pins takes them all away; pin again and prove.
+  await visualize.getByRole('button', { name: 'Clear pins' }).click();
+  await expect(visualize.getByRole('button', { name: /^Prove with/ })).toHaveCount(0);
   await visualize.getByRole('button', { name: 'Pin value' }).click();
   await visualize.getByRole('button', { name: 'Pin', exact: true }).click();
   await visualize.getByRole('button', { name: /^Prove with/ }).click();
@@ -199,8 +250,17 @@ test('a run is reported, compared and restored into a new session', async ({ pag
   });
   await menu(page, 'File', 'Run History');
   await page.getByRole('button', { name: /^Run 2/ }).click();
-  await page.getByRole('button', { name: 'Compare With the Run Before' }).click();
-  await expect(page.getByText('No property changed since the run before.')).toBeVisible();
+  // The run as it was: what changed since run 1, its log, and its files.
+  const run = page.getByRole('region', { name: 'Run 2' });
+  await run.getByRole('tab', { name: 'Changes' }).click();
+  await expect(run.getByText('No property changed since the run before.')).toBeVisible();
+  await run.getByRole('tab', { name: 'Log' }).click();
+  await expect(run.getByRole('log')).toContainText('Completed proof');
+  await run.getByRole('tab', { name: /^Files/ }).click();
+  await run.getByRole('button', { name: 'counter_props.sv' }).click();
+  await expect(run.getByLabel('counter_props.sv', { exact: true })).toHaveValue(
+    /ap_stays_in_range/,
+  );
 
   await page.getByRole('button', { name: 'Restore Into a New Session' }).click();
   await expect(page.getByText('Restored run 2')).toBeVisible();

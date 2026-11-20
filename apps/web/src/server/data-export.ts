@@ -138,6 +138,7 @@ async function pramanPart(userId: string) {
         top: session.top,
         files: await readFiles(userId, session.files),
         script: session.journal,
+        signalLists: session.signalLists,
       })),
     ),
     pramanRuns: runs.map((run) => ({

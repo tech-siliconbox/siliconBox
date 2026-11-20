@@ -45,6 +45,7 @@ const RESULTS: readonly [Parameters<typeof StatusIcon>[0]['status'], string][] =
   ['covered', 'Covered: the cover can happen; its trace shows how.'],
   ['cex', 'Counterexample: the assertion fails; its waveform shows how.'],
   ['unreachable', 'Unreachable: the cover can never happen.'],
+  ['vacuous', 'Vacuous: it holds only because its antecedent never matches, so it checks nothing.'],
   ['undetermined', 'Undetermined: no answer within the proof time (Bound shows how deep it got).'],
   ['running', 'Running: the engines are still working on it.'],
   ['not_run', 'Not run: prove to check it.'],
@@ -78,6 +79,7 @@ export function HowItWorks({
       </header>
       <Flow />
       <Results />
+      <Proof />
       <Deeper />
       <Console />
       <Limits ceilings={ceilings} />
@@ -117,11 +119,55 @@ function Results() {
       </ul>
       <p>
         Filter the table by result, type or name; choose an instance in the Design Hierarchy to see
-        only its properties. The ⋯ menu of a row proves it alone, finds the assumptions it needs, or
-        splits it into cases. In the waveform, <b className="text-foreground">Drivers</b> shows what
-        set a signal, <b className="text-foreground">What If…</b> proves again with values you pin,
-        and <b className="text-foreground">Quiet Trace</b> finds the calmest failing trace.
+        only its properties. The ⋯ menu of a row (or a right click) proves it alone, finds the
+        assumptions it needs, splits it into cases or opens its source at its line. A failing
+        assertion&apos;s <b className="text-foreground">Waveform</b> opens Visualize: the cycle it
+        fails in, why in words, and <b className="text-foreground">Why?</b> for what drove any
+        signal. <b className="text-foreground">Pin value</b> proves again with values you choose,{' '}
+        <b className="text-foreground">Another counterexample</b> finds a different one, and{' '}
+        <b className="text-foreground">Quiet trace</b> the calmest. ← → move the cursor, Shift+click
+        sets a second one, and a list of signals you like can be saved for next time.
       </p>
+    </Section>
+  );
+}
+
+function Proof() {
+  return (
+    <Section title="How a property is proved">
+      <p>
+        <b className="text-foreground">Several engines, racing.</b> Induction over a few cycles, run
+        by several solvers at once, proves most properties that hold within seconds; solvers differ
+        widely on the same logic, so racing them finds the fast one. If induction does not decide,
+        model checking over the whole depth (PDR, also called IC3) takes over, and it finds deep
+        counterexamples too. A proof holds at every depth, not only the ones checked.
+      </p>
+      <p>
+        <b className="text-foreground">Rising time limits.</b> Every open property first gets a few
+        seconds, then more, then your limit for one engine run (Prove &gt; Proof Limits), so one
+        hard property cannot hold up all the others. Stop ends the solvers at once.
+      </p>
+      <p>
+        <b className="text-foreground">Is the pass real?</b> Under each assertion{' '}
+        <Code>a |-&gt; b</Code> Praman adds related covers: can <Code>a</Code> happen at all, and
+        can <Code>a</Code> be followed by <Code>b</Code>? An assertion whose antecedent can never
+        happen is reported as vacuous, never as proven.
+      </p>
+      <p>
+        <b className="text-foreground">Too hard in one piece?</b> Case Split (the row&apos;s ⋯ menu)
+        proves an assertion case by case, for each value of a mode or state signal, and it is proven
+        when every case is.
+      </p>
+      <p>A script runs the whole flow at once, for example:</p>
+      <pre className="rounded-[3px] border border-border bg-muted px-3 py-2 font-mono text-[12px] text-foreground">
+        {[
+          'analyze -sv design.sv design_sva.sv',
+          'elaborate -top design',
+          'clock clk',
+          'reset !rst_n',
+          'prove -all',
+        ].join('\n')}
+      </pre>
     </Section>
   );
 }
