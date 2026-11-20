@@ -95,6 +95,11 @@ export default defineConfig(
     extends: [tseslint.configs.disableTypeChecked],
   },
   {
+    // k6 load tests run in k6's own runtime, which provides these.
+    files: ['apps/web/loadtest/*.js'],
+    languageOptions: { globals: { __ENV: 'readonly', __VU: 'readonly' } },
+  },
+  {
     // mongosh and plain Node scripts: CommonJS `require` is how they load files.
     files: ['infra/mongodb/*.{js,cjs}'],
     languageOptions: { globals: { ...globals.commonjs, db: 'readonly', print: 'readonly' } },

@@ -13,6 +13,7 @@
     "content:import": "payload run scripts/content-import.ts",
     "db:verify-roles": "node scripts/verify-db-roles.ts",
     "db:allow-my-ip": "payload run scripts/allow-my-ip.ts",
+    "loadtest:seed": "NODE_ENV=production NODE_OPTIONS=--conditions=react-server payload run loadtest/seed-praman.ts",
     "content:convert": "payload run scripts/content-convert.ts"
   },
   "dependencies": {

@@ -4,6 +4,12 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman: load test and launch readiness, ADR 0031)
+
+- `apps/web/loadtest/praman-sessions.js`: a k6 load test of Praman sessions. Each learner signs in, waits in line, loads the example, proves it and polls; it records the time in line, the proof time and p95 route times. `pnpm --filter @siliconbox/web loadtest:seed` makes its invented learners on a local database only.
+- Capacity measured on the container runner: an open session uses about 100 MB and, while proving, its 1-CPU cap. Recommended host for the founder to confirm: the Oracle A1 VM of ADR 0022 with 8 session slots (`docs/roadmap/load-test-results.md`).
+- Runbook `docs/runbooks/praman-sessions.md`: the waiting line, stuck sessions, leftover containers and proof minutes.
+
 ### Added (Praman's deeper checks, ADR 0031)
 
 - **Reports:** Assertion Strength (mutants, and which proven assertions notice them), Formal Coverage (branches, statements and toggles, each covered item with its trace), Proof Core (which lines the proofs rely on) and Equivalence (a revised design against the analyzed one, with the trace where they differ). Each opens as a tab beside the property table. Download Report saves the last proof as HTML.

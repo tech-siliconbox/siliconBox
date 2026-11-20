@@ -9,9 +9,10 @@
         "migrate-mongo-config.js",
         "migrations/*.js",
         "e2e/cms/seed-admin.ts",
-        "scripts/*.ts"
+        "scripts/*.ts",
+        "loadtest/*.ts"
       ],
-      "ignore": ["src/cms/payload-types.ts"],
+      "ignore": ["src/cms/payload-types.ts", "loadtest/*.js"],
       "ignoreDependencies": ["@payloadcms/ui"]
     },
     "packages/shared": {}

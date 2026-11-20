@@ -40,7 +40,7 @@ One open session per learner. Proof minutes are counted from real engine time, s
 
 The Dockerfile with OSS CAD Suite can be the job image. Runner limits: no network, read-only root, CPU, memory and time caps.
 
-Praman sessions need a host that keeps containers running (Docker, or Fly Machines started per session) before the tool page opens to learners. Development and tests use Docker Desktop. The load test records how many sessions a host takes.
+Praman sessions need a host that keeps containers running (Docker, or Fly Machines started per session) before the tool page opens to learners. Development and tests use Docker Desktop. Measured (2026-11-20, `docs/roadmap/load-test-results.md`): an open session uses about 100 MB and, while it proves, its 1-CPU cap, so CPU sets how many a host holds. Recommended, for the founder to confirm: the Oracle Cloud A1 host of ADR 0022 (4 OCPU, 24 GB) with gVisor and `SOLVER_SESSION_SLOTS=8`. Operating it: `docs/runbooks/praman-sessions.md`.
 
 ## Quotas
 
