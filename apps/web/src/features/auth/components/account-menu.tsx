@@ -1,35 +1,15 @@
 'use client';
 
 import { ROUTES } from '@siliconbox/shared';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Avatar } from '@/components/shared/avatar';
 import { SiteLink } from '@/components/ui/site-link';
 import { authClient } from '@/lib/auth-client';
 import { MEMBER_PAGES } from '@/lib/member-pages';
+import { useDismiss } from '@/hooks/use-dismiss';
 import { useFormAction } from '@/hooks/use-form-action';
 
 const ITEM = 'block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-muted';
-
-/** Closes the menu on a click outside it or on Escape. */
-function useDismiss(open: boolean, close: () => void) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (event: MouseEvent) => {
-      if (event.target instanceof Node && !ref.current?.contains(event.target)) close();
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-    };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, close]);
-  return ref;
-}
 
 type MenuPanelProps = { name: string; email: string; onNavigate: () => void };
 
@@ -67,7 +47,7 @@ type AccountMenuProps = { name: string; email: string; photoUrl: string | null }
 /** The signed-in learner's menu in the header: who they are, their pages, and sign out. */
 export function AccountMenu({ name, email, photoUrl }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
-  const ref = useDismiss(open, () => setOpen(false));
+  const ref = useDismiss<HTMLDivElement>(open, () => setOpen(false));
   return (
     <div ref={ref} className="relative">
       <button
