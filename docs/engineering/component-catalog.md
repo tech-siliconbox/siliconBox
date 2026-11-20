@@ -10,7 +10,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Badge | Small mono label (`outline`, `muted`, `inverted`) | Built |
 | Card | Bordered surface, no shadow | Built |
 | Eyebrow, EYEBROW_CLASS | Mono uppercase label above headings; its classes for a heading or table cell | Built |
-| Field, TextField, TextAreaField | Label plus control; input and textarea share one wrapper | Built |
+| Field, TextField, TextAreaField, SelectField | Label plus control; input, textarea and select share one wrapper (`SelectField` hands back the option's own value) | Built |
 | CspImage | `next/image` without the inline style the CSP blocks; use it instead of `next/image` | Built |
 | Tabs | Tab list and panels | Planned |
 | Dialog | Modal | Planned |
@@ -54,7 +54,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Name | Purpose | Status |
 | --- | --- | --- |
 | useSessionCheck | Periodic session validity check against `GET /api/v1/me` | Built |
-| useDismiss | Closes an open menu on a click outside it or on Escape; the account menu and Praman's menu bar | Built |
+| useDismiss | Closes an open menu on a click outside it or on Escape; the account menu and Praman's menu bar and row menus | Built |
 
 ## Feature parts (`features/<name>`)
 
@@ -89,8 +89,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | InlineCourseHtml | A short piece of the author's markup inside a line (a question, an option, a rubric line), sanitised (`components/lesson/course-html.tsx`) | Built |
 | drills: DrillWorkspace, RunOutput | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
 | drills: useDrillRun, useDrillDraft | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser | Built |
-| praman: PramanWorkbench, SessionView, PramanScreen, MenuBar, ToolBar, PanelTabs, LeftPanel, CenterPanel, StatusBar, SessionStatus, LogPanel, TclConsole, ToolDialog, CommandDialog, SessionsDialog, AboutDialog, FilesPanel, HierarchyPanel, PropertyTable, SourceEditor, TracePanel, RunHistory, PramanLocked | The tool page (`/tool`, ADR 0031), laid out like Praman in the site's theme: menu bar (File, View, Design, Prove, Reports, Tools, Help), icon toolbar, Design Hierarchy and Files tabs, the Properties Table with files and the run history in closable tabs, the log with its filter chips and search, the `praman>` console with history and Tab completion, and the status bar; dialogs for commands, sessions and About; the locked card without access | Built |
-| praman: usePramanSession, useJson, commandSpecs, readPramanTrace, tclCommand, abilitiesOf, pramanMenus, visibleLines, completion, propertyCounts | Open a session (waiting in line), poll it and send commands; GET JSON for a panel; the menu's command forms with the learner's ceilings; Praman's trace payload as a `Trace`; Tcl words for a command line; what can run now (menus and toolbar share it); the menus as data; the log's filter and search; Tab completion; the status bar's counts | Built |
+| praman: PramanWorkbench, SessionView, PramanScreen, MenuBar, MenuList, RowMenu, ToolBar, PanelTabs, LeftPanel, CenterPanel, StatusBar, SessionStatus, LogPanel, TclConsole, ToolDialog, CommandDialog, SessionsDialog, AboutDialog, CheckDialogs (Equivalence, Connectivity, Task, Abstract), CaseSplitDialog, WhatIfDialog, StrengthPanel, CoveragePanel, EquivalencePanel, report parts (Score, ReportHead, ReportTable, Mark), TraceHost, TracePanel, TraceToolbar, DriversList, FilesPanel, HierarchyPanel, PropertyTable, SourceEditor, RunHistory, PramanLocked | The tool page (`/tool`, ADR 0031), laid out like Praman in the site's theme: menu bar (File, View, Design, Prove, Reports, Tools, Help), icon toolbar, Design Hierarchy and Files tabs, the Properties Table with files and the run history in closable tabs, the log with its filter chips and search, the `praman>` console with history and Tab completion, and the status bar; dialogs for commands, sessions and About; the locked card without access | Built |
+| praman: usePramanSession, useJson, useTraceTools, commandSpecs, check commands, readPramanTrace, tclCommand, tclList, abilitiesOf, pramanMenus, propertyMenu, visibleLines, completion, propertyCounts, askWhatIf, askDrivers | Open a session (waiting in line), poll it and send commands; GET JSON for a panel; the menu's command forms with the learner's ceilings; the deeper checks' Tcl lines (equivalence, connectivity, task, abstract, case split); Praman's trace payload as a `Trace`; Tcl words and lists; what can run now (menus and toolbar share it); the menus and a property row's menu as data; the log's filter and search; Tab completion; the status bar's counts; a what-if (following its 202) and a signal's drivers | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
 | industry-ready: ServiceCard | Open or locked service card, equal heights in a row; links only to built services. The page groups them as Open now and Coming soon, in columns that leave no card alone | Built |
