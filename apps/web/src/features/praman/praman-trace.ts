@@ -7,7 +7,6 @@ import { z } from 'zod';
  * draws SiliconBox's own Trace, so the data is read into that shape here.
  */
 const PramanTraceSchema = z.object({
-  assertion: z.string().default(''),
   vcd_data: z.object({
     timescale: z.string(),
     end_time: z.number(),
@@ -25,15 +24,14 @@ const PramanTraceSchema = z.object({
   llm_summary: z.string().default(''),
 });
 
-export type PramanTrace = { property: string; trace: Trace; explanation: string };
+export type PramanTrace = { trace: Trace; explanation: string };
 
 /** Praman's trace payload as SiliconBox's Trace; null when it is not one. */
 export function readPramanTrace(payload: unknown): PramanTrace | null {
   const parsed = PramanTraceSchema.safeParse(payload);
   if (!parsed.success) return null;
-  const { assertion, vcd_data: data, llm_summary: explanation } = parsed.data;
+  const { vcd_data: data, llm_summary: explanation } = parsed.data;
   return {
-    property: assertion,
     explanation,
     trace: {
       timescale: data.timescale,

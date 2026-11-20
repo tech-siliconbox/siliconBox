@@ -4,7 +4,7 @@ import { readPramanTrace } from './praman-trace';
 // An invented two-signal trace in the shape Praman's session hands over.
 const PAYLOAD = {
   job_id: 's_r1',
-  assertion: 'ap_bad',
+  assertion: { name: 'ap_bad', status: 'FAIL', type: 'ASSERT', step: 2 },
   vcd_data: {
     path: 'run/trace.vcd',
     timescale: '1ns',
@@ -30,7 +30,6 @@ const PAYLOAD = {
 describe('readPramanTrace', () => {
   it("reads Praman's waveform data into SiliconBox's trace", () => {
     expect(readPramanTrace(PAYLOAD)).toEqual({
-      property: 'ap_bad',
       explanation: 'ap_bad fails at cycle 2: q is 5.',
       trace: {
         timescale: '1ns',
