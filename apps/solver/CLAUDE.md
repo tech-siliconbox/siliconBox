@@ -64,8 +64,8 @@ supervisor). It reads `apps/solver/.env.local` (`SOLVER_SIGNING_KEY`, same as th
   else on worker threads.
 - The solver has no database: each poll hands the outbox (the session's save, run records and
   traces up to 2 MB) and the engine seconds used to the web app, which keeps them in MongoDB and
-  counts the seconds against the learner's proof minutes. A closed session's last records stay
-  in `GET /v1/sessions/{id}` (`final`) for a day.
+  counts the seconds against the learner's proof minutes. A closed session's last records are
+  handed over once by `DELETE /v1/sessions/{id}/final` (kept a day until then).
 - Ceilings: `app/praman/ceilings.py` is consulted where engines start. Never start an engine
   process except through `services/proc.run_tree`, which caps and counts it.
 - Ported code keeps formal-verify's layout (not reformatted; style rules relaxed in

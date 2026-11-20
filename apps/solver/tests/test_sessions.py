@@ -76,6 +76,7 @@ def test_session_routes_need_a_token_with_the_sessions_scope(api: TestClient, sc
         api.post(f"/v1/sessions/{session_id}/requests", json={"op": "stop"}, headers=headers),
         api.get(f"/v1/sessions/{session_id}/replies/abc", headers=headers),
         api.delete(f"/v1/sessions/{session_id}", headers=headers),
+        api.delete(f"/v1/sessions/{session_id}/final", headers=headers),
     ]
     assert {call.status_code for call in calls} == ({403} if scope else {401})
 
@@ -89,7 +90,6 @@ def test_opening_puts_the_session_in_line(api: TestClient) -> None:
         "state": "waiting",
         "position": 1,
         "reason": "",
-        "final": None,
     }
 
 
@@ -108,6 +108,7 @@ def test_another_learners_session_looks_missing(api: TestClient) -> None:
         api.post(f"/v1/sessions/{session_id}/requests", json={"op": "stop"}, headers=other),
         api.get(f"/v1/sessions/{session_id}/replies/abc", headers=other),
         api.delete(f"/v1/sessions/{session_id}", headers=other),
+        api.delete(f"/v1/sessions/{session_id}/final", headers=other),
     ]
     assert {call.status_code for call in calls} == {404}
 
@@ -217,6 +218,19 @@ def test_a_session_whose_supervisor_went_quiet_is_lost(sessions: SessionStore) -
     assert (lost.state, lost.reason) == ("closed", "lost")
 
 
+def test_a_closed_sessions_last_records_are_handed_over_once(
+    api: TestClient, sessions: SessionStore
+) -> None:
+    session_id = new_id()
+    record = sessions.mark_open(sessions.request_open("learner-1", open_request(session_id)))
+    path = f"/v1/sessions/{session_id}/final"
+    assert api.delete(path, headers=as_learner()).json() == {"final": None}  # still open
+    sessions.mark_closed(record, "idle", {"ok": True, "proofSeconds": 3.5})
+    taken = api.delete(path, headers=as_learner())
+    assert taken.json() == {"final": {"ok": True, "proofSeconds": 3.5}}
+    assert api.delete(path, headers=as_learner()).json() == {"final": None}
+
+
 def test_closing_a_waiting_session_takes_it_out_of_line(api: TestClient) -> None:
     session_id = new_id()
     api.put(f"/v1/sessions/{session_id}", json=open_body(session_id), headers=as_learner())
@@ -264,7 +278,7 @@ def test_the_supervisor_opens_relays_and_closes(
     sessions.request_close(session_id)
     wait_for(lambda: sessions.get(session_id).state == "closed")
     assert sessions.get(session_id).reason == "closed"
-    assert sessions.final(session_id)["ok"]
+    assert sessions.take_final(session_id)["ok"]
 
 
 @needs_tcl
@@ -277,7 +291,8 @@ def test_an_idle_session_closes_and_keeps_its_last_records(
     wait_for(lambda: sessions.get(session_id).state == "closed")
     assert sessions.get(session_id).reason == "idle"
     assert (
-        sessions.final(session_id)["records"]["session"]["files"]["a.sv"] == "module a; endmodule"
+        sessions.take_final(session_id)["records"]["session"]["files"]["a.sv"]
+        == "module a; endmodule"
     )
 
 
@@ -328,5 +343,6 @@ def test_stopping_the_supervisor_closes_sessions_with_their_last_records(
     supervisor.close_all()
     assert sessions.get(session_id).reason == "supervisor stopped"
     assert (
-        sessions.final(session_id)["records"]["session"]["files"]["a.sv"] == "module a; endmodule"
+        sessions.take_final(session_id)["records"]["session"]["files"]["a.sv"]
+        == "module a; endmodule"
     )

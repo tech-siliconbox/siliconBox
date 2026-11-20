@@ -13,7 +13,9 @@ export type ProtectedResource =
   /** Reading a Drill's brief and files; the content window for its level is enough. */
   | { kind: 'drillBrief'; level: Level }
   | { kind: 'answer' }
-  | { kind: 'careerTool' };
+  | { kind: 'careerTool' }
+  /** Praman, the formal tool page (ADR 0031): a tool window and a plan. */
+  | { kind: 'praman' };
 
 export type AccessDecision =
   | { allowed: true }
@@ -45,6 +47,8 @@ function isGranted(
     case 'answer':
     case 'careerTool':
       return hasContent(entitlements, now);
+    case 'praman':
+      return hasContent(entitlements, now) && hasTool(entitlements, now);
   }
 }
 

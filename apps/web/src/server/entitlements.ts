@@ -1,5 +1,10 @@
 import 'server-only';
-import { type ProtectedResource, decideAccess } from '@siliconbox/shared';
+import {
+  type PramanCeilings,
+  type ProtectedResource,
+  decideAccess,
+  pramanCeilings,
+} from '@siliconbox/shared';
 import { findEntitlements } from '@/db/entitlements';
 import type { Identity } from './auth/authenticate';
 import { AppError } from './errors';
@@ -32,4 +37,14 @@ export async function isEntitled(
   now: Date = new Date(),
 ): Promise<boolean> {
   return (await decide(resource, identity, now)).allowed;
+}
+
+/** Praman's ceilings for this learner (ADR 0031); refused like assertEntitled without access. */
+export async function assertPraman(
+  identity: Identity,
+  now: Date = new Date(),
+): Promise<PramanCeilings> {
+  const ceilings = pramanCeilings(await findEntitlements(identity.userId), now);
+  if (ceilings === null) throw new AppError('NOT_ENTITLED', `praman denied for ${identity.userId}`);
+  return ceilings;
 }

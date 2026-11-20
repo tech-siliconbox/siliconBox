@@ -16,6 +16,7 @@ const advanceLesson: ProtectedResource = { kind: 'lesson', level: 'advance', isP
 const advanceDrill: ProtectedResource = { kind: 'drill', level: 'advance' };
 const answer: ProtectedResource = { kind: 'answer' };
 const careerTool: ProtectedResource = { kind: 'careerTool' };
+const praman: ProtectedResource = { kind: 'praman' };
 
 const signedIn = (...entitlements: Entitlement[]): Viewer => ({ entitlements });
 const allowed = (resource: ProtectedResource, viewer: Viewer) =>
@@ -23,7 +24,16 @@ const allowed = (resource: ProtectedResource, viewer: Viewer) =>
 
 describe('access matrix', () => {
   it('row 11: no account sees nothing beyond the public outline', () => {
-    for (const resource of [firstLesson, basicLesson, basicDrill, basicBrief, answer, careerTool]) {
+    const resources = [
+      firstLesson,
+      basicLesson,
+      basicDrill,
+      basicBrief,
+      answer,
+      careerTool,
+      praman,
+    ];
+    for (const resource of resources) {
       expect(decideAccess(resource, null, NOW)).toEqual({
         allowed: false,
         reason: 'UNAUTHENTICATED',
@@ -42,6 +52,7 @@ describe('access matrix', () => {
     expect(allowed(basicBrief, viewer)).toBe(false);
     expect(allowed(answer, viewer)).toBe(false);
     expect(allowed(careerTool, viewer)).toBe(false);
+    expect(allowed(praman, viewer)).toBe(false);
   });
 
   it('row 13: content active, tool ended', () => {
@@ -52,6 +63,7 @@ describe('access matrix', () => {
     expect(allowed(basicBrief, viewer)).toBe(true);
     expect(allowed(answer, viewer)).toBe(true);
     expect(allowed(careerTool, viewer)).toBe(true);
+    expect(allowed(praman, viewer)).toBe(false);
   });
 
   it('row 14: content ended, tool active', () => {
@@ -61,6 +73,8 @@ describe('access matrix', () => {
     expect(allowed(basicBrief, viewer)).toBe(false);
     expect(allowed(answer, viewer)).toBe(false);
     expect(allowed(careerTool, viewer)).toBe(false);
+    // No plan, no tool access (ADR 0031).
+    expect(allowed(praman, viewer)).toBe(false);
   });
 
   it('row 15: another level is active', () => {
@@ -72,12 +86,13 @@ describe('access matrix', () => {
     expect(allowed({ kind: 'drillBrief', level: 'advance' }, viewer)).toBe(false);
     expect(allowed(answer, viewer)).toBe(true);
     expect(allowed(careerTool, viewer)).toBe(true);
+    expect(allowed(praman, viewer)).toBe(true);
   });
 
   it('row 16: every window ended locks everything but the first lesson', () => {
     const viewer = signedIn(contentHeld('basic', ...ENDED), toolHeld(...ENDED));
     expect(allowed(firstLesson, viewer)).toBe(true);
-    for (const resource of [basicLesson, basicDrill, basicBrief, answer, careerTool]) {
+    for (const resource of [basicLesson, basicDrill, basicBrief, answer, careerTool, praman]) {
       expect(allowed(resource, viewer)).toBe(false);
     }
   });

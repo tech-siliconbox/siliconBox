@@ -66,7 +66,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:migrate
-      # The Drill run tests need the real solver: API plus one worker, sharing a throwaway key.
+      # The Drill run and Praman tests need the real solver: API, one worker and the session
+      # supervisor (sessions run as local processes here), sharing a throwaway key.
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
@@ -74,6 +75,7 @@ jobs:
         with:
           version: '2026-10-01'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends tcl
       - name: Start the solver
         working-directory: apps/solver
         run: |
@@ -83,6 +85,7 @@ jobs:
           export SOLVER_SIGNING_KEY="$key"
           python -m venv .venv && .venv/bin/pip install -q -U pip && .venv/bin/pip install -q -e . -c constraints.txt
           nohup .venv/bin/python -m app.worker > worker.log 2>&1 &
+          nohup .venv/bin/python -m app.supervisor > supervisor.log 2>&1 &
           nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 > api.log 2>&1 &
           for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8001/v1/health && break; sleep 1; done
       - name: Build and run end-to-end tests

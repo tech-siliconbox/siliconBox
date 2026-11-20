@@ -21,7 +21,11 @@
         "avatars",
         "assessment_attempts",
         "capstone_submissions",
-        "capstone_files"
+        "capstone_files",
+        "tool_sessions",
+        "tool_files",
+        "tool_runs",
+        "tool_traces"
       ],
       "insertOnly": ["security-alerts"],
       "findInsert": ["audit_log"],

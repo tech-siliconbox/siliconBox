@@ -7,6 +7,7 @@ import { haveIBeenPwned } from 'better-auth/plugins';
 import { appendAudit } from '@/db/audit-log';
 import { getDb, getMongoClient } from '@/db/client';
 import { deleteLearnerData } from '@/db/learner-data';
+import { closeOpenSession } from '@/server/praman/open-session';
 import { getConfig } from '@/server/config';
 import { type Email, sendEmail } from '@/server/email';
 import { AppError } from '@/server/errors';
@@ -90,7 +91,10 @@ function createAuth() {
       // Google account, a sign-in within the last day. Our data goes first, then the account.
       deleteUser: {
         enabled: true,
-        beforeDelete: (user) => deleteLearnerData(user.id),
+        beforeDelete: async (user) => {
+          await closeOpenSession(user.id);
+          await deleteLearnerData(user.id);
+        },
         afterDelete: (user) =>
           appendAudit({
             action: 'account_deleted',

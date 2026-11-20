@@ -54,6 +54,16 @@ const CHECKS: Record<User, Check[]> = {
         ),
     },
     {
+      what: 'keep Praman sessions, files, runs and traces',
+      allowed: true,
+      run: (db) =>
+        Promise.all(
+          ['tool_sessions', 'tool_files', 'tool_runs', 'tool_traces'].map((name) =>
+            db.collection(name).updateOne(NOTHING, { $set: { x: 1 } }),
+          ),
+        ),
+    },
+    {
       what: 'read Drill solutions',
       allowed: false,
       // Payload stores the `drill_private` collection as `drill_privates`.

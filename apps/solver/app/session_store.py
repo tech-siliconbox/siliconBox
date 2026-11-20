@@ -158,8 +158,10 @@ class SessionStore:
         if held is not None and _text(held) == record.id:
             self._redis.delete(_learner_key(record.owner))
 
-    def final(self, session_id: str) -> dict[str, Any] | None:
-        raw = self._redis.get(_final_key(session_id))
+    def take_final(self, session_id: str) -> dict[str, Any] | None:
+        """A closed session's last records, handed over once: the web app keeps them and counts
+        their engine time, so a second read must find nothing."""
+        raw = self._redis.getdel(_final_key(session_id))
         return None if raw is None else json.loads(raw)
 
     # ── Requests and replies ───────────────────────────────────

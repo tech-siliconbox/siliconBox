@@ -1,4 +1,5 @@
 import { AI_ALLOWANCE } from './ai/notice';
+import { TOOL_FILES_MAX_BYTES, TOOL_SESSIONS_KEPT } from './schemas/praman';
 import { RESUMES_MAX } from './schemas/resume';
 
 /**
@@ -67,6 +68,22 @@ export const ERRORS = {
   SOLVER_BUSY: {
     status: 503,
     message: 'The formal tool is busy or unavailable. Please try again in a minute.',
+  },
+  TOOL_SESSION_LIMIT: {
+    status: 409,
+    message: `You keep up to ${TOOL_SESSIONS_KEPT} Praman sessions. Delete one to start another.`,
+  },
+  TOOL_SESSION_CLOSED: {
+    status: 409,
+    message: 'This session is not open. Open it again to go on.',
+  },
+  TOOL_SESSION_ELSEWHERE: {
+    status: 409,
+    message: 'Your other Praman session is closing. This one opens in a moment.',
+  },
+  TOOL_FILES_TOO_LARGE: {
+    status: 413,
+    message: `A session holds at most ${TOOL_FILES_MAX_BYTES / 1024 / 1024} MB of files.`,
   },
   INVALID_LINK: { status: 400, message: 'This link has expired or was already used.' },
   EMAIL_NOT_SENT: {

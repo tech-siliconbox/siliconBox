@@ -20,6 +20,10 @@ const LEARNER_DATA = [
   'capstoneFiles',
   'watermarkCodes',
   'endedSessions',
+  'toolSessions',
+  'toolFiles',
+  'toolRuns',
+  'toolTraces',
 ] as const;
 
 /** Deletes a learner's own data; Better Auth then deletes the account, its sessions and sign-ins. */
