@@ -62,6 +62,7 @@ export const API_ROUTES = {
   toolSessionFiles: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/files`,
   toolSessionTrace: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/trace`,
   toolSessionScript: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/script`,
+  toolSessionExample: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/example`,
   toolRuns: '/api/v1/tool/runs',
   toolRun: (runId: string) => `/api/v1/tool/runs/${runId}`,
   toolRunTrace: (runId: string) => `/api/v1/tool/runs/${runId}/trace`,
