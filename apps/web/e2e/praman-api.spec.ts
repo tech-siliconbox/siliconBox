@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs';
 import {
   API_ROUTES,
-  type ToolPollView,
   type ToolRunDetail,
   type ToolRunSummary,
   type ToolSessionSummary,
@@ -10,60 +8,12 @@ import type { APIRequestContext, Browser } from '@playwright/test';
 import { grantAccess, signInAsAdmin } from './cms/publish';
 import { BASE_URL } from './base-url';
 import { expect, newLearner, signUp, test } from './helpers';
+import { WRITE, openAndWait, proveCounter } from './praman';
 
 // Praman's API (ADR 0031): a learner with a tool window and a plan proves a design in a session
 // of their own. Needs the solver API and its session supervisor (`pnpm --filter
-// @siliconbox/solver dev`) with the same SOLVER_SIGNING_KEY. The design and properties are the
-// solver's own invented test fixtures.
-const FIXTURES = new URL('../../solver/tests/fixtures/', import.meta.url);
-const fixture = (name: string) => readFileSync(new URL(name, FIXTURES), 'utf8');
-const FILES = {
-  'counter_bug.sv': fixture('counter_bug.sv'),
-  'counter_props.sv': fixture('counter_props.sv'),
-  'bind.sv': 'bind counter counter_props u_props(.*);\n',
-};
-const SCRIPT = [
-  'analyze -sv counter_bug.sv counter_props.sv bind.sv',
-  'elaborate -top counter',
-  'clock clk',
-  'reset !rst_n',
-  'prove -all',
-].join('; ');
-const WRITE = { headers: { origin: BASE_URL } };
-
+// @siliconbox/solver dev`) with the same SOLVER_SIGNING_KEY.
 test.describe.configure({ mode: 'serial' });
-
-async function poll(request: APIRequestContext, sessionId: string, after = 0) {
-  const response = await request.get(API_ROUTES.toolSessionPoll(sessionId), {
-    params: { after, version: -1 },
-  });
-  expect(response.status()).toBe(200);
-  return (await response.json()) as ToolPollView;
-}
-
-/** Opens the session and waits until the solver holds it. */
-async function openAndWait(request: APIRequestContext, sessionId: string): Promise<void> {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    const opened = await request.post(API_ROUTES.toolSessionOpen(sessionId), WRITE);
-    if (opened.status() === 200) return;
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-  throw new Error(`session ${sessionId} did not open`);
-}
-
-/** Polls until the session's commands and proof are done; the last state Praman sent. */
-async function settle(request: APIRequestContext, sessionId: string) {
-  let snapshot: Record<string, unknown> | null = null;
-  let after = 0;
-  for (let attempt = 0; attempt < 120; attempt += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const view = await poll(request, sessionId, after);
-    after = view.seq;
-    snapshot = view.snapshot ?? snapshot;
-    if (attempt > 1 && !view.busy && !view.proofRunning) return snapshot;
-  }
-  throw new Error(`session ${sessionId} stayed busy`);
-}
 
 /** Another learner, with access of their own, sees neither the session nor the run. */
 async function expectHiddenFromAnotherLearner(
@@ -102,26 +52,6 @@ test('Praman needs a plan and a tool window', async ({ page }) => {
   });
   expect(unknownField.status()).toBe(400);
 });
-
-/** Adds the counter files, runs the script and answers each property's status. */
-async function proveCounter(request: APIRequestContext, sessionId: string) {
-  for (const [name, text] of Object.entries(FILES)) {
-    const put = await request.put(API_ROUTES.toolSessionFiles(sessionId), {
-      ...WRITE,
-      data: { name, text },
-    });
-    expect(put.status()).toBe(200);
-  }
-  const command = await request.post(API_ROUTES.toolSessionCommands(sessionId), {
-    ...WRITE,
-    data: { line: SCRIPT },
-  });
-  expect(command.status()).toBe(202);
-  const snapshot = (await settle(request, sessionId)) as {
-    properties: { id: string; status: string }[];
-  };
-  return Object.fromEntries(snapshot.properties.map((prop) => [prop.id, prop.status]));
-}
 
 /** The one run is in the learner's history, with the failing assertion's trace kept. */
 async function expectTheRunKept(request: APIRequestContext): Promise<ToolRunDetail> {
