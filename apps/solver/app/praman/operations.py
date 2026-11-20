@@ -126,7 +126,8 @@ def trace(session: Session, prop_id: str) -> dict[str, Any]:
 
 def what_if(session: Session, request: WhatIf) -> dict[str, Any]:
     if session.proof.running:
-        raise OperationError(409, "A proof is running; try again when it has finished.")
+        # 423, not 409: the session is open, its proof holds the engines.
+        raise OperationError(423, "A proof is running; try again when it has finished.")
     try:
         if request.quiet:
             found = session.commands.quiet_trace(request.property)

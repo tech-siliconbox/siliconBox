@@ -81,6 +81,10 @@ export const ERRORS = {
     status: 409,
     message: 'Your other Praman session is closing. This one opens in a moment.',
   },
+  TOOL_PROOF_RUNNING: {
+    status: 409,
+    message: 'A proof is running. Try again when it has finished.',
+  },
   TOOL_FILES_TOO_LARGE: {
     status: 413,
     message: `A session holds at most ${TOOL_FILES_MAX_BYTES / 1024 / 1024} MB of files.`,

@@ -141,6 +141,17 @@ def test_file_names_never_climb_out(host: Host, given: str, kept: str) -> None:
 
 
 @needs_tcl
+def test_a_what_if_waits_until_the_proof_has_finished(host: Host) -> None:
+    # Its own status (not 409, "not open"), so the web app does not try to reopen the session.
+    host.session.proof.running = True
+    try:
+        reply = answer(host, "whatIf", property="p", ceilings=LIMITS)
+    finally:
+        host.session.proof.running = False
+    assert reply["ok"] is False
+    assert reply["status"] == 423
+
+
 def test_a_poll_hands_each_record_to_the_web_app_once(host: Host) -> None:
     answer(host, "putFile", name="a.sv", text="module a; endmodule")
     first = answer(host, "poll", after=0, version=-1, ceilings=LIMITS)

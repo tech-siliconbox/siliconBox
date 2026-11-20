@@ -66,6 +66,11 @@ test('a learner proves the example and opens the waveform of the failing asserti
   await page.getByRole('menuitem', { name: 'Sessions…' }).click();
   const sessions = page.getByRole('dialog', { name: 'Sessions' });
   await expect(sessions.getByRole('button', { name: 'Open now' })).toBeDisabled();
+
+  // Deleting takes a second click; the session goes with its runs (and closes on the tool).
+  await sessions.getByRole('button', { name: 'Delete' }).click();
+  await sessions.getByRole('button', { name: 'Delete it and its runs' }).click();
+  await expect(sessions.getByText('No sessions yet')).toBeVisible();
 });
 
 test('on a phone the page asks for a larger screen', async ({ page }) => {

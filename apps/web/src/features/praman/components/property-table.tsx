@@ -1,57 +1,43 @@
 import { cn } from '@/lib/cn';
+import type { MenuItem } from '../menus';
 import type { PramanProperty } from '../praman-snapshot';
 import { PROPERTY_LOOK } from '../property-status';
+import { ReportTable } from './report-parts';
+import { RowMenu } from './row-menu';
 
 type PropertyTableProps = {
   properties: PramanProperty[];
   onTrace: (property: PramanProperty) => void;
+  /** Each row's own menu, and what choosing an item does. */
+  menuOf: (property: PramanProperty) => (MenuItem | null)[];
+  onChoose: (item: MenuItem) => void;
 };
 
+const HEAD = ['Property', 'Type', 'Result', 'Bound', 'Engine', 'Time', 'Actions'];
+
 /** The elaborated design's properties with each one's result, as Praman's property table. */
-export function PropertyTable({ properties, onTrace }: PropertyTableProps) {
-  if (properties.length === 0) {
-    return (
-      <p className="p-4 text-[13px] text-muted-foreground">
-        Elaborate the design to list its assertions, assumptions and covers here.
-      </p>
-    );
-  }
+export function PropertyTable({ properties, ...row }: PropertyTableProps) {
   return (
-    <table className="w-full text-left text-[13px] [&_tbody_tr:nth-child(even)]:bg-muted/40">
-      <thead className="sticky top-0 border-b border-border bg-muted text-[12px] text-muted-foreground">
-        <tr>
-          <th className="px-3 py-1.5 font-semibold">Property</th>
-          <th className="px-3 py-1.5 font-semibold">Type</th>
-          <th className="px-3 py-1.5 font-semibold">Result</th>
-          <th className="px-3 py-1.5 font-semibold">Bound</th>
-          <th className="px-3 py-1.5 font-semibold">Engine</th>
-          <th className="px-3 py-1.5 font-semibold">Time</th>
-          <th className="px-3 py-2">
-            <span className="sr-only">Trace</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-border">
-        {properties.map((property) => (
-          <PropertyRow key={property.id} property={property} onTrace={onTrace} />
-        ))}
-      </tbody>
-    </table>
+    <ReportTable head={HEAD}>
+      {properties.map((property) => (
+        <PropertyRow key={property.id} property={property} {...row} />
+      ))}
+    </ReportTable>
   );
 }
 
 function PropertyRow({
   property,
   onTrace,
-}: {
-  property: PramanProperty;
-  onTrace: PropertyTableProps['onTrace'];
-}) {
+  menuOf,
+  onChoose,
+}: Omit<PropertyTableProps, 'properties'> & { property: PramanProperty }) {
   const look = PROPERTY_LOOK[property.status];
   return (
-    <tr className={cn(property.related !== '' && 'text-muted-foreground')}>
+    <tr className={cn((property.related !== '' || property.disabled) && 'text-muted-foreground')}>
       <td className="px-3 py-1.5 font-mono" title={property.detail || undefined}>
         {property.name}
+        {property.disabled && <span className="ml-2 font-sans text-[11px]">(disabled)</span>}
       </td>
       <td className="px-3 py-1.5">{property.type}</td>
       <td className="px-3 py-1.5">
@@ -69,16 +55,17 @@ function PropertyRow({
       <td className="px-3 py-1.5 font-mono">
         {property.seconds === null ? '' : `${property.seconds.toFixed(1)} s`}
       </td>
-      <td className="px-3 py-1.5 text-right">
+      <td className="whitespace-nowrap px-3 py-1.5 text-right">
         {property.has_trace && (
           <button
             type="button"
             onClick={() => onTrace(property)}
-            className="text-[12px] font-semibold underline underline-offset-2"
+            className="mr-2 text-[12px] font-semibold underline underline-offset-2"
           >
             Waveform
           </button>
         )}
+        <RowMenu name={property.name} items={menuOf(property)} onChoose={onChoose} />
       </td>
     </tr>
   );

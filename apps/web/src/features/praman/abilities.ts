@@ -17,6 +17,9 @@ function analyzeLine(snapshot: PramanSnapshot | null): string | null {
 const hasScript = (snapshot: PramanSnapshot | null) =>
   snapshot?.files.some((file) => file.name === SESSION_SCRIPT) === true;
 
+const hasProved = (snapshot: PramanSnapshot | null) =>
+  snapshot !== null && snapshot.proof.finished_at !== null;
+
 /** What can run now; every menu item and tool is enabled from it. */
 export type Abilities = {
   /** A session is chosen. */
@@ -30,6 +33,8 @@ export type Abilities = {
   elaborated: boolean;
   stop: boolean;
   script: boolean;
+  /** A proof has finished: its HTML report can be downloaded. */
+  proved: boolean;
 };
 
 const NOTHING: Abilities = {
@@ -41,6 +46,7 @@ const NOTHING: Abilities = {
   elaborated: false,
   stop: false,
   script: false,
+  proved: false,
 };
 
 /** What the session in `state` can do now; null while no session is chosen. */
@@ -59,5 +65,6 @@ export function abilitiesOf(state: SessionState | null): Abilities {
     elaborated: idle && phase === 'elaborated',
     stop: state.proofRunning,
     script: idle && hasScript(snapshot),
+    proved: hasProved(snapshot),
   };
 }

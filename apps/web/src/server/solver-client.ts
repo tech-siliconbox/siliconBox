@@ -205,12 +205,18 @@ export async function takeSolverFinal(
   return taken.final;
 }
 
-/** The host's reply; null when the session is not open (closed, or still waiting). */
-export async function sendSolverRequest(
+/** The host's reply, or the id to read it by later: a what-if runs a proof in the request. */
+export type SolverReply = { reply: Record<string, unknown> } | { pending: string };
+
+const settled = (value: z.infer<typeof RequestReplySchema>): SolverReply =>
+  value.pending || value.reply === null ? { pending: value.id } : { reply: value.reply };
+
+/** Sends a request to the open session; null when it is not open (closed, or still waiting). */
+export async function startSolverRequest(
   userId: string,
   sessionId: string,
   request: Record<string, unknown>,
-): Promise<Record<string, unknown> | null> {
+): Promise<SolverReply | null> {
   const value = await call({
     method: 'POST',
     path: `/v1/sessions/${sessionId}/requests`,
@@ -221,9 +227,30 @@ export async function sendSolverRequest(
     expected: [409],
     timeoutMs: SESSION_REQUEST_TIMEOUT_MS,
   });
-  if (value === null) return null;
-  // A reply slower than the solver's wait is not one the core routes expect: try again shortly.
-  if (value.pending || value.reply === null)
-    throw new AppError('SOLVER_BUSY', `slow reply to ${String(request.op)}`);
-  return value.reply;
+  return value === null ? null : settled(value);
+}
+
+/** The reply to a request sent before; still pending while the host works on it. */
+export async function readSolverReply(
+  userId: string,
+  sessionId: string,
+  requestId: string,
+): Promise<SolverReply> {
+  const path = `/v1/sessions/${sessionId}/replies/${encodeURIComponent(requestId)}`;
+  return settled(
+    await answer({ method: 'GET', path, scope: 'sessions', userId, schema: RequestReplySchema }),
+  );
+}
+
+/** The host's reply, for requests that answer at once; null when the session is not open. */
+export async function sendSolverRequest(
+  userId: string,
+  sessionId: string,
+  request: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> {
+  const sent = await startSolverRequest(userId, sessionId, request);
+  if (sent === null) return null;
+  // A reply slower than the solver's wait is not one these requests expect: try again shortly.
+  if ('pending' in sent) throw new AppError('SOLVER_BUSY', `slow reply to ${String(request.op)}`);
+  return sent.reply;
 }

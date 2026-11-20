@@ -61,7 +61,7 @@ function useSessions(initialSessions: ToolSessionSummary[]) {
     const next = current === id ? (sessions.find((s) => s.id !== id)?.id ?? null) : current;
     await refresh(next);
   };
-  return { sessions, current, setCurrent, error, create, rename, remove };
+  return { sessions, current, setCurrent, error, create, rename, remove, refresh };
 }
 
 /** Praman's page: the screen for the chosen session (or none yet), and the Sessions dialog. */
@@ -73,6 +73,8 @@ export function PramanWorkbench({ initialSessions, ceilings }: WorkbenchProps) {
     notice: work.error,
     onNewSession: () => void work.create(),
     onSessions: () => setListing(true),
+    // A restored run is a new session: list it, and open it.
+    onOpenSession: (id: string) => void work.refresh(id),
   };
   const chosen = work.sessions.find((session) => session.id === work.current);
   return (

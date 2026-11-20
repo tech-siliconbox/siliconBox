@@ -4,6 +4,21 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman's deeper checks, ADR 0031)
+
+- **Reports:** Assertion Strength (mutants, and which proven assertions notice them), Formal Coverage (branches, statements and toggles, each covered item with its trace), Proof Core (which lines the proofs rely on) and Equivalence (a revised design against the analyzed one, with the trace where they differ). Each opens as a tab beside the property table. Download Report saves the last proof as HTML.
+- **Prove:** Load Connectivity, New Task and Abstract a Register dialogs. Each property row has a menu: Prove Property, Needed Assumptions, Show Source, Enable or Disable, Remove, Case Split and Remove Case Split.
+- **Waveform:** Quiet Trace, What If… (pin values and prove again; a slow one is followed until it is proven) and the drivers of a signal at a cycle, with the values they read.
+- **Run History:** compare a run with the one before, and restore a run into a new session (its files, and its commands in `restored_run.tcl`).
+- **API:**
+  - `POST /api/v1/tool/sessions/:id/what-if` (and `GET …/what-if/:requestId`);
+  - `GET …/drivers`, `…/coverage-trace`, `…/equivalence-trace`;
+  - `GET …/report` (download only, sandboxed);
+  - `GET /api/v1/tool/runs/:id/diff`, `POST …/runs/:id/restore`.
+
+  A what-if during a proof is refused as "a proof is running".
+- `SelectField` joins the form primitives.
+
 ### Changed (Praman looks like the tool, ADR 0031)
 
 - `/tool` is laid out like Praman, in the site's theme: a menu bar (File, View, Design, Prove, Reports, Tools, Help) with each command's Tcl beside it, an icon toolbar (Add Files, Run Script, Analyze, Elaborate, Clock / Reset, Prove, Stop, Run History), Design Hierarchy and Files tabs, the Properties Table with a getting-started guide, files and the run history in closable tabs, the log with Errors, Warnings, Info, Commands and Engine detail chips, search and Clear, the `praman>` console with history and Tab completion, and a status bar (files, analyzed, elaborated, clock, reset, results, proof minutes left).
