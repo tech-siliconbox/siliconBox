@@ -42,16 +42,7 @@ export const RESULT_FILTERS = [
 ] as const;
 export type ResultFilter = (typeof RESULT_FILTERS)[number]['key'];
 
-const SORT_KEYS = [
-  'status',
-  'type',
-  'name',
-  'engine',
-  'bound',
-  'seconds',
-  'source',
-] as const;
-export type SortKey = (typeof SORT_KEYS)[number];
+export type SortKey = 'status' | 'type' | 'name' | 'engine' | 'bound' | 'seconds' | 'source';
 
 export type RowQuery = {
   result: ResultFilter;
