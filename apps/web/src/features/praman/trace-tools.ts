@@ -16,10 +16,28 @@ const ASK_AGAIN_MS = 2_000;
 const WHAT_IF_DEADLINE_MS =
   (Math.max(...Object.values(PRAMAN_CEILINGS).map((ceiling) => ceiling.proofSeconds)) + 60) * 1_000;
 
+/** What Visualize's tools ask about: a trace of the open session. */
+export type TraceAnalysis = {
+  sessionId: string;
+  /** The property (or coverage item) whose trace it is. */
+  property: string;
+  /** The run holding the trace when it is not the property's own (a cover trace). */
+  job: string;
+  /** What-if and quiet traces prove the property again: only for properties. */
+  whatIf: boolean;
+};
+
 export type Answer<T> = { ok: true; value: T } | { ok: false; message: string };
 
 /** A value pinned for a what-if: the signal holds it at that cycle of the trace. */
-export type Pin = { signal: string; cycle: number; value: string };
+export type Pin = {
+  signal: string;
+  cycle: number;
+  value: string;
+  /** How the value is written (hex unless said), and the signal's width in bits. */
+  width?: number;
+  radix?: 'hex' | 'dec' | 'signed' | 'bin';
+};
 
 async function answerOf<T>(response: Response | null, schema: z.ZodType<T>): Promise<Answer<T>> {
   if (response?.ok !== true) return { ok: false, message: await errorMessage(response) };

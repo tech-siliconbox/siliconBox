@@ -17,7 +17,8 @@ import { useJson } from '../hooks/use-json';
 import { PramanPropertySchema } from '../praman-snapshot';
 import { PROPERTY_LOOK } from '../property-status';
 import type { ToolAction } from '../tool-actions';
-import { TracePanel } from './trace-panel';
+import { resetOf } from '../visualize';
+import { VisualizeWindow } from './visualize/visualize-window';
 
 const readRuns = (body: unknown) => z.array(ToolRunSummarySchema).safeParse(body).data ?? null;
 const readRun = (body: unknown) => ToolRunDetailSchema.safeParse(body).data ?? null;
@@ -91,9 +92,11 @@ function RunResults({ runId, onDelete, onAction }: RunResultsProps) {
     <div className="mt-2 flex flex-col gap-2">
       <RunProperties run={data} onTrace={setTrace} />
       {trace !== null && (
-        <TracePanel
+        <VisualizeWindow
           url={`${API_ROUTES.toolRunTrace(runId)}?property=${encodeURIComponent(trace)}`}
           title={trace}
+          top={data.top}
+          reset={resetOf(data.reset)}
           onClose={() => setTrace(null)}
         />
       )}
