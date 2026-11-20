@@ -26,7 +26,7 @@ const TreeNodeSchema: z.ZodType<TreeNode> = z.lazy(() =>
   }),
 );
 
-export const PROPERTY_STATUSES = [
+const PROPERTY_STATUSES = [
   'not_run',
   'running',
   'proven',
@@ -40,7 +40,7 @@ export const PROPERTY_STATUSES = [
   'assumed',
 ] as const;
 
-const PropertySchema = z.object({
+export const PramanPropertySchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.string(),
@@ -55,7 +55,7 @@ const PropertySchema = z.object({
   seconds: z.number().nullable().default(null),
   has_trace: z.boolean().default(false),
 });
-export type PramanProperty = z.infer<typeof PropertySchema>;
+export type PramanProperty = z.infer<typeof PramanPropertySchema>;
 
 export const PramanSnapshotSchema = z.object({
   label: z.string(),
@@ -73,7 +73,7 @@ export const PramanSnapshotSchema = z.object({
       analyzed: z.boolean(),
     }),
   ),
-  properties: z.array(PropertySchema),
+  properties: z.array(PramanPropertySchema),
   settings: z.object({
     time_limit: z.number(),
     per_property_time_limit: z.number(),

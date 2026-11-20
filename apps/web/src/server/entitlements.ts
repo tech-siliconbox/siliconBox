@@ -39,12 +39,20 @@ export async function isEntitled(
   return (await decide(resource, identity, now)).allowed;
 }
 
-/** Praman's ceilings for this learner (ADR 0031); refused like assertEntitled without access. */
+/** Praman's ceilings for this learner (ADR 0031), or null without access: for its page. */
+export async function pramanAccess(
+  identity: Identity,
+  now: Date = new Date(),
+): Promise<PramanCeilings | null> {
+  return pramanCeilings(await findEntitlements(identity.userId), now);
+}
+
+/** Praman's ceilings for this learner; refused like assertEntitled without access. */
 export async function assertPraman(
   identity: Identity,
   now: Date = new Date(),
 ): Promise<PramanCeilings> {
-  const ceilings = pramanCeilings(await findEntitlements(identity.userId), now);
+  const ceilings = await pramanAccess(identity, now);
   if (ceilings === null) throw new AppError('NOT_ENTITLED', `praman denied for ${identity.userId}`);
   return ceilings;
 }

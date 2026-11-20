@@ -10,7 +10,7 @@ const BUSY_POLL_MS = 1_000;
 const IDLE_POLL_MS = 2_500;
 const OPEN_RETRY_MS = 2_000;
 
-export type Place = 'opening' | 'waiting' | 'open' | 'closed';
+type Place = 'opening' | 'waiting' | 'open' | 'closed';
 
 export type SessionState = {
   place: Place;
@@ -124,6 +124,7 @@ function sessionActions(sessionId: string, reopen: () => Promise<boolean>, updat
   return {
     command: (line: string) => request(API_ROUTES.toolSessionCommands(sessionId), 'POST', { line }),
     stop: () => request(API_ROUTES.toolSessionStop(sessionId), 'POST'),
+    loadExample: () => request(API_ROUTES.toolSessionExample(sessionId), 'POST'),
     putFile: (name: string, text: string) => request(files, 'PUT', { name, text }),
     deleteFile: (name: string) => request(`${files}?name=${encodeURIComponent(name)}`, 'DELETE'),
   };
