@@ -17,15 +17,15 @@ export function PropertyTable({ properties, onTrace }: PropertyTableProps) {
     );
   }
   return (
-    <table className="w-full text-left text-[13px]">
-      <thead className="sticky top-0 border-b border-border bg-background text-[11px] uppercase tracking-wider text-muted-foreground">
+    <table className="w-full text-left text-[13px] [&_tbody_tr:nth-child(even)]:bg-muted/40">
+      <thead className="sticky top-0 border-b border-border bg-muted text-[12px] text-muted-foreground">
         <tr>
-          <th className="px-3 py-2 font-medium">Property</th>
-          <th className="px-3 py-2 font-medium">Type</th>
-          <th className="px-3 py-2 font-medium">Result</th>
-          <th className="px-3 py-2 font-medium">Bound</th>
-          <th className="px-3 py-2 font-medium">Engine</th>
-          <th className="px-3 py-2 font-medium">Time</th>
+          <th className="px-3 py-1.5 font-semibold">Property</th>
+          <th className="px-3 py-1.5 font-semibold">Type</th>
+          <th className="px-3 py-1.5 font-semibold">Result</th>
+          <th className="px-3 py-1.5 font-semibold">Bound</th>
+          <th className="px-3 py-1.5 font-semibold">Engine</th>
+          <th className="px-3 py-1.5 font-semibold">Time</th>
           <th className="px-3 py-2">
             <span className="sr-only">Trace</span>
           </th>

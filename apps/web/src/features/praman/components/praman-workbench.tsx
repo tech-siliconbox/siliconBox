@@ -9,9 +9,10 @@ import {
 } from '@siliconbox/shared';
 import { useState } from 'react';
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
 import { errorMessage, sendToApi } from '@/lib/api-error';
+import { PramanScreen } from './praman-screen';
 import { SessionView } from './session-view';
+import { SessionsDialog } from './sessions-dialog';
 
 type WorkbenchProps = { initialSessions: ToolSessionSummary[]; ceilings: PramanCeilings };
 
@@ -21,8 +22,8 @@ const json = (data: unknown): RequestInit => ({
   body: JSON.stringify(data),
 });
 
-/** The learner's Praman sessions: pick one to work in, start, rename or delete one. */
-export function PramanWorkbench({ initialSessions, ceilings }: WorkbenchProps) {
+/** The learner's Praman sessions: the chosen one on the screen, and starting or managing them. */
+function useSessions(initialSessions: ToolSessionSummary[]) {
   const [sessions, setSessions] = useState(initialSessions);
   const [current, setCurrent] = useState(initialSessions[0]?.id ?? null);
   const [error, setError] = useState<string | null>(null);
@@ -45,128 +46,60 @@ export function PramanWorkbench({ initialSessions, ceilings }: WorkbenchProps) {
     setError(null);
     await refresh(ToolSessionSummarySchema.parse(await response.json()).id);
   };
-
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
-      <SessionBar
-        sessions={sessions}
-        current={current}
-        onSelect={setCurrent}
-        onCreate={() => void create()}
-        onChanged={(select) => void refresh(select)}
-        onError={setError}
-      />
-      {error !== null && (
-        <p role="alert" className="text-[13px] text-destructive">
-          {error}
-        </p>
-      )}
-      {current === null ? (
-        <p className="text-[13px] text-muted-foreground">
-          Start a session, then add your design and property files, or load the example.
-        </p>
-      ) : (
-        <div className="min-h-0 flex-1">
-          <SessionView key={current} sessionId={current} ceilings={ceilings} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-type SessionBarProps = {
-  sessions: ToolSessionSummary[];
-  current: string | null;
-  onSelect: (id: string) => void;
-  onCreate: () => void;
-  onChanged: (select?: string | null) => void;
-  onError: (message: string | null) => void;
-};
-
-function SessionBar({
-  sessions,
-  current,
-  onSelect,
-  onCreate,
-  onChanged,
-  onError,
-}: SessionBarProps) {
-  const chosen = sessions.find((session) => session.id === current);
-
-  const rename = async () => {
-    const name = window.prompt('Name this session', chosen?.name)?.trim();
-    if (current === null || !name) return;
+  const rename = async (id: string, name: string) => {
     const body = { name: name.slice(0, TOOL_SESSION_NAME_MAX_CHARS) };
-    const { error } = await sendToApi(API_ROUTES.toolSession(current), {
+    const { error } = await sendToApi(API_ROUTES.toolSession(id), {
       method: 'PATCH',
       ...json(body),
     });
-    onError(error?.message ?? null);
-    onChanged();
+    setError(error?.message ?? null);
+    await refresh();
   };
-  const remove = async () => {
-    if (current === null) return;
-    const { error } = await sendToApi(API_ROUTES.toolSession(current), { method: 'DELETE' });
-    onError(error?.message ?? null);
-    onChanged(sessions.find((session) => session.id !== current)?.id ?? null);
+  const remove = async (id: string) => {
+    const { error } = await sendToApi(API_ROUTES.toolSession(id), { method: 'DELETE' });
+    setError(error?.message ?? null);
+    const next = current === id ? (sessions.find((s) => s.id !== id)?.id ?? null) : current;
+    await refresh(next);
   };
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <SessionPicker sessions={sessions} current={current} onSelect={onSelect} />
-      <Button size="sm" onClick={onCreate}>
-        New session
-      </Button>
-      <Button
-        size="sm"
-        variant="secondary"
-        disabled={chosen === undefined}
-        onClick={() => void rename()}
-      >
-        Rename
-      </Button>
-      <DeleteButton disabled={chosen === undefined} onDelete={() => void remove()} />
-    </div>
-  );
+  return { sessions, current, setCurrent, error, create, rename, remove };
 }
 
-type PickerProps = Pick<SessionBarProps, 'sessions' | 'current' | 'onSelect'>;
-
-function SessionPicker({ sessions, current, onSelect }: PickerProps) {
-  return (
-    <label className="flex items-center gap-2 text-[13px] font-semibold">
-      Session
-      <select
-        value={current ?? ''}
-        onChange={(event) => onSelect(event.target.value)}
-        disabled={sessions.length === 0}
-        className="h-8 rounded-[7px] border border-border bg-background px-2 text-[13px] font-normal"
-      >
-        {sessions.map((session) => (
-          <option key={session.id} value={session.id}>
-            {session.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-/** Deleting takes a second click: the session goes with its runs. */
-function DeleteButton({ disabled, onDelete }: { disabled: boolean; onDelete: () => void }) {
-  const [confirming, setConfirming] = useState(false);
-  const click = () => {
-    setConfirming(!confirming);
-    if (confirming) onDelete();
+/** Praman's page: the screen for the chosen session (or none yet), and the Sessions dialog. */
+export function PramanWorkbench({ initialSessions, ceilings }: WorkbenchProps) {
+  const work = useSessions(initialSessions);
+  const [listing, setListing] = useState(false);
+  const screen = {
+    ceilings,
+    notice: work.error,
+    onNewSession: () => void work.create(),
+    onSessions: () => setListing(true),
   };
+  const chosen = work.sessions.find((session) => session.id === work.current);
   return (
-    <Button
-      size="sm"
-      variant={confirming ? 'danger' : 'secondary'}
-      disabled={disabled}
-      onClick={click}
-    >
-      {confirming ? 'Delete it and its runs' : 'Delete'}
-    </Button>
+    <>
+      {work.current === null ? (
+        <PramanScreen session={null} {...screen} />
+      ) : (
+        <SessionView
+          key={work.current}
+          sessionId={work.current}
+          name={chosen?.name ?? ''}
+          {...screen}
+        />
+      )}
+      {listing && (
+        <SessionsDialog
+          sessions={work.sessions}
+          current={work.current}
+          onOpen={(id) => {
+            work.setCurrent(id);
+            setListing(false);
+          }}
+          onRename={(id, name) => void work.rename(id, name)}
+          onDelete={(id) => void work.remove(id)}
+          onClose={() => setListing(false)}
+        />
+      )}
+    </>
   );
 }
