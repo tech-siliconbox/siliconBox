@@ -1,7 +1,18 @@
 import { IdParamsSchema, ToolFileQuerySchema, ToolFileSchema } from '@siliconbox/shared';
 import { withApiGate } from '@/server/api/with-api-gate';
-import { deleteFile, putFile } from '@/server/praman/sessions';
+import { deleteFile, putFile, readSessionFile } from '@/server/praman/sessions';
 import { RATE_LIMITS } from '@/server/rate-limit';
+
+/** One file's text, as the session last saved it (the learner's own work). */
+export const GET = withApiGate(
+  {
+    access: { kind: 'signedIn' },
+    rateLimit: RATE_LIMITS.read,
+    schemas: { params: IdParamsSchema, query: ToolFileQuerySchema },
+  },
+  async ({ identity, input }) =>
+    Response.json({ text: await readSessionFile(identity, input.params.id, input.query.name) }),
+);
 
 /** Adds or replaces one file of the session (1 MB of files at most). */
 export const PUT = withApiGate(

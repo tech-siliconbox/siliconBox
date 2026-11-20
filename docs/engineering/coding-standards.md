@@ -68,7 +68,7 @@ Type hints, Pydantic models, thin routers, service functions, one config module,
 | Tool | Purpose | Script |
 | --- | --- | --- |
 | TypeScript strict | Type safety | `pnpm typecheck` |
-| ESLint + Prettier | Style, bugs; rules on complexity, max function length, no duplicate imports, no unused vars, no `console` | `pnpm lint` |
+| ESLint + Prettier | Style, bugs; rules on complexity, max function length, no duplicate imports, no unused vars, no `console`, effects with a block body (React calls what an effect returns) | `pnpm lint` |
 | jscpd | Copy-paste detection with a failing threshold in CI | `pnpm dedupe:check` |
 | knip | Unused files, exports and dependencies | `pnpm unused:check` |
 | dependency-cruiser | Enforce the layering and forbid circular imports | `pnpm deps:check` |

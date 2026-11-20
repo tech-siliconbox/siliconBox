@@ -2,7 +2,7 @@ import type { CheckResult, GradingView, PublishedDrill, RunView } from '@silicon
 import { cn } from '@/lib/cn';
 import { countOf } from '@/lib/count-of';
 import type { RunPhase } from '../hooks/use-drill-run';
-import { WaveformView } from './waveform-view';
+import { WaveformView } from '@/components/shared/waveform-view';
 
 type Target = PublishedDrill['target'];
 

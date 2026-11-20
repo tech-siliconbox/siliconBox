@@ -10,7 +10,7 @@ import {
   ToolSessionSummarySchema,
 } from '@siliconbox/shared';
 import { z } from 'zod';
-import { collectUnusedFiles } from '@/db/tool-files';
+import { collectUnusedFiles, readFiles } from '@/db/tool-files';
 import { deleteSessionRuns, findToolTrace, latestTraceRun } from '@/db/tool-runs';
 import {
   type ToolSessionRecord,
@@ -32,6 +32,7 @@ import {
   takeSolverFinal,
 } from '../solver-client';
 import { secondsLeft, spendSeconds } from './allowance';
+import { EXAMPLE_FILES } from './example';
 import { openSessionOf, rememberOpenSession } from './open-session';
 import { HostRecordsSchema, keepRecords, savedForReopening } from './records';
 
@@ -259,6 +260,28 @@ export async function putFile(
   await requireSession(identity.userId, sessionId);
   const reply = await ask(granted, sessionId, { op: 'putFile', ...file });
   return z.object({ name: z.string() }).parse(reply).name;
+}
+
+/** Adds Praman's example design to the session. */
+export async function loadExample(identity: Identity, sessionId: string): Promise<void> {
+  const granted = await access(identity, new Date());
+  await requireSession(identity.userId, sessionId);
+  for (const [name, text] of Object.entries(EXAMPLE_FILES)) {
+    await ask(granted, sessionId, { op: 'putFile', name, text });
+  }
+}
+
+/** One file's text as the session last saved it. */
+export async function readSessionFile(
+  identity: Identity,
+  sessionId: string,
+  name: string,
+): Promise<string> {
+  await access(identity, new Date());
+  const session = await requireSession(identity.userId, sessionId);
+  const ref = session.files.find((file) => file.name === name);
+  if (ref === undefined) throw new AppError('NOT_FOUND', `no such file in ${sessionId}`);
+  return (await readFiles(identity.userId, [ref]))[name] ?? '';
 }
 
 export async function deleteFile(identity: Identity, sessionId: string, name: string) {
