@@ -63,9 +63,18 @@ export const API_ROUTES = {
   toolSessionTrace: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/trace`,
   toolSessionScript: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/script`,
   toolSessionExample: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/example`,
+  toolSessionWhatIf: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/what-if`,
+  toolSessionDrivers: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/drivers`,
+  toolSessionCoverageTrace: (sessionId: string) =>
+    `/api/v1/tool/sessions/${sessionId}/coverage-trace`,
+  toolSessionEquivalenceTrace: (sessionId: string) =>
+    `/api/v1/tool/sessions/${sessionId}/equivalence-trace`,
+  toolSessionReport: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/report`,
   toolRuns: '/api/v1/tool/runs',
   toolRun: (runId: string) => `/api/v1/tool/runs/${runId}`,
   toolRunTrace: (runId: string) => `/api/v1/tool/runs/${runId}/trace`,
+  toolRunDiff: (runId: string) => `/api/v1/tool/runs/${runId}/diff`,
+  toolRunRestore: (runId: string) => `/api/v1/tool/runs/${runId}/restore`,
 } as const;
 
 /** Query value the sign-in page reads to explain a sign-out caused by another device. */

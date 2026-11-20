@@ -31,7 +31,8 @@ export const TOOL_TRACE_MAX_BYTES = 2 * 1024 * 1024;
 export const TOOL_RETENTION_DAYS = 180;
 /** One console line; longer scripts go in a file and are sourced. */
 export const TOOL_LINE_MAX_CHARS = 100_000;
-export const TOOL_FILE_NAME_MAX_CHARS = 255;
+/** A file, property or signal name. */
+export const TOOL_NAME_MAX_CHARS = 255;
 export const TOOL_SESSION_NAME_MAX_CHARS = 80;
 
 const byteLength = (text: string) => new TextEncoder().encode(text).length;
@@ -46,18 +47,18 @@ export const ToolCommandSchema = z.strictObject({
   line: z.string().trim().min(1).max(TOOL_LINE_MAX_CHARS),
 });
 
-const FileNameSchema = z.string().trim().min(1).max(TOOL_FILE_NAME_MAX_CHARS);
+const NameSchema = z.string().trim().min(1).max(TOOL_NAME_MAX_CHARS);
 
 /** Body of `PUT /api/v1/tool/sessions/:id/files`: add or replace one file. */
 export const ToolFileSchema = z.strictObject({
-  name: FileNameSchema,
+  name: NameSchema,
   text: z.string().refine((text) => byteLength(text) <= TOOL_FILES_MAX_BYTES, {
     message: `A session holds at most ${TOOL_FILES_MAX_BYTES / 1024 / 1024} MB of files`,
   }),
 });
 
 /** Query of `DELETE /api/v1/tool/sessions/:id/files`. */
-export const ToolFileQuerySchema = z.strictObject({ name: FileNameSchema });
+export const ToolFileQuerySchema = z.strictObject({ name: NameSchema });
 
 /** Query of `GET /api/v1/tool/sessions/:id/poll`: the last log line and state the page has. */
 export const ToolPollQuerySchema = z.strictObject({
@@ -66,13 +67,56 @@ export const ToolPollQuerySchema = z.strictObject({
 });
 
 /** Query of the trace routes: a property's id in the session's table. */
-export const ToolTraceQuerySchema = z.strictObject({
-  property: z.string().min(1).max(TOOL_FILE_NAME_MAX_CHARS),
+export const ToolTraceQuerySchema = z.strictObject({ property: NameSchema });
+
+/** The longest trace any level may ask for: the cycle of a pin or a driver is within it. */
+const TRACE_CYCLES_MAX = Math.max(...Object.values(PRAMAN_CEILINGS).map((c) => c.traceLength));
+/** Values a what-if may pin on one trace. */
+export const TOOL_WHAT_IF_PINS_MAX = 64;
+
+/** A signal held to a value at one cycle of a trace. */
+const PinSchema = z.strictObject({
+  signal: NameSchema,
+  cycle: z.number().int().min(0).max(TRACE_CYCLES_MAX),
+  value: z.string().trim().min(1).max(1_100),
+  width: z.number().int().min(1).max(4096).default(1),
+  radix: z.enum(['hex', 'dec', 'bin', 'signed']).default('hex'),
+});
+
+/** A what-if or cover trace of the session (`<session id>_w…` or `_c…`), for its drivers. */
+const TraceJobSchema = z.string().regex(/^[0-9a-f-]{36}_[wc][0-9a-f]{8}$/);
+
+/**
+ * Body of `POST /api/v1/tool/sessions/:id/what-if`: a trace of the property with these values
+ * pinned (and, with `differFrom`, other inputs than that trace), or its quietest trace.
+ */
+export const ToolWhatIfSchema = z.strictObject({
+  property: NameSchema,
+  pins: z.array(PinSchema).max(TOOL_WHAT_IF_PINS_MAX).default([]),
+  differFrom: z.union([TraceJobSchema, z.literal('')]).default(''),
+  quiet: z.boolean().default(false),
+});
+
+/** Query of `GET /api/v1/tool/sessions/:id/drivers`: what set a signal at a cycle of a trace. */
+export const ToolDriversQuerySchema = z.strictObject({
+  property: NameSchema,
+  signal: NameSchema,
+  cycle: z.coerce.number().int().min(0).max(TRACE_CYCLES_MAX).default(0),
+  job: z.union([TraceJobSchema, z.literal('')]).default(''),
+});
+
+/** Query of `GET /api/v1/tool/sessions/:id/coverage-trace`: the trace that reaches an item. */
+export const ToolCoverageTraceQuerySchema = z.strictObject({
+  label: NameSchema,
+  instance: z.string().trim().max(TOOL_NAME_MAX_CHARS).default(''),
 });
 
 /** Praman names a run after its session and number: `<session id>_r<n>`. */
 export const ToolRunIdSchema = z.string().regex(/^[0-9a-f-]{36}_r\d{1,6}$/);
 export const ToolRunParamsSchema = z.strictObject({ id: ToolRunIdSchema });
+
+/** Query of `GET /api/v1/tool/runs/:id/diff`: the run to compare with (default: the one before). */
+export const ToolRunDiffQuerySchema = z.strictObject({ against: ToolRunIdSchema.optional() });
 
 /** One line of a session's log, as Praman writes it. */
 export const ToolEventSchema = z.looseObject({
@@ -139,3 +183,14 @@ export const ToolRunDetailSchema = ToolRunSummarySchema.extend({
   tracesDropped: z.array(z.string()),
 });
 export type ToolRunDetail = z.infer<typeof ToolRunDetailSchema>;
+
+const PropertyNameSchema = z.object({ name: z.string(), type: z.string() });
+
+/** Properties whose result differs between two runs of a session. */
+export const ToolRunDiffSchema = z.object({
+  against: ToolRunIdSchema,
+  changed: z.array(PropertyNameSchema.extend({ before: z.string(), after: z.string() })),
+  added: z.array(PropertyNameSchema.extend({ after: z.string() })),
+  removed: z.array(PropertyNameSchema.extend({ before: z.string() })),
+});
+export type ToolRunDiff = z.infer<typeof ToolRunDiffSchema>;
