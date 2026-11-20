@@ -33,7 +33,7 @@ test('a learner proves the example and opens the waveform of the failing asserti
   await expect(page.getByText('Session open')).toBeVisible({ timeout: 60_000 });
 
   await page.getByRole('button', { name: 'Load example' }).click();
-  await expect(page.getByRole('button', { name: 'fifo.sv' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'fifo.sv', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Analyze', exact: true }).click();
   await page.getByRole('button', { name: 'Elaborate', exact: true }).click();
   await page.getByLabel('Top module').fill('fifo');
