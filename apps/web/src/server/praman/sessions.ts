@@ -5,7 +5,6 @@ import {
   type ToolPollView,
   type ToolSessionState,
   type ToolSessionSummary,
-  ToolSessionSummarySchema,
 } from '@siliconbox/shared';
 import { z } from 'zod';
 import { collectUnusedFiles, readFiles } from '@/db/tool-files';
@@ -16,6 +15,7 @@ import {
   insertToolSession,
   listToolSessions,
   renameToolSession,
+  toSessionSummary,
 } from '@/db/tool-sessions';
 import type { Identity } from '../auth/authenticate';
 import { AppError } from '../errors';
@@ -66,15 +66,7 @@ export async function createSession(
   if ((await countToolSessions(identity.userId)) >= TOOL_SESSIONS_KEPT) {
     throw new AppError('TOOL_SESSION_LIMIT', `${identity.userId} keeps ${TOOL_SESSIONS_KEPT}`);
   }
-  const session = await insertToolSession(identity.userId, name, now);
-  return ToolSessionSummarySchema.parse({
-    id: session.publicId,
-    name: session.name,
-    createdAt: session.createdAt.toISOString(),
-    lastUsedAt: session.lastUsedAt.toISOString(),
-    phase: session.phase,
-    top: session.top,
-  });
+  return toSessionSummary(await insertToolSession(identity.userId, name, now));
 }
 
 export async function renameSession(identity: Identity, sessionId: string, name: string) {

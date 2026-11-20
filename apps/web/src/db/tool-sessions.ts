@@ -54,10 +54,14 @@ export const keptUntil = (now: Date) => new Date(now.getTime() + TOOL_RETENTION_
 /** Data whose removal date is more than a day behind `now`'s: extended at most once a day. */
 export const fallenBehind = (now: Date) => ({ $lt: new Date(keptUntil(now).getTime() - DAY_MS) });
 
+/** What a new session starts with: nothing, or (a restored run) its files and a log line. */
+type SessionStart = Pick<ToolSessionRecord, 'files' | 'events'>;
+
 export async function insertToolSession(
   userId: string,
   name: string,
   now: Date,
+  start: SessionStart = { files: [], events: [] },
 ): Promise<ToolSessionRecord> {
   const record = ToolSessionRecordSchema.parse({
     publicId: crypto.randomUUID(),
@@ -71,8 +75,7 @@ export async function insertToolSession(
     journal: [],
     settings: {},
     state: {},
-    files: [],
-    events: [],
+    ...start,
   });
   await sessions().insertOne({ ...record });
   return record;
@@ -91,6 +94,18 @@ const SummaryFieldsSchema = ToolSessionRecordSchema.pick({
   top: true,
 });
 
+/** A session as the learner's list shows it. */
+export function toSessionSummary(fields: z.infer<typeof SummaryFieldsSchema>): ToolSessionSummary {
+  return ToolSessionSummarySchema.parse({
+    id: fields.publicId,
+    name: fields.name,
+    createdAt: fields.createdAt.toISOString(),
+    lastUsedAt: fields.lastUsedAt.toISOString(),
+    phase: fields.phase,
+    top: fields.top,
+  });
+}
+
 /** The learner's sessions, most recently used first, without their contents. */
 export async function listToolSessions(userId: string): Promise<ToolSessionSummary[]> {
   const projection = {
@@ -106,17 +121,7 @@ export async function listToolSessions(userId: string): Promise<ToolSessionSumma
     .find({ userId }, { projection })
     .sort({ lastUsedAt: -1 })
     .toArray();
-  return found.map((document) => {
-    const fields = SummaryFieldsSchema.parse(document);
-    return ToolSessionSummarySchema.parse({
-      id: fields.publicId,
-      name: fields.name,
-      createdAt: fields.createdAt.toISOString(),
-      lastUsedAt: fields.lastUsedAt.toISOString(),
-      phase: fields.phase,
-      top: fields.top,
-    });
-  });
+  return found.map((document) => toSessionSummary(SummaryFieldsSchema.parse(document)));
 }
 
 /** Every session of the learner, without its log (the data download). */
