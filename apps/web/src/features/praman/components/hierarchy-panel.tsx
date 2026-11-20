@@ -1,11 +1,14 @@
+import { SESSION_SCRIPT } from '../abilities';
 import type { TreeNode } from '../praman-snapshot';
+import { Code } from './welcome';
 
 /** The elaborated design's instances, top first; each names its module. */
 export function HierarchyPanel({ tree }: { tree: TreeNode | null }) {
   if (tree === null) {
     return (
-      <p className="p-3 text-[12px] text-muted-foreground">
-        Elaborate the design to see its hierarchy.
+      <p className="p-4 text-[13px] leading-relaxed text-muted-foreground">
+        No design is elaborated. Add files, then run <Code>analyze</Code> and <Code>elaborate</Code>
+        , or <Code>source {SESSION_SCRIPT}</Code>.
       </p>
     );
   }

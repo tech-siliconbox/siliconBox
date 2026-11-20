@@ -54,6 +54,7 @@ Check here before writing a component, hook or helper. Add a row when you create
 | Name | Purpose | Status |
 | --- | --- | --- |
 | useSessionCheck | Periodic session validity check against `GET /api/v1/me` | Built |
+| useDismiss | Closes an open menu on a click outside it or on Escape; the account menu and Praman's menu bar | Built |
 
 ## Feature parts (`features/<name>`)
 
@@ -88,8 +89,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | InlineCourseHtml | A short piece of the author's markup inside a line (a question, an option, a rubric line), sanitised (`components/lesson/course-html.tsx`) | Built |
 | drills: DrillWorkspace, RunOutput | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
 | drills: useDrillRun, useDrillDraft | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser | Built |
-| praman: PramanWorkbench, SessionView, ToolBar, FilesPanel, HierarchyPanel, PropertyTable, SourceEditor, LogPanel, CommandForm, TracePanel, RunHistory, PramanLocked | The tool page (`/tool`, ADR 0031): sessions, menu actions as buttons, files and hierarchy, the property table, a file in the editor, the log with the Tcl console, the limits forms, a property's waveform and the run history; the locked card without access | Built |
-| praman: usePramanSession, useJson, commandSpecs, readPramanTrace, tclCommand | Open a session (waiting in line), poll it and send commands; GET JSON for a panel; the menu's command forms with the learner's ceilings; Praman's trace payload as a `Trace`; Tcl words for a command line | Built |
+| praman: PramanWorkbench, SessionView, PramanScreen, MenuBar, ToolBar, PanelTabs, LeftPanel, CenterPanel, StatusBar, SessionStatus, LogPanel, TclConsole, ToolDialog, CommandDialog, SessionsDialog, AboutDialog, FilesPanel, HierarchyPanel, PropertyTable, SourceEditor, TracePanel, RunHistory, PramanLocked | The tool page (`/tool`, ADR 0031), laid out like Praman in the site's theme: menu bar (File, View, Design, Prove, Reports, Tools, Help), icon toolbar, Design Hierarchy and Files tabs, the Properties Table with files and the run history in closable tabs, the log with its filter chips and search, the `praman>` console with history and Tab completion, and the status bar; dialogs for commands, sessions and About; the locked card without access | Built |
+| praman: usePramanSession, useJson, commandSpecs, readPramanTrace, tclCommand, abilitiesOf, pramanMenus, visibleLines, completion, propertyCounts | Open a session (waiting in line), poll it and send commands; GET JSON for a panel; the menu's command forms with the learner's ceilings; Praman's trace payload as a `Trace`; Tcl words for a command line; what can run now (menus and toolbar share it); the menus as data; the log's filter and search; Tab completion; the status bar's counts | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
 | industry-ready: ServiceCard | Open or locked service card, equal heights in a row; links only to built services. The page groups them as Open now and Coming soon, in columns that leave no card alone | Built |

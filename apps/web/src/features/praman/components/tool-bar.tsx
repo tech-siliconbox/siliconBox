@@ -1,107 +1,126 @@
-import { Button, buttonVariants } from '@/components/ui/button';
-import type { CommandKind } from '../command-specs';
-import type { SessionState } from '../hooks/use-praman-session';
+import { cn } from '@/lib/cn';
+import { type Abilities, SESSION_SCRIPT } from '../abilities';
+import type { ToolAction } from '../tool-actions';
+import { TOOL_ICONS, type ToolIcon } from './tool-icons';
 
-export type ToolAction =
-  | { kind: 'command'; line: string }
-  | { kind: 'form'; form: CommandKind }
-  | { kind: 'example' }
-  | { kind: 'stop' }
-  | { kind: 'history' };
-
-type ToolBarProps = {
-  state: SessionState;
-  /** The analyze line for the session's design and property files, when it has any. */
-  analyzeLine: string | null;
-  hasScript: boolean;
-  scriptUrl: string;
-  onAction: (action: ToolAction) => void;
+type Tool = {
+  label: string;
+  icon: ToolIcon;
+  /** The Tcl command it runs, as its tooltip. */
+  title: string;
+  tone?: 'go' | 'halt';
+  when: (can: Abilities) => boolean;
+  action: (can: Abilities) => ToolAction;
 };
 
-const PLACE_TEXT: Readonly<Record<SessionState['place'], string>> = {
-  opening: 'Opening the session…',
-  waiting: 'Waiting for a free place on the formal tool',
-  open: 'Session open',
-  closed: 'Session closed',
-};
-
-type Tool = { label: string; action: ToolAction; enabled: boolean };
-
-/** The menu's buttons, each enabled only when its command can run. */
-function tools(state: SessionState, analyzeLine: string | null, hasScript: boolean): Tool[] {
-  const ready = state.place === 'open';
-  const idle = ready && !state.busy && !state.proofRunning;
-  const phase = state.snapshot?.phase ?? 'empty';
-  const elaborated = idle && phase === 'elaborated';
-  return [
-    { label: 'Load example', action: { kind: 'example' }, enabled: ready },
+/** The toolbar's buttons in their groups, each enabled only when it can run now. */
+const TOOL_GROUPS: readonly (readonly Tool[])[] = [
+  [
+    {
+      label: 'Add Files',
+      icon: 'add',
+      title: 'Add design, SVA and Tcl files to the session',
+      when: (can) => can.open,
+      action: () => ({ kind: 'addFiles' }),
+    },
+    {
+      label: 'Run Script',
+      icon: 'script',
+      title: `source ${SESSION_SCRIPT}`,
+      when: (can) => can.script,
+      action: () => ({ kind: 'command', line: `source ${SESSION_SCRIPT}` }),
+    },
+  ],
+  [
     {
       label: 'Analyze',
-      action: { kind: 'command', line: analyzeLine ?? '' },
-      enabled: idle && analyzeLine !== null,
+      icon: 'analyze',
+      title: 'analyze -sv <all source files>',
+      when: (can) => can.analyze !== null,
+      action: (can) => ({ kind: 'command', line: can.analyze ?? '' }),
     },
     {
       label: 'Elaborate',
-      action: { kind: 'form', form: 'elaborate' },
-      enabled: idle && phase !== 'empty',
+      icon: 'elaborate',
+      title: 'elaborate -top <module>',
+      when: (can) => can.elaborate,
+      action: () => ({ kind: 'form', form: 'elaborate' }),
     },
-    { label: 'Clock and reset', action: { kind: 'form', form: 'setup' }, enabled: elaborated },
-    { label: 'Limits', action: { kind: 'form', form: 'limits' }, enabled: ready },
-    { label: 'Prove', action: { kind: 'command', line: 'prove -all' }, enabled: elaborated },
-    { label: 'Stop', action: { kind: 'stop' }, enabled: state.proofRunning },
     {
-      label: 'Run script',
-      action: { kind: 'command', line: 'source pm.tcl' },
-      enabled: idle && hasScript,
+      label: 'Clock / Reset',
+      icon: 'clock',
+      title: 'clock <signal>, reset <expr>',
+      when: (can) => can.elaborated,
+      action: () => ({ kind: 'form', form: 'setup' }),
     },
-  ];
-}
+  ],
+  [
+    {
+      label: 'Prove',
+      icon: 'prove',
+      title: 'prove -all',
+      tone: 'go',
+      when: (can) => can.elaborated,
+      action: () => ({ kind: 'command', line: 'prove -all' }),
+    },
+    {
+      label: 'Stop',
+      icon: 'stop',
+      title: 'stop',
+      tone: 'halt',
+      when: (can) => can.stop,
+      action: () => ({ kind: 'stop' }),
+    },
+  ],
+  [
+    {
+      label: 'Run History',
+      icon: 'history',
+      title: 'Your proof runs, with their files, results and traces',
+      when: () => true,
+      action: () => ({ kind: 'history' }),
+    },
+  ],
+];
 
-function SessionStatus({ state }: { state: SessionState }) {
-  const position =
-    state.place === 'waiting' && state.position !== null
-      ? `: number ${state.position} in line`
-      : '';
-  const left =
-    state.secondsLeft === null
-      ? ''
-      : ` · ${Math.floor(state.secondsLeft / 60)} proof minutes left today`;
-  return (
-    <span className="text-[12px] text-muted-foreground" aria-live="polite">
-      {PLACE_TEXT[state.place]}
-      {position}
-      {left}
-    </span>
-  );
-}
+const TONE = { go: 'enabled:text-ok enabled:font-semibold', halt: 'enabled:text-danger' } as const;
 
-/** Praman's menu actions as one row, with where the session stands and the proof time left. */
-export function ToolBar({ state, analyzeLine, hasScript, scriptUrl, onAction }: ToolBarProps) {
+/** Praman's toolbar: the main steps of a proof, from adding files to proving. */
+export function ToolBar({
+  can,
+  onAction,
+}: {
+  can: Abilities;
+  onAction: (action: ToolAction) => void;
+}) {
   return (
     <div
       role="toolbar"
-      aria-label="Praman"
-      className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2"
+      aria-label="Praman tools"
+      className="flex h-9 items-center gap-0.5 border-b border-border bg-muted px-2"
     >
-      {tools(state, analyzeLine, hasScript).map((tool) => (
-        <Button
-          key={tool.label}
-          size="sm"
-          variant={tool.label === 'Prove' ? 'primary' : 'secondary'}
-          disabled={!tool.enabled}
-          onClick={() => onAction(tool.action)}
-        >
-          {tool.label}
-        </Button>
+      {TOOL_GROUPS.map((group, index) => (
+        <div key={group[0]?.label} className="flex items-center gap-0.5">
+          {index > 0 && <span aria-hidden="true" className="mx-1.5 h-[18px] w-px bg-border" />}
+          {group.map((tool) => (
+            <button
+              key={tool.label}
+              type="button"
+              title={tool.title}
+              disabled={!tool.when(can)}
+              onClick={() => onAction(tool.action(can))}
+              className={cn(
+                'flex h-7 items-center gap-1.5 rounded-[3px] border border-transparent px-2 text-[13px]',
+                'enabled:hover:border-border enabled:hover:bg-background disabled:text-muted-foreground disabled:[&_svg]:opacity-45',
+                tool.tone !== undefined && TONE[tool.tone],
+              )}
+            >
+              {TOOL_ICONS[tool.icon]}
+              {tool.label}
+            </button>
+          ))}
+        </div>
       ))}
-      <a href={scriptUrl} className={buttonVariants({ size: 'sm', variant: 'secondary' })}>
-        Download script
-      </a>
-      <Button size="sm" variant="secondary" onClick={() => onAction({ kind: 'history' })}>
-        Run history
-      </Button>
-      <span className="flex-1" />
-      <SessionStatus state={state} />
     </div>
   );
 }

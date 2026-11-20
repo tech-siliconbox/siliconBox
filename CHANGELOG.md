@@ -4,6 +4,11 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Changed (Praman looks like the tool, ADR 0031)
+
+- `/tool` is laid out like Praman, in the site's theme: a menu bar (File, View, Design, Prove, Reports, Tools, Help) with each command's Tcl beside it, an icon toolbar (Add Files, Run Script, Analyze, Elaborate, Clock / Reset, Prove, Stop, Run History), Design Hierarchy and Files tabs, the Properties Table with a getting-started guide, files and the run history in closable tabs, the log with Errors, Warnings, Info, Commands and Engine detail chips, search and Clear, the `praman>` console with history and Tab completion, and a status bar (files, analyzed, elaborated, clock, reset, results, proof minutes left).
+- Sessions are started and managed from the File menu (New Session, Sessions…); the command forms are dialogs. The View menu shows or hides the hierarchy, log and console. Prove adds Check Assumptions, Check Dead Ends and Check Reset; Reports adds Summary and Design Information; Help adds Commands and About Praman.
+
 ### Added (Praman, the formal tool page: the page, ADR 0031)
 
 - `/tool`, with "Formal Tool" in the header: Praman in the site's design. Pick, start, rename or delete a session. Load the example FIFO or add your own files; analyze, elaborate, set clock and reset and the limits (within your level's ceilings); prove and stop; read the property table, open a property's waveform with Praman's account of it, edit a file, type Tcl in the console, download the session's script and browse the run history with its kept traces.

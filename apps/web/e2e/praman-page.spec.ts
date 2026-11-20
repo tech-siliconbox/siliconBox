@@ -29,18 +29,21 @@ test('a learner proves the example and opens the waveform of the failing asserti
 
   await page.getByRole('link', { name: 'Formal Tool' }).first().click();
   await expect(page.getByRole('heading', { name: 'Praman' })).toBeVisible();
-  await page.getByRole('button', { name: 'New session' }).click();
+  await page.getByRole('button', { name: 'New Session' }).click();
   await expect(page.getByText('Session open')).toBeVisible({ timeout: 60_000 });
 
-  await page.getByRole('button', { name: 'Load example' }).click();
+  await page.getByRole('button', { name: 'Load Example Files' }).click();
+  await page.getByRole('tab', { name: 'Files' }).click();
   await expect(page.getByRole('button', { name: 'fifo.sv', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Analyze', exact: true }).click();
-  await page.getByRole('button', { name: 'Elaborate', exact: true }).click();
+  const tools = page.getByRole('toolbar', { name: 'Praman tools' });
+  await tools.getByRole('button', { name: 'Analyze' }).click();
+  await tools.getByRole('button', { name: 'Elaborate' }).click();
   await page.getByLabel('Top module').fill('fifo');
   await page.getByRole('button', { name: 'Run', exact: true }).click();
-  await page.getByRole('button', { name: 'Clock and reset' }).click();
+  await tools.getByRole('button', { name: 'Clock / Reset' }).click();
   await page.getByRole('button', { name: 'Run', exact: true }).click();
-  await page.getByRole('button', { name: 'Prove', exact: true }).click();
+  await expect(page.getByText('Elaborated fifo')).toBeVisible();
+  await tools.getByRole('button', { name: 'Prove' }).click();
 
   // The assertion's own row (its related covers have rows too) shows its counterexample.
   const failing = page
@@ -52,6 +55,17 @@ test('a learner proves the example and opens the waveform of the failing asserti
   const waveform = page.getByRole('region', { name: /Waveform of/ });
   await expect(waveform.locator('svg')).toBeVisible();
   await expect(waveform).toContainText('count');
+
+  // A menu item runs its Tcl command, which the log echoes.
+  await page.getByRole('menuitem', { name: 'Reports', exact: true }).click();
+  await page.getByRole('menuitem', { name: /^Summary/ }).click();
+  await expect(page.getByRole('log').getByText('% report', { exact: true })).toBeVisible();
+
+  // File > Sessions lists the session, open now.
+  await page.getByRole('menuitem', { name: 'File', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Sessions…' }).click();
+  const sessions = page.getByRole('dialog', { name: 'Sessions' });
+  await expect(sessions.getByRole('button', { name: 'Open now' })).toBeDisabled();
 });
 
 test('on a phone the page asks for a larger screen', async ({ page }) => {
@@ -63,5 +77,5 @@ test('on a phone the page asks for a larger screen', async ({ page }) => {
   await grantAccess(support, learner.email, 'tool');
   await page.goto(ROUTES.tool);
   await expect(page.getByText('Open this page on a computer or a tablet')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'New session' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'New Session' })).toBeHidden();
 });
