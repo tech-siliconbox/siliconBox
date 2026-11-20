@@ -4,6 +4,20 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman's Visualize window, ADR 0031)
+
+- **Visualize:** a property's trace (or a cover or equivalence trace, or one kept in the run history) opens full screen, as in Praman.
+  - **Header:** the kind of trace, the property, where it fails, and its cycles and signals.
+  - **Wave table:** the cycle ruler, then the property's own rows (ANTE/CONS) and the signals it reads, then the top module's, with Value @ cursor. The reset cycles are shaded, the trigger and failing cycles marked, and a click moves the cursor.
+- **Tools:**
+  - zoom and Fit; first, previous, next and last cycle, and Go to failure (or cover);
+  - edges of the chosen signal, and Why? (what drove it at the cursor);
+  - Pin value and Prove, Another counterexample, Quiet trace, and back to the original trace;
+  - Hex, Dec, Signed or Bin; Export VCD;
+  - Add signals (internals on request), expression rows and Find over the trace (Verilog operators, `$past`, `$rose`, `$fell`, `$stable`, `$changed`).
+- **Details:** Why it fails (Praman's account and a cycle-by-cycle table), Drivers, and a Why diagram that follows the values a statement read back through the design.
+- `BitWave` and `BusWave` are shared by Drills' waveform and Visualize. A what-if may now differ from the property's own proof run.
+
 ### Changed (Praman works like the tool, ADR 0031)
 
 - **Header:** the tool's link shows Praman's own mark (the blue P and "Praman").

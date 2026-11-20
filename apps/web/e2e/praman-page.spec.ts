@@ -69,9 +69,13 @@ test('a learner proves the example and opens the waveform of the failing asserti
   await page.getByRole('button', { name: /^All/ }).click();
   await expect(page.getByRole('row').filter({ hasText: 'a_flags' })).toHaveCount(1);
   await failing.first().getByRole('button', { name: 'Waveform' }).click();
-  const waveform = page.getByRole('region', { name: /Waveform of/ });
-  await expect(waveform.locator('svg')).toBeVisible();
-  await expect(waveform).toContainText('count');
+  // Visualize: the trace on a cycle ruler, at the failing cycle, with why it fails.
+  const visualize = page.getByRole('dialog', { name: /Waveform of/ });
+  await expect(visualize.getByText(/fails at cycle \d+ · \d+ cycles/)).toBeVisible();
+  await expect(visualize.getByRole('button', { name: 'Go to failure' })).toBeVisible();
+  await expect(visualize).toContainText('count');
+  await expect(visualize.getByRole('region', { name: 'Details' })).toContainText('fails at cycle');
+  await visualize.getByRole('button', { name: 'Close' }).click();
 
   // Help reopens how Praman works.
   await page.getByRole('menuitem', { name: 'Help', exact: true }).click();

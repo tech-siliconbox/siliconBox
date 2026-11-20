@@ -92,7 +92,10 @@ test('strength, coverage and the proof core measure the proved design', async ({
     .getByRole('button', { name: /^Trace/ })
     .first()
     .click();
-  await expect(page.getByRole('region', { name: /Waveform of/ }).locator('svg')).toBeVisible();
+  const coverTrace = page.getByRole('dialog', { name: /Waveform of/ });
+  await expect(coverTrace.locator('svg').first()).toBeVisible();
+  // Visualize is modal: close it to go on with the tool.
+  await coverTrace.getByRole('button', { name: 'Close' }).click();
 
   await menu(page, 'Reports', 'Proof Core');
   await expect(page.getByText(/^proof core: \d+ of \d+ lines relied on/)).toBeVisible({
@@ -118,38 +121,64 @@ test('the equivalence check shows where a revised design differs', async ({ page
     timeout: CHECK_TIMEOUT,
   });
   await page.getByRole('button', { name: 'View Difference' }).click();
-  await expect(page.getByRole('region', { name: /Waveform of/ }).locator('svg')).toBeVisible();
+  await expect(
+    page
+      .getByRole('dialog', { name: /Waveform of/ })
+      .locator('svg')
+      .first(),
+  ).toBeVisible();
 });
 
-test('the waveform asks what if, finds the quietest trace and shows drivers', async ({ page }) => {
+test('Visualize shows why, what drove a signal, expressions, and what if', async ({ page }) => {
   test.setTimeout(300_000);
   await provedSession(page);
   await openTool(page);
 
   const row = page.getByRole('row').filter({ hasText: PROPERTY }).filter({ hasText: 'CEX' });
   await row.first().getByRole('button', { name: 'Waveform' }).click();
-  const waveform = page.getByRole('region', { name: /Waveform of/ });
-  await expect(waveform.locator('svg')).toBeVisible();
+  const visualize = page.getByRole('dialog', { name: /Waveform of/ });
+  await expect(visualize.getByText(/fails at cycle \d+ · \d+ cycles/)).toBeVisible();
 
-  await waveform.getByLabel('Drivers of').selectOption('counter.count');
-  await waveform.getByLabel('At cycle').fill('3');
-  await waveform.getByRole('button', { name: 'Drivers' }).click();
-  await expect(waveform.getByRole('region', { name: 'Drivers' })).toContainText('count');
+  // Choose the count row, then ask why it has its value at the cursor.
+  await visualize.getByRole('button', { name: 'count', exact: true }).first().click();
+  await visualize.getByRole('button', { name: 'Why?' }).click();
+  await expect(visualize.getByRole('region', { name: 'Drivers' })).toContainText('count');
+  await visualize.getByRole('tab', { name: 'Why diagram' }).click();
+  await expect(visualize.getByRole('tabpanel').last()).toContainText('count');
 
-  await waveform.getByRole('button', { name: 'Quiet Trace' }).click();
-  await expect(waveform.getByText('what-if: quietest trace')).toBeVisible({
+  // An expression row, and Find.
+  await visualize.getByLabel('Add an expression row').fill('count == 3');
+  await visualize.getByLabel('Add an expression row').press('Enter');
+  await expect(visualize.getByRole('button', { name: 'count == 3', exact: true })).toBeVisible();
+  // Find looks forward from the cursor: from the first cycle, count reaches 3.
+  await visualize.getByRole('button', { name: '|◀' }).click();
+  await visualize.getByLabel('Find a cycle where an expression holds').fill('count == 3');
+  await visualize.getByLabel('Find a cycle where an expression holds').press('Enter');
+  await expect(visualize.getByText(/cannot|does not hold/)).toHaveCount(0);
+
+  await visualize.getByRole('button', { name: 'Quiet trace' }).click();
+  await expect(visualize.getByRole('button', { name: 'Original trace' })).toBeVisible({
     timeout: CHECK_TIMEOUT,
   });
-
-  await waveform.getByRole('button', { name: 'What If…' }).click();
-  const whatIf = page.getByRole('dialog', { name: 'What If' });
-  await whatIf.getByLabel('Signal').selectOption('counter.en');
-  await whatIf.getByLabel('Cycle').fill('2');
-  await whatIf.getByRole('button', { name: 'Prove' }).click();
-  await expect(waveform.getByText('Proving the what-if…')).toBeHidden({ timeout: CHECK_TIMEOUT });
-  // A new trace with the value held, or why there is none.
+  await visualize.getByRole('button', { name: 'Original trace' }).click();
+  await visualize.getByRole('button', { name: 'Another counterexample' }).click();
+  await expect(visualize.getByText('Proving the what-if…')).toBeHidden({ timeout: CHECK_TIMEOUT });
   await expect(
-    waveform.getByText('what-if: counter.en = 0 @2').or(waveform.getByText(/With these values/)),
+    visualize.getByRole('button', { name: 'Original trace' }).or(visualize.getByRole('status')),
+  ).toBeVisible();
+  if (await visualize.getByRole('button', { name: 'Original trace' }).isVisible()) {
+    await visualize.getByRole('button', { name: 'Original trace' }).click();
+  }
+
+  // Hold en at its value in cycle 2 and prove again: a new trace, or why there is none.
+  await visualize.getByRole('button', { name: 'en', exact: true }).first().click();
+  await visualize.getByRole('button', { name: '▶|' }).click();
+  await visualize.getByRole('button', { name: 'Pin value' }).click();
+  await visualize.getByRole('button', { name: 'Pin', exact: true }).click();
+  await visualize.getByRole('button', { name: /^Prove with/ }).click();
+  await expect(visualize.getByText('Proving the what-if…')).toBeHidden({ timeout: CHECK_TIMEOUT });
+  await expect(
+    visualize.getByText('What-if trace', { exact: true }).or(visualize.getByRole('status')),
   ).toBeVisible();
 });
 
