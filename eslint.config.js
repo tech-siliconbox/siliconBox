@@ -70,6 +70,16 @@ export default defineConfig(
           message: 'Use SiteLink (@/components/ui/site-link): it never prefetches.',
         },
       ],
+      // React calls whatever an effect returns as its cleanup. A call's value is not one:
+      // scrollIntoView returns a Promise in current Chromium, and that crashed the page.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'CallExpression[callee.name=/^use(Layout|Insertion)?Effect$/] > ArrowFunctionExpression > :matches(CallExpression, ChainExpression, AssignmentExpression, AwaitExpression).body',
+          message: 'Give the effect a block body: an expression body becomes its cleanup.',
+        },
+      ],
     },
   },
   {

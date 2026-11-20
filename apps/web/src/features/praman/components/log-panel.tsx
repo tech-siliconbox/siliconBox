@@ -21,7 +21,9 @@ type LogPanelProps = {
 export function LogPanel({ events, onCommand, disabled }: LogPanelProps) {
   const end = useRef<HTMLDivElement>(null);
   const shown = events.filter((event) => event.kind !== 'ui' && event.kind !== 'engine');
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [shown.length]);
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: 'end' });
+  }, [shown.length]);
 
   return (
     <section aria-label="Log and console" className="flex min-h-0 flex-col border-t border-border">
