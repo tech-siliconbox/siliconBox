@@ -2,13 +2,15 @@
 
 import { API_ROUTES, type PramanCeilings } from '@siliconbox/shared';
 import { useRef, useState } from 'react';
-import { abilitiesOf } from '../abilities';
-import { type CommandKind, commandSpecs } from '../command-specs';
+import { commandSpecs } from '../command-specs';
 import type { SessionActions, SessionState } from '../hooks/use-praman-session';
 import { pramanMenus } from '../menus';
 import type { Panel, ToolAction } from '../tool-actions';
 import { AboutDialog } from './about-dialog';
-import { CenterPanel, HISTORY_TAB, PROPERTIES_TAB, fileTab } from './center-panel';
+import { CaseSplitDialog } from './case-split-dialog';
+import { type Abilities, abilitiesOf } from '../abilities';
+import { CenterPanel, HISTORY_TAB, PROPERTIES_TAB, fileTab, reportTab } from './center-panel';
+import { CheckDialogs } from './check-dialogs';
 import { CommandDialog } from './command-dialog';
 import { FilePicker } from './file-picker';
 import { LeftPanel } from './left-panel';
@@ -34,9 +36,20 @@ type PramanScreenProps = {
   notice: string | null;
   onNewSession: () => void;
   onSessions: () => void;
+  onOpenSession: (sessionId: string) => void;
 };
 
-type SimpleKind = Exclude<ToolAction['kind'], 'command' | 'form' | 'view'>;
+/** The dialog open over the tool, if any. */
+type OpenDialog =
+  Extract<ToolAction, { kind: 'form' | 'dialog' | 'caseSplit' }> | { kind: 'about' };
+
+const opensDialog = (action: ToolAction): action is Exclude<OpenDialog, { kind: 'about' }> =>
+  action.kind === 'form' || action.kind === 'dialog' || action.kind === 'caseSplit';
+
+type SimpleKind = Exclude<
+  ToolAction['kind'],
+  'command' | 'report' | 'view' | 'openFile' | 'openSession' | 'form' | 'dialog' | 'caseSplit'
+>;
 
 /** Tabs open after the property table: files and the run history. */
 function useTabs() {
@@ -53,9 +66,9 @@ function useTabs() {
   return { tabs, active, setActive, open, close };
 }
 
-/** The screen's own state: panels shown, open tabs, dialogs, and what each action does. */
+/** The screen's own state: panels shown, open tabs, the dialog, and what each action does. */
 function useScreen(
-  { session, onNewSession, onSessions }: PramanScreenProps,
+  { session, onNewSession, onSessions, onOpenSession }: PramanScreenProps,
   openPicker: () => void,
 ) {
   const actions = session?.actions ?? null;
@@ -64,8 +77,7 @@ function useScreen(
     log: true,
     console: true,
   });
-  const [form, setForm] = useState<CommandKind | null>(null);
-  const [about, setAbout] = useState(false);
+  const [dialog, setDialog] = useState<OpenDialog | null>(null);
   const tabs = useTabs();
   const simple: Record<SimpleKind, () => void> = {
     newSession: onNewSession,
@@ -73,23 +85,25 @@ function useScreen(
     addFiles: openPicker,
     example: () => void actions?.loadExample(),
     download: () => session && window.location.assign(API_ROUTES.toolSessionScript(session.id)),
+    downloadReport: () =>
+      session && window.location.assign(API_ROUTES.toolSessionReport(session.id)),
     stop: () => void actions?.stop(),
     history: () => tabs.open(HISTORY_TAB),
-    about: () => setAbout(true),
+    about: () => setDialog({ kind: 'about' }),
+  };
+  const check = (action: Extract<ToolAction, { kind: 'command' | 'report' }>) => {
+    if (action.line !== null) void actions?.command(action.line);
+    if (action.kind === 'report') tabs.open(reportTab(action.tab));
   };
   const act = (action: ToolAction) => {
-    if (action.kind === 'command') void actions?.command(action.line);
-    else if (action.kind === 'form') setForm(action.form);
+    if (action.kind === 'command' || action.kind === 'report') check(action);
     else if (action.kind === 'view') setShown({ ...shown, [action.panel]: !shown[action.panel] });
+    else if (action.kind === 'openFile') tabs.open(fileTab(action.name));
+    else if (action.kind === 'openSession') onOpenSession(action.sessionId);
+    else if (opensDialog(action)) setDialog(action);
     else simple[action.kind]();
   };
-  const dialogs = {
-    form,
-    about,
-    closeForm: () => setForm(null),
-    closeAbout: () => setAbout(false),
-  };
-  return { shown, tabs, act, dialogs, openPicker };
+  return { shown, tabs, act, dialog, closeDialog: () => setDialog(null), openPicker };
 }
 
 type Screen = ReturnType<typeof useScreen>;
@@ -116,7 +130,7 @@ export function PramanScreen(props: PramanScreenProps) {
           {problem}
         </p>
       )}
-      <Workspace session={session} screen={screen} onNewSession={props.onNewSession} />
+      <Workspace session={session} screen={screen} can={can} />
       <Docks session={session} screen={screen} />
       <StatusBar state={state} />
       <FilePicker ref={picker} onAdd={addFiles} />
@@ -127,7 +141,7 @@ export function PramanScreen(props: PramanScreenProps) {
 
 type PartProps = { session: ScreenSession | null; screen: Screen };
 
-function Workspace({ session, screen, onNewSession }: PartProps & { onNewSession: () => void }) {
+function Workspace({ session, screen, can }: PartProps & { can: Abilities }) {
   const { tabs } = screen;
   return (
     <div className="flex min-h-0 flex-1 gap-1 p-1">
@@ -140,12 +154,12 @@ function Workspace({ session, screen, onNewSession }: PartProps & { onNewSession
       )}
       <CenterPanel
         session={session}
+        can={can}
         tabs={tabs.tabs}
         active={tabs.active}
         onSelect={tabs.setActive}
         onCloseTab={tabs.close}
-        onNewSession={onNewSession}
-        onAddFiles={screen.openPicker}
+        onAction={screen.act}
       />
     </div>
   );
@@ -189,17 +203,32 @@ function Docks({ session, screen }: PartProps) {
 }
 
 function Dialogs({ session, ceilings, screen }: PartProps & { ceilings: PramanCeilings }) {
-  const { form, about, closeForm, closeAbout } = screen.dialogs;
+  const { dialog, closeDialog, act } = screen;
+  const snapshot = session?.state.snapshot ?? null;
+  const run = (line: string) => act({ kind: 'command', line });
+  if (dialog === null) return null;
+  if (dialog.kind === 'about') return <AboutDialog ceilings={ceilings} onClose={closeDialog} />;
+  if (dialog.kind === 'dialog') {
+    return (
+      <CheckDialogs
+        which={dialog.dialog}
+        snapshot={snapshot}
+        onAction={act}
+        onClose={closeDialog}
+      />
+    );
+  }
+  if (dialog.kind === 'caseSplit') {
+    const property = snapshot?.properties.find((each) => each.id === dialog.property);
+    return property === undefined ? null : (
+      <CaseSplitDialog property={property} onRun={run} onClose={closeDialog} />
+    );
+  }
   return (
-    <>
-      {form !== null && session !== null && (
-        <CommandDialog
-          spec={commandSpecs(session.state.snapshot, ceilings)[form]}
-          onRun={session.actions.command}
-          onClose={closeForm}
-        />
-      )}
-      {about && <AboutDialog ceilings={ceilings} onClose={closeAbout} />}
-    </>
+    <CommandDialog
+      spec={commandSpecs(snapshot, ceilings)[dialog.form]}
+      onRun={run}
+      onClose={closeDialog}
+    />
   );
 }

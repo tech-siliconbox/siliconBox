@@ -2,9 +2,9 @@
 
 import { type ReactNode, useState } from 'react';
 import { useDismiss } from '@/hooks/use-dismiss';
-import { cn } from '@/lib/cn';
 import type { Menu, MenuItem } from '../menus';
 import type { ToolAction } from '../tool-actions';
+import { MenuList } from './menu-list';
 
 type MenuBarProps = {
   menus: Menu[];
@@ -46,50 +46,13 @@ export function MenuBar({ menus, onAction, children }: MenuBarProps) {
             >
               {menu.label}
             </button>
-            {open === menu.label && <MenuList menu={menu} onChoose={choose} />}
+            {open === menu.label && (
+              <MenuList label={menu.label} items={menu.items} onChoose={choose} />
+            )}
           </div>
         ))}
       </div>
       <div className="ml-auto flex items-center gap-3 pr-3 text-muted-foreground">{children}</div>
-    </div>
-  );
-}
-
-function MenuList({ menu, onChoose }: { menu: Menu; onChoose: (item: MenuItem) => void }) {
-  return (
-    <div
-      role="menu"
-      aria-label={menu.label}
-      className="absolute left-0 top-full z-50 w-max min-w-60 border border-border bg-background py-1 shadow-lg"
-    >
-      {menu.items.map((item, index) =>
-        item === null ? (
-          <div key={`separator-${index}`} role="separator" className="my-1 h-px bg-border" />
-        ) : (
-          <button
-            key={item.label}
-            type="button"
-            role={item.checked === undefined ? 'menuitem' : 'menuitemcheckbox'}
-            aria-checked={item.checked}
-            disabled={!item.enabled}
-            onClick={() => onChoose(item)}
-            className={cn(
-              'group flex w-full items-center gap-2 whitespace-nowrap px-2 py-1 text-left text-[13px]',
-              'enabled:hover:bg-info enabled:hover:text-background disabled:text-muted-foreground',
-            )}
-          >
-            <span aria-hidden="true" className="w-3 text-center">
-              {item.checked === true ? '✓' : ''}
-            </span>
-            <span className="flex-1 pr-6">{item.label}</span>
-            {item.hint !== undefined && (
-              <span className="font-mono text-[11px] text-muted-foreground group-enabled:group-hover:text-background">
-                {item.hint}
-              </span>
-            )}
-          </button>
-        ),
-      )}
     </div>
   );
 }

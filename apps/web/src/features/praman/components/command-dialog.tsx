@@ -7,7 +7,7 @@ import { ToolDialog } from './tool-dialog';
 
 type CommandDialogProps = {
   spec: CommandSpec;
-  onRun: (line: string) => Promise<unknown>;
+  onRun: (line: string) => void;
   onClose: () => void;
 };
 
@@ -19,7 +19,7 @@ export function CommandDialog({ spec, onRun, onClose }: CommandDialogProps) {
       return typeof value === 'string' ? value : '';
     };
     const values = Object.fromEntries(spec.fields.map((field) => [field.name, text(field.name)]));
-    void onRun(spec.build(values));
+    onRun(spec.build(values));
     onClose();
   };
   return (
