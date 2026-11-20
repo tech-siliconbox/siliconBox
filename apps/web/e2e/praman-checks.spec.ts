@@ -1,8 +1,7 @@
 import { API_ROUTES, type ToolRunSummary, type ToolSessionSummary } from '@siliconbox/shared';
-import type { APIRequestContext, Page } from '@playwright/test';
-import { grantAccess, signInAsAdmin } from './cms/publish';
-import { expect, newLearner, signUp, test } from './helpers';
-import { WRITE, fixture, openAndWait, proveCounter, runLine } from './praman';
+import type { APIRequestContext } from '@playwright/test';
+import { expect, test } from './helpers';
+import { PROPERTY, WRITE, closeOpened, fixture, provedSession, runLine } from './praman';
 
 // Praman's deeper checks over the API (ADR 0031): what-if and quiet traces, drivers, the HTML
 // report, coverage and equivalence traces, and comparing and restoring runs. Each test proves
@@ -10,31 +9,9 @@ import { WRITE, fixture, openAndWait, proveCounter, runLine } from './praman';
 
 test.describe.configure({ mode: 'serial' });
 
-const PROPERTY = 'ap_stays_in_range';
 const CHECK_TIMEOUT = 300_000;
 
-// The solver holds a few sessions at once: each test closes (deletes) the one it opened.
-let opened: string | null = null;
-test.afterEach(async ({ page }) => {
-  if (opened !== null) await page.request.delete(API_ROUTES.toolSession(opened), WRITE);
-  opened = null;
-});
-
-/** A learner with a plan and a tool window, and an open session with the counter proved. */
-async function provedSession(page: Page) {
-  const learner = newLearner();
-  await signUp(page, learner);
-  const support = await signInAsAdmin('support');
-  await grantAccess(support, learner.email);
-  await grantAccess(support, learner.email, 'tool');
-  const request = page.request;
-  const created = await request.post(API_ROUTES.toolSessions, { ...WRITE, data: { name: 'C' } });
-  const sessionId = ((await created.json()) as ToolSessionSummary).id;
-  opened = sessionId;
-  await openAndWait(request, sessionId);
-  expect((await proveCounter(request, sessionId))[PROPERTY]).toBe('cex');
-  return { request, sessionId };
-}
+test.afterEach(async ({ page }) => closeOpened(page.request));
 
 type WhatIfResult = { verdict: string; message: string; trace: unknown };
 
@@ -47,7 +24,7 @@ async function whatIf(request: APIRequestContext, sessionId: string, body: objec
   for (let attempt = 0; response.status() === 202 && attempt < 120; attempt += 1) {
     const { requestId } = (await response.json()) as { requestId: string };
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    response = await request.get(`${API_ROUTES.toolSessionWhatIf(sessionId)}/${requestId}`);
+    response = await request.get(API_ROUTES.toolSessionWhatIfResult(sessionId, requestId));
   }
   expect(response.status()).toBe(200);
   return (await response.json()) as WhatIfResult;

@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
-import { API_ROUTES, type ToolPollView } from '@siliconbox/shared';
-import type { APIRequestContext } from '@playwright/test';
+import { API_ROUTES, type ToolPollView, type ToolSessionSummary } from '@siliconbox/shared';
+import type { APIRequestContext, Page } from '@playwright/test';
+import { grantAccess, signInAsAdmin } from './cms/publish';
 import { BASE_URL } from './base-url';
-import { expect } from './helpers';
+import { expect, newLearner, signUp } from './helpers';
 
 // Praman's sessions over the API (ADR 0031), for the specs that need a proved design. They need
 // the solver API and its session supervisor with the same SOLVER_SIGNING_KEY. The design and
@@ -78,4 +79,34 @@ export async function proveCounter(request: APIRequestContext, sessionId: string
     properties: { id: string; status: string }[];
   };
   return Object.fromEntries(snapshot.properties.map((prop) => [prop.id, prop.status]));
+}
+
+/** The counter's failing assertion. */
+export const PROPERTY = 'ap_stays_in_range';
+
+/**
+ * Deletes the signed-in learner's sessions (each test has its own learner): the solver holds a
+ * few open at once, so a test closes the ones it opened, a restored one too.
+ */
+export async function closeOpened(request: APIRequestContext) {
+  const listed = await request.get(API_ROUTES.toolSessions);
+  if (!listed.ok()) return;
+  for (const session of (await listed.json()) as ToolSessionSummary[]) {
+    await request.delete(API_ROUTES.toolSession(session.id), WRITE);
+  }
+}
+
+/** A learner with a plan and a tool window, and an open session with the counter proved. */
+export async function provedSession(page: Page) {
+  const learner = newLearner();
+  await signUp(page, learner);
+  const support = await signInAsAdmin('support');
+  await grantAccess(support, learner.email);
+  await grantAccess(support, learner.email, 'tool');
+  const request = page.request;
+  const created = await request.post(API_ROUTES.toolSessions, { ...WRITE, data: { name: 'C' } });
+  const sessionId = ((await created.json()) as ToolSessionSummary).id;
+  await openAndWait(request, sessionId);
+  expect((await proveCounter(request, sessionId))[PROPERTY]).toBe('cex');
+  return { request, sessionId };
 }
