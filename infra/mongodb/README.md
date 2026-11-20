@@ -28,9 +28,14 @@ Payload stores the `drill_private` collection as `drill_privates`; roles and che
 
 ## Working from a new network
 
-Atlas accepts only the IPs on the project's access list. On any other network (a hotspot, an
-office) every connection fails with `SSL alert number 80` / `ReplicaSetNoPrimary`; a paused
-cluster looks the same. The dev server says which at startup: one `db_connected` line per
+Dev (2026-11-20, the founder's decision): the dev project's access list allows any IP
+(`0.0.0.0/0`), because the home connection's IP changes every few days. The database users'
+passwords are then the only lock: keep them long, random and only in `.env.local`. The project
+holds `siliconbox-dev` alone; production never does this (step 5 above stands).
+
+A project that is still restricted accepts only the IPs on its access list. On any other network
+(a hotspot, an office) every connection fails with `SSL alert number 80` / `ReplicaSetNoPrimary`;
+a paused cluster looks the same. The dev server says which at startup: one `db_connected` line per
 database user (host, database, user, time taken), or `db_unreachable` with the likely cause.
 
 Fix: `pnpm db:allow-my-ip` (after `atlas auth login`). It tries the connection first and only
