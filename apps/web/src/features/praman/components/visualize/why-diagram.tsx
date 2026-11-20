@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useDrivers } from '../../hooks/use-drivers';
 import type { Drivers } from '../../praman-reports';
 import type { TraceAnalysis } from '../../trace-tools';
-import type { DriverQuery } from './why-panel';
+import type { DriverQuery } from './visualize-common';
 
 type WhyDiagramProps = {
   analysis: TraceAnalysis | undefined;

@@ -17,7 +17,7 @@ import {
   valueAt,
   xOf,
 } from '../../visualize';
-import type { BodyProps } from './visualize-body';
+import type { BodyProps } from './visualize-common';
 
 const ROW = 24;
 

@@ -1,8 +1,9 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
+import type { Reset } from '../praman-snapshot';
 import type { TraceAnalysis } from '../trace-tools';
-import { type Reset, VisualizeWindow } from './visualize/visualize-window';
+import { VisualizeWindow } from './visualize/visualize-window';
 
 /** A trace to open in Visualize: where to read it, its title, and what its tools may ask. */
 export type OpenTrace = { url: string; title: string; analysis?: TraceAnalysis };

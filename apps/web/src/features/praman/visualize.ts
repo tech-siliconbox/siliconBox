@@ -1,4 +1,5 @@
 import type { Trace } from '@siliconbox/shared';
+import type { Reset } from './praman-snapshot';
 import type { TraceDebug } from './praman-trace';
 import { ExprError, type Read, evaluate, fromBits, parse, toBits } from './trace-expr';
 
@@ -138,11 +139,7 @@ export function edgeFrom(
 }
 
 /** Per cycle, whether the reset is held (those cycles are hatched; checks are off there). */
-export function resetCycles(
-  cycles: Cycles,
-  top: string,
-  reset: { signal: string; active_low: boolean } | null,
-): boolean[] {
+export function resetCycles(cycles: Cycles, top: string, reset: Reset | null): boolean[] {
   const signal = reset === null ? undefined : cycles.byPath.get(`${top}.${reset.signal}`);
   if (signal === undefined || reset === null) return [];
   const active = reset.active_low ? '0' : '1';
@@ -290,7 +287,7 @@ export function findCycle(
 }
 
 /** A reset as a run keeps it ("!rst_n" when active low, "rst", or nothing). */
-export function resetOf(text: string): { signal: string; active_low: boolean } | null {
+export function resetOf(text: string): Reset | null {
   const reset = text.trim();
   if (reset === '' || reset.startsWith('-')) return null;
   return reset.startsWith('!')

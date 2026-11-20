@@ -6,8 +6,7 @@ import { ExprError } from '../../trace-expr';
 import { type Signal, findCycle, isInternal } from '../../visualize';
 import { Choice } from '../choice';
 import { SMALL_CONTROL } from '../small-control';
-import type { BodyProps } from './visualize-body';
-import { TOOL } from './visualize-tools';
+import { type BodyProps, TOOL } from './visualize-common';
 
 type FindProps = BodyProps & { view: View; signal: Signal | null };
 

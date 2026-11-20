@@ -1,24 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { type View, type WhatIf, useView } from '../../hooks/use-visualize';
-import type { PramanTrace } from '../../praman-trace';
-import type { TraceAnalysis } from '../../trace-tools';
+import { type View, useView } from '../../hooks/use-visualize';
 import type { Cycles, Signal } from '../../visualize';
+import type { BodyProps, DetailTab, DriverQuery } from './visualize-common';
 import { VisualizeFind } from './visualize-find';
 import { VisualizeTools } from './visualize-tools';
-import type { Reset } from './visualize-window';
 import { WaveTable } from './wave-table';
-import { type DetailTab, type DriverQuery, WhyPanel } from './why-panel';
-
-export type BodyProps = {
-  trace: PramanTrace;
-  cycles: Cycles;
-  top: string;
-  reset: Reset | null;
-  analysis?: TraceAnalysis;
-  whatIf: WhatIf;
-};
+import { WhyPanel } from './why-panel';
 
 /** The chosen row's signal, when it is one. */
 function selectedSignal(view: View, cycles: Cycles): Signal | null {

@@ -2,14 +2,10 @@
 
 import type { View } from '../../hooks/use-visualize';
 import { PanelTabs } from '../panel-tabs';
-import type { BodyProps } from './visualize-body';
+import type { BodyProps, DetailTab, DriverQuery } from './visualize-common';
 import { DriversTab } from './drivers-tab';
 import { WhyDiagram } from './why-diagram';
 import { WhyFails } from './why-fails';
-
-export type DetailTab = 'why' | 'drivers' | 'diagram';
-/** A signal at a cycle: what drove it there is what the drivers tabs show. */
-export type DriverQuery = { signal: string; cycle: number };
 
 const TABS = [
   { id: 'why', label: 'Why it fails' },

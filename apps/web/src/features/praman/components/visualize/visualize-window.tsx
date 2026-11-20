@@ -2,14 +2,13 @@
 
 import { useJson } from '../../hooks/use-json';
 import { useWhatIf } from '../../hooks/use-visualize';
+import type { Reset } from '../../praman-snapshot';
 import { type PramanTrace, readPramanTrace } from '../../praman-trace';
 import type { TraceAnalysis } from '../../trace-tools';
 import { cyclesOf } from '../../visualize';
 import { openModal } from '../tool-dialog';
 import { VisualizeBody } from './visualize-body';
 import { VisualizeHead } from './visualize-head';
-
-export type Reset = { signal: string; active_low: boolean };
 
 type VisualizeWindowProps = {
   /** Where the trace is read: a session's property, a coverage item, or a kept run's. */

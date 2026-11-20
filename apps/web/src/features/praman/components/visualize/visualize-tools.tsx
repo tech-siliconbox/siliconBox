@@ -13,10 +13,7 @@ import {
   valueAt,
 } from '../../visualize';
 import { SMALL_CONTROL } from '../small-control';
-import type { BodyProps } from './visualize-body';
-
-export const TOOL =
-  'h-7 rounded-[3px] border border-border bg-background px-2 text-[12px] enabled:hover:bg-muted disabled:text-muted-foreground';
+import { type BodyProps, TOOL } from './visualize-common';
 
 const RADIXES: readonly { value: Radix; label: string }[] = [
   { value: 'hex', label: 'Hex' },

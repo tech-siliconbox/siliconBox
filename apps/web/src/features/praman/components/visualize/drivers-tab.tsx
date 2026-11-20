@@ -3,7 +3,7 @@
 import { useDrivers } from '../../hooks/use-drivers';
 import type { TraceAnalysis } from '../../trace-tools';
 import { DriversList } from '../drivers-list';
-import type { DriverQuery } from './why-panel';
+import type { DriverQuery } from './visualize-common';
 
 type DriversTabProps = {
   analysis: TraceAnalysis | undefined;
