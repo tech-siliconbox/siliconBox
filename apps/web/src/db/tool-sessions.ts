@@ -45,7 +45,7 @@ export type ToolSessionSave = {
   newEvents: ToolEvent[];
 };
 
-const sessions = () => getDb().collection(COLLECTIONS.toolSessions);
+const sessions = () => getDb().collection<ToolSessionRecord>(COLLECTIONS.toolSessions);
 const NO_ID = { projection: { _id: 0 } };
 
 /** When data last used at `now` is removed. */
