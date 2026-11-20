@@ -40,13 +40,15 @@ test('Support traces a copied passage and a visible mark to the learner; others 
   page,
   browser,
 }) => {
+  // Support first: on an empty database the first admin becomes the Owner, who may trace too,
+  // while the editor must stay an editor to be refused below.
+  const support = await signInAsAdmin('support');
   const editor = await signInAsAdmin('editor');
   const lessonPage = await publishTraceLesson(editor);
 
   // The learner reads the paid lesson; what they could copy carries both marks.
   const learner = newLearner();
   await signUp(page, learner);
-  const support = await signInAsAdmin('support');
   await grantAccess(support, learner.email);
   await page.goto(lessonPage);
   const copied = (await page.getByText(PASSAGE.slice(9)).textContent()) ?? '';
@@ -55,9 +57,16 @@ test('Support traces a copied passage and a visible mark to the learner; others 
   // Support pastes the copied passage, then the visible mark.
   const tool = await adminPage(browser, support);
   await tool.goto(ROUTES.watermarkTrace);
+  // Each trace waits for its own answer: the learner shown after the first one would otherwise
+  // pass the check before the second trace (and its audit entry) has finished.
   for (const leak of [copied, visible]) {
     await tool.getByLabel('Leaked text or visible mark').fill(leak);
+    const answered = tool.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' && response.url().includes(ROUTES.watermarkTrace),
+    );
     await tool.getByRole('button', { name: 'Trace' }).click();
+    await answered;
     await expect(tool.getByText(learner.email)).toBeVisible();
   }
   const audited = await withAdminDb((db) =>
