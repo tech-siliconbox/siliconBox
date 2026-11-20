@@ -4,6 +4,18 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman, the rest of the tool's experience, phase 1)
+
+- **To the line:** Show Source, a hierarchy instance (double click, or its Source button), a coverage or proof-core item and a `file(line)` in the log open the file at that line, selected and marked. A result in the log chooses its property in the table.
+- **Clock and Reset:** chosen from the top module's 1-bit inputs, with the active level; filled in with the clock and reset Praman found in the design until they are declared.
+- **Run history:** a run opens as it was, in four tabs:
+  - Results: its property table, with its kept traces;
+  - Changes: since the run before;
+  - Log: its lines of the session's log;
+  - Files: its files as they were when it started.
+
+  New routes: `GET /api/v1/tool/runs/:id/log` and `GET /api/v1/tool/runs/:id/files`.
+
 ### Added (Praman's Visualize window, ADR 0031)
 
 - **Visualize:** a property's trace (or a cover or equivalence trace, or one kept in the run history) opens full screen, as in Praman.

@@ -6,7 +6,8 @@ import type { SessionActions, SessionState } from '../hooks/use-praman-session';
 import { propertyMenu } from '../menus';
 import { tclWord } from '../tcl';
 import type { CoverageItem } from '../praman-reports';
-import type { ReportTab, ToolAction } from '../tool-actions';
+import type { PramanProperty } from '../praman-snapshot';
+import type { FileLine, ReportTab, ToolAction } from '../tool-actions';
 import { CoveragePanel } from './coverage-panel';
 import { EquivalencePanel } from './equivalence-panel';
 import { HowItWorks } from './how-it-works';
@@ -51,6 +52,11 @@ type CenterPanelProps = {
   instance: string;
   /** Now, in milliseconds, for the time of properties still running. */
   now: number;
+  /** The file and line last asked for, to show when its tab is open. */
+  goto: FileLine | null;
+  /** The property chosen in the table (the log can choose one too). */
+  selected: string | null;
+  onSelectProperty: (id: string) => void;
 };
 
 /** The property table, the deeper checks' results, the files open in tabs, and the run history. */
@@ -94,6 +100,7 @@ function TabBody({ session, active, onCloseTab, onAction, ...rest }: TabBodyProp
         key={active}
         sessionId={session.id}
         name={labelOf(active)}
+        goto={rest.goto?.name === labelOf(active) ? rest.goto : null}
         onSave={session.actions.putFile}
         onClose={() => onCloseTab(active)}
       />
@@ -108,9 +115,16 @@ function TabBody({ session, active, onCloseTab, onAction, ...rest }: TabBodyProp
 
 type PanelProps = { session: Session; can: Abilities; onAction: (action: ToolAction) => void };
 
-type PropertiesProps = PanelProps & { instance: string; now: number };
+/** Choosing a task in the table runs `task -set`; '' is the design's own properties. */
+const taskLine = (task: string) => `task -set ${tclWord(task === '' ? '<embedded>' : task)}`;
 
-function Properties({ session, can, onAction, instance, now }: PropertiesProps) {
+/** A property written in a file opens there; one made in Tcl has no file to open. */
+const hasSource = (property: PramanProperty) => property.file !== '' && property.file !== 'Tcl';
+
+type PropertiesProps = PanelProps &
+  Pick<CenterPanelProps, 'instance' | 'now' | 'selected' | 'onSelectProperty'>;
+
+function Properties({ session, can, onAction, ...rest }: PropertiesProps) {
   const snapshot = session.state.snapshot;
   if (snapshot === null || snapshot.properties.length === 0) {
     return (
@@ -124,27 +138,19 @@ function Properties({ session, can, onAction, instance, now }: PropertiesProps) 
   const traceOf = (id: string) =>
     `${API_ROUTES.toolSessionTrace(session.id)}?${new URLSearchParams({ property: id })}`;
   return (
-    <TraceHost
-      top={session.state.snapshot?.top ?? ''}
-      reset={session.state.snapshot?.reset ?? null}
-    >
+    <TraceHost top={snapshot.top} reset={snapshot.reset}>
       {(open) => (
         <PropertyTable
           properties={snapshot.properties}
-          instance={instance}
-          now={now}
+          instance={rest.instance}
+          now={rest.now}
+          selected={rest.selected}
+          onSelect={rest.onSelectProperty}
           tasks={snapshot.tasks}
           task={snapshot.task}
-          onTask={(task) =>
-            onAction({
-              kind: 'command',
-              line: `task -set ${tclWord(task === '' ? '<embedded>' : task)}`,
-            })
-          }
-          onSource={(property) =>
-            property.file !== '' &&
-            property.file !== 'Tcl' &&
-            onAction({ kind: 'openFile', name: property.file })
+          onTask={(task) => onAction({ kind: 'command', line: taskLine(task) })}
+          onSource={(p) =>
+            hasSource(p) && onAction({ kind: 'openFile', name: p.file, line: p.line })
           }
           onTrace={(property) =>
             open({
@@ -193,7 +199,7 @@ function CoverageReport({ session, can, onAction }: PanelProps) {
           coverage={session.state.snapshot?.coverage ?? null}
           canRun={can.elaborated}
           onRun={(line) => onAction({ kind: 'command', line })}
-          onSource={(name) => onAction({ kind: 'openFile', name })}
+          onSource={(name, line) => onAction({ kind: 'openFile', name, line })}
           onTrace={(item) =>
             open({
               url: traceOf(item),

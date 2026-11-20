@@ -1,6 +1,13 @@
 import type { ToolEvent } from '@siliconbox/shared';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LOG_FILTER, countOf, lineText, visibleLines } from './log-view';
+import {
+  DEFAULT_LOG_FILTER,
+  countOf,
+  lineText,
+  locationOf,
+  propertyOf,
+  visibleLines,
+} from './log-view';
 
 const event = (seq: number, kind: string, text: string, extra: object = {}): ToolEvent => ({
   seq,
@@ -44,5 +51,18 @@ describe('the log view', () => {
     expect(visibleLines(LOG, DEFAULT_LOG_FILTER, '', 5).lines.map((l) => l.seq)).toEqual([6]);
     expect(countOf(LOG, 'error', 0)).toBe(1);
     expect(countOf(LOG, 'error', 5)).toBe(0);
+  });
+
+  it('reads the file and line a message points at, and the property a result is about', () => {
+    expect(locationOf(event(7, 'error', 'fifo.sv(12): unknown signal x'))).toEqual({
+      name: 'fifo.sv',
+      line: 12,
+    });
+    expect(locationOf(event(8, 'cmd', 'fifo.sv(12): not a message'))).toBeNull();
+    expect(locationOf(event(9, 'info', 'Starting proof'))).toBeNull();
+    expect(propertyOf(event(10, 'result', 'ap_full: proven', { prop: 'fifo.ap_full' }))).toBe(
+      'fifo.ap_full',
+    );
+    expect(propertyOf(event(11, 'info', 'Starting proof'))).toBeNull();
   });
 });

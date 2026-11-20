@@ -2,9 +2,6 @@
 
 import {
   API_ROUTES,
-  type ToolRunDetail,
-  ToolRunDetailSchema,
-  ToolRunDiffSchema,
   type ToolRunSummary,
   ToolRunSummarySchema,
   ToolSessionSummarySchema,
@@ -14,16 +11,12 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api-error';
 import { useJson } from '../hooks/use-json';
-import { PramanPropertySchema } from '../praman-snapshot';
-import { PROPERTY_LOOK } from '../property-status';
 import type { ToolAction } from '../tool-actions';
-import { resetOf } from '../visualize';
-import { VisualizeWindow } from './visualize/visualize-window';
+import { RunDetail } from './run-detail';
 
 const readRuns = (body: unknown) => z.array(ToolRunSummarySchema).safeParse(body).data ?? null;
-const readRun = (body: unknown) => ToolRunDetailSchema.safeParse(body).data ?? null;
 
-/** The learner's proof runs (the newest 50), each with its results and kept traces. */
+/** The learner's proof runs (the newest 50): open one to see it as it was. */
 type RunHistoryProps = { onClose: () => void; onAction: (action: ToolAction) => void };
 
 export function RunHistory({ onClose, onAction }: RunHistoryProps) {
@@ -51,7 +44,14 @@ export function RunHistory({ onClose, onAction }: RunHistoryProps) {
           <li key={run.id} className="py-2">
             <RunLine run={run} onOpen={() => setOpen(open === run.id ? null : run.id)} />
             {open === run.id && (
-              <RunResults runId={run.id} onDelete={() => void remove(run.id)} onAction={onAction} />
+              <>
+                <RunDetail runId={run.id} />
+                <RunActions
+                  runId={run.id}
+                  onDelete={() => void remove(run.id)}
+                  onAction={onAction}
+                />
+              </>
             )}
           </li>
         ))}
@@ -78,36 +78,14 @@ function RunLine({ run, onOpen }: { run: ToolRunSummary; onOpen: () => void }) {
   );
 }
 
-type RunResultsProps = {
+type RunActionsProps = {
   runId: string;
   onDelete: () => void;
   onAction: (action: ToolAction) => void;
 };
 
-function RunResults({ runId, onDelete, onAction }: RunResultsProps) {
-  const { data } = useJson(API_ROUTES.toolRun(runId), readRun);
-  const [trace, setTrace] = useState<string | null>(null);
-  if (data === null) return null;
-  return (
-    <div className="mt-2 flex flex-col gap-2">
-      <RunProperties run={data} onTrace={setTrace} />
-      {trace !== null && (
-        <VisualizeWindow
-          url={`${API_ROUTES.toolRunTrace(runId)}?property=${encodeURIComponent(trace)}`}
-          title={trace}
-          top={data.top}
-          reset={resetOf(data.reset)}
-          onClose={() => setTrace(null)}
-        />
-      )}
-      <RunActions runId={runId} onDelete={onDelete} onAction={onAction} />
-    </div>
-  );
-}
-
-/** Compare the run with the one before, restore it into a new session, or delete it. */
-function RunActions({ runId, onDelete, onAction }: RunResultsProps) {
-  const [comparing, setComparing] = useState(false);
+/** Restore the run into a new session, or delete it. */
+function RunActions({ runId, onDelete, onAction }: RunActionsProps) {
   const [problem, setProblem] = useState<string | null>(null);
   const restore = async () => {
     const response = await fetch(API_ROUTES.toolRunRestore(runId), { method: 'POST' }).catch(
@@ -122,17 +100,8 @@ function RunActions({ runId, onDelete, onAction }: RunResultsProps) {
   };
   return (
     <>
-      {comparing && <RunDiff runId={runId} />}
       {problem !== null && <p className="text-[13px] text-destructive">{problem}</p>}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={comparing}
-          onClick={() => setComparing(true)}
-        >
-          Compare With the Run Before
-        </Button>
+      <div className="mt-2 flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" onClick={() => void restore()}>
           Restore Into a New Session
         </Button>
@@ -141,60 +110,5 @@ function RunActions({ runId, onDelete, onAction }: RunResultsProps) {
         </Button>
       </div>
     </>
-  );
-}
-
-const readDiff = (body: unknown) => ToolRunDiffSchema.safeParse(body).data ?? null;
-
-/** The properties whose result changed since the session's run before, or none. */
-function RunDiff({ runId }: { runId: string }) {
-  const { data, error } = useJson(API_ROUTES.toolRunDiff(runId), readDiff);
-  if (error !== null) return <p className="text-[13px] text-destructive">{error}</p>;
-  if (data === null) return null;
-  const lines = [
-    ...data.changed.map((p) => `${p.name}: ${p.before} → ${p.after}`),
-    ...data.added.map((p) => `${p.name}: new, ${p.after}`),
-    ...data.removed.map((p) => `${p.name}: gone (was ${p.before})`),
-  ];
-  return (
-    <section
-      aria-label="Changes since the run before"
-      className="rounded-[3px] border border-border p-2 text-[12px]"
-    >
-      {lines.length === 0 ? (
-        <p>No property changed since the run before.</p>
-      ) : (
-        <ul className="font-mono">
-          {lines.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function RunProperties({ run, onTrace }: { run: ToolRunDetail; onTrace: (id: string) => void }) {
-  const properties = run.properties.flatMap(
-    (raw) => PramanPropertySchema.safeParse(raw).data ?? [],
-  );
-  return (
-    <ul className="flex flex-col gap-1 text-[12px]">
-      {properties.map((property) => (
-        <li key={property.id} className="flex items-center gap-2">
-          <span className="font-mono">{property.name}</span>
-          <span className="text-muted-foreground">{PROPERTY_LOOK[property.status].label}</span>
-          {property.has_trace && !run.tracesDropped.includes(property.id) && (
-            <button
-              type="button"
-              onClick={() => onTrace(property.id)}
-              className="font-semibold underline underline-offset-2"
-            >
-              Waveform
-            </button>
-          )}
-        </li>
-      ))}
-    </ul>
   );
 }

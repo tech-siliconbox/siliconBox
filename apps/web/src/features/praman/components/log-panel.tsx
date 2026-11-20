@@ -9,6 +9,8 @@ import {
   type LogGroup,
   countOf,
   lineText,
+  locationOf,
+  propertyOf,
   tagOf,
   visibleLines,
 } from '../log-view';
@@ -35,9 +37,17 @@ function shownCount(counted: Counted, count: number): number | null {
   return count;
 }
 
+/** What a line can open: the file and line it names, or the property it reports on. */
+type LineLinks = {
+  onLocation?: (name: string, line: number) => void;
+  onProperty?: (id: string) => void;
+};
+
+type LogPanelProps = LineLinks & { events: ToolEvent[] };
+
 /** The session's log, newest at the bottom: chips show or hide kinds of lines; Clear empties
  * the view (the session keeps its log). */
-export function LogPanel({ events }: { events: ToolEvent[] }) {
+export function LogPanel({ events, ...links }: LogPanelProps) {
   const [filter, setFilter] = useState<LogFilter>(DEFAULT_LOG_FILTER);
   const [search, setSearch] = useState('');
   const [clearedAt, setClearedAt] = useState(0);
@@ -77,7 +87,7 @@ export function LogPanel({ events }: { events: ToolEvent[] }) {
       >
         {hidden > 0 && <p className="text-muted-foreground">… {hidden} earlier lines not shown</p>}
         {lines.map((event) => (
-          <LogLine key={event.seq} event={event} />
+          <LogLine key={event.seq} event={event} {...links} />
         ))}
       </div>
     </section>
@@ -122,7 +132,7 @@ function LogTools({ events, filter, clearedAt, search, ...on }: LogToolsProps) {
   );
 }
 
-function LogLine({ event }: { event: ToolEvent }) {
+function LogLine({ event, ...links }: LineLinks & { event: ToolEvent }) {
   const tag = tagOf(event);
   return (
     <div
@@ -137,10 +147,45 @@ function LogLine({ event }: { event: ToolEvent }) {
       ) : (
         <>
           <span className={TAG_CLASS[event.kind] ?? 'text-muted-foreground'}>{tag}</span>{' '}
-          {event.text}
+          <LineText event={event} {...links} />
         </>
       )}
     </div>
+  );
+}
+
+const LINK = 'text-left underline-offset-2 hover:text-info hover:underline';
+
+/** A message's text: its file and line open the file there; a result chooses its property. */
+function LineText({ event, onLocation, onProperty }: LineLinks & { event: ToolEvent }) {
+  const where = locationOf(event);
+  const property = propertyOf(event);
+  if (where !== null && onLocation !== undefined) {
+    const place = `${where.name}(${where.line})`;
+    return (
+      <>
+        <button
+          type="button"
+          title={`Open ${where.name} at line ${where.line}`}
+          onClick={() => onLocation(where.name, where.line)}
+          className={LINK}
+        >
+          {place}
+        </button>
+        {event.text.slice(place.length)}
+      </>
+    );
+  }
+  if (property === null || onProperty === undefined) return event.text;
+  return (
+    <button
+      type="button"
+      title="Show this property in the table"
+      onClick={() => onProperty(property)}
+      className={LINK}
+    >
+      {event.text}
+    </button>
   );
 }
 

@@ -36,7 +36,8 @@ type CoveragePanelProps = {
   coverage: Coverage | null;
   canRun: boolean;
   onRun: (line: string) => void;
-  onSource: (file: string) => void;
+  /** Opens a file at a line (from 1). */
+  onSource: (file: string, line: number) => void;
   onTrace: (item: CoverageItem) => void;
 };
 
@@ -169,7 +170,7 @@ function CoverageItems({
             <Mark look={ITEM[item.status] ?? UNKNOWN} />
           </td>
           <td className="px-3 py-1">
-            <button type="button" onClick={() => onSource(item.file)} className={LINK}>
+            <button type="button" onClick={() => onSource(item.file, item.line)} className={LINK}>
               {item.file}:{item.line}
             </button>
           </td>
@@ -222,7 +223,7 @@ function ProofCore({ coverage, canRun, onRun, onSource }: ShownProps) {
               <Mark look={CORE[line.status] ?? UNKNOWN} />
             </td>
             <td className="px-3 py-1">
-              <button type="button" onClick={() => onSource(line.file)} className={LINK}>
+              <button type="button" onClick={() => onSource(line.file, line.line)} className={LINK}>
                 {line.file}:{line.line}
               </button>
             </td>

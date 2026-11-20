@@ -5,6 +5,12 @@ import { useEffect, useState } from 'react';
 
 type Loaded<T> = { url: string | null; data: T | null; error: string | null };
 
+/** Reads a file's answer, `{ text }`. */
+export function readText(body: unknown): string | null {
+  const text = (body as { text?: unknown } | null)?.text;
+  return typeof text === 'string' ? text : null;
+}
+
 /**
  * GETs `url` (nothing while it is null) and reads the answer with `read`, a function defined
  * outside the component so it stays the same between renders. `reload` asks again.

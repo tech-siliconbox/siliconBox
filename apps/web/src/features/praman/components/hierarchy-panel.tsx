@@ -14,7 +14,8 @@ type HierarchyPanelProps = {
   /** The instance whose properties the table shows ('' for all). */
   selected: string;
   onSelect: (path: string) => void;
-  onSource: (file: string) => void;
+  /** Opens the file where an instance's module is written, at that line. */
+  onSource: (file: string, line: number) => void;
   analyzed: boolean;
 };
 
@@ -86,7 +87,10 @@ type TreeRowProps = Omit<TreeItemProps, 'closed'> & { open: boolean };
 const describe = (node: TreeNode) =>
   `${node.path} (${node.module})${node.file === '' ? '' : `, ${node.file}:${node.line}`}`;
 
-/** One instance: fold it, or choose it to show only its properties in the table. */
+/**
+ * One instance: fold it, or choose it to show only its properties in the table. A double click,
+ * or the chosen row's Source button, opens where its module is written.
+ */
 function TreeRow({
   node,
   depth,
@@ -113,7 +117,7 @@ function TreeRow({
         aria-pressed={chosen}
         title={describe(node)}
         onClick={() => onSelect(chosen ? '' : node.path)}
-        onDoubleClick={() => node.file !== '' && onSource(node.file)}
+        onDoubleClick={() => node.file !== '' && onSource(node.file, node.line)}
         className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
       >
         <span
@@ -126,7 +130,23 @@ function TreeRow({
         )}
         <Rollup properties={properties} path={node.path} />
       </button>
+      {chosen && <SourceButton node={node} onSource={onSource} />}
     </div>
+  );
+}
+
+/** Opens where the chosen instance's module is written (a keyboard's double click). */
+function SourceButton({ node, onSource }: Pick<TreeRowProps, 'node' | 'onSource'>) {
+  if (node.file === '') return null;
+  return (
+    <button
+      type="button"
+      title={`Open ${node.file} at line ${node.line}`}
+      onClick={() => onSource(node.file, node.line)}
+      className="shrink-0 text-[11px] font-semibold text-info hover:underline"
+    >
+      Source
+    </button>
   );
 }
 

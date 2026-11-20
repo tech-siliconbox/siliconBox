@@ -7,7 +7,7 @@ import { useNow } from '../hooks/use-now';
 import type { SessionActions, SessionState } from '../hooks/use-praman-session';
 import { pramanMenus } from '../menus';
 import { proofProgress } from '../proof-clock';
-import type { Panel, ToolAction } from '../tool-actions';
+import type { FileLine, Panel, ToolAction } from '../tool-actions';
 import { AboutDialog } from './about-dialog';
 import { CaseSplitDialog } from './case-split-dialog';
 import { type Abilities, abilitiesOf } from '../abilities';
@@ -20,6 +20,7 @@ import {
   reportTab,
 } from './center-panel';
 import { CheckDialogs } from './check-dialogs';
+import { ClockResetDialog } from './clock-reset-dialog';
 import { CommandDialog } from './command-dialog';
 import { FilePicker } from './file-picker';
 import { LeftPanel } from './left-panel';
@@ -78,6 +79,29 @@ function useTabs(hasSession: boolean) {
   return { tabs, active, setActive, open, close };
 }
 
+type Tabs = ReturnType<typeof useTabs>;
+
+/**
+ * Where the learner's attention is: the file and line last asked for (from a property, the
+ * hierarchy, coverage or the log), the property chosen in the table, and the instance chosen in
+ * the hierarchy ('' for all).
+ */
+function useFocus(tabs: Tabs) {
+  const [goto, setGoto] = useState<FileLine | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [instance, setInstance] = useState('');
+  const openFile = (name: string, line = 0) => {
+    tabs.open(fileTab(name));
+    // A new object each time, so asking for the same line again shows it again.
+    if (line > 0) setGoto({ name, line });
+  };
+  const showProperty = (id: string) => {
+    setSelected(id);
+    tabs.setActive(PROPERTIES_TAB);
+  };
+  return { goto, openFile, selected, setSelected, showProperty, instance, setInstance };
+}
+
 /** The screen's own state: panels shown, open tabs, the dialog, and what each action does. */
 function useScreen(
   { session, onNewSession, onSessions, onOpenSession }: PramanScreenProps,
@@ -91,7 +115,7 @@ function useScreen(
   });
   const [dialog, setDialog] = useState<OpenDialog | null>(null);
   const tabs = useTabs(session !== null);
-  const [instance, setInstance] = useState('');
+  const focus = useFocus(tabs);
   const simple: Record<SimpleKind, () => void> = {
     newSession: onNewSession,
     sessions: onSessions,
@@ -112,7 +136,7 @@ function useScreen(
   const act = (action: ToolAction) => {
     if (action.kind === 'command' || action.kind === 'report') check(action);
     else if (action.kind === 'view') setShown({ ...shown, [action.panel]: !shown[action.panel] });
-    else if (action.kind === 'openFile') tabs.open(fileTab(action.name));
+    else if (action.kind === 'openFile') focus.openFile(action.name, action.line);
     else if (action.kind === 'openSession') onOpenSession(action.sessionId);
     else if (opensDialog(action)) setDialog(action);
     else simple[action.kind]();
@@ -120,8 +144,7 @@ function useScreen(
   return {
     shown,
     tabs,
-    instance,
-    setInstance,
+    focus,
     act,
     dialog,
     closeDialog: () => setDialog(null),
@@ -194,9 +217,9 @@ function Workspace({ session, screen, can, ceilings, now }: WorkspaceProps) {
       {screen.shown.left && (
         <LeftPanel
           snapshot={session?.state.snapshot ?? null}
-          instance={screen.instance}
-          onInstance={screen.setInstance}
-          onOpen={(name) => tabs.open(fileTab(name))}
+          instance={screen.focus.instance}
+          onInstance={screen.focus.setInstance}
+          onOpen={screen.focus.openFile}
           onDelete={(name) => session?.actions.deleteFile(name) ?? Promise.resolve()}
         />
       )}
@@ -209,8 +232,11 @@ function Workspace({ session, screen, can, ceilings, now }: WorkspaceProps) {
         onCloseTab={tabs.close}
         onAction={screen.act}
         ceilings={ceilings}
-        instance={screen.instance}
+        instance={screen.focus.instance}
         now={now}
+        goto={screen.focus.goto}
+        selected={screen.focus.selected}
+        onSelectProperty={screen.focus.setSelected}
       />
     </div>
   );
@@ -236,7 +262,11 @@ function Docks({ session, screen }: PartProps) {
     <>
       {screen.shown.log && (
         <div className="mx-1 mb-1 h-44 shrink-0 border border-border bg-background">
-          <LogPanel events={session?.state.events ?? []} />
+          <LogPanel
+            events={session?.state.events ?? []}
+            onLocation={screen.focus.openFile}
+            onProperty={screen.focus.showProperty}
+          />
         </div>
       )}
       {screen.shown.console && (
@@ -274,6 +304,9 @@ function Dialogs({ session, ceilings, screen }: PartProps & { ceilings: PramanCe
     return property === undefined ? null : (
       <CaseSplitDialog property={property} onRun={run} onClose={closeDialog} />
     );
+  }
+  if (dialog.form === 'setup') {
+    return <ClockResetDialog snapshot={snapshot} onRun={run} onClose={closeDialog} />;
   }
   return (
     <CommandDialog

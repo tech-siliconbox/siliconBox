@@ -11,7 +11,8 @@ type LeftPanelProps = {
   /** The instance whose properties the table shows ('' for all). */
   instance: string;
   onInstance: (path: string) => void;
-  onOpen: (name: string) => void;
+  /** Opens a file, at a line (from 1) when there is one. */
+  onOpen: (name: string, line?: number) => void;
   onDelete: (name: string) => Promise<unknown>;
 };
 

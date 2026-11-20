@@ -41,6 +41,20 @@ export function lineText(event: ToolEvent): string {
   return tag === null ? event.text : `${tag} ${event.text}`;
 }
 
+/** A message about a place in a file starts with it: "counter.sv(12): …". */
+const LOCATION = /^([\w./-]+\.\w+)\((\d+)\): /;
+
+/** The file and line a message points at, if it does (commands and output never do). */
+export function locationOf(event: ToolEvent): { name: string; line: number } | null {
+  if (event.kind === 'cmd' || event.kind === 'out') return null;
+  const [, name, line] = LOCATION.exec(event.text) ?? [];
+  return name === undefined ? null : { name, line: Number(line) };
+}
+
+/** The property a line reports on (a result), if it does. */
+export const propertyOf = (event: ToolEvent): string | null =>
+  typeof event.prop === 'string' && event.prop !== '' ? event.prop : null;
+
 /** The lines to draw: those after the last Clear, in a shown group, matching the search. */
 export function visibleLines(
   events: readonly ToolEvent[],

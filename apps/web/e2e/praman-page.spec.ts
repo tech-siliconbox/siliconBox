@@ -35,7 +35,11 @@ async function startAndProveTheExample(page: Page) {
   await page.getByLabel('Top module').fill('fifo');
   await page.getByRole('button', { name: 'Run', exact: true }).click();
   await tools.getByRole('button', { name: 'Clock / Reset' }).click();
-  await page.getByRole('button', { name: 'Run', exact: true }).click();
+  // Praman found the design's clock and reset: the dialog offers them.
+  const setup = page.getByRole('dialog', { name: 'Clock and Reset' });
+  await expect(setup.getByLabel('Clock')).toHaveValue('clk');
+  await expect(setup.getByLabel('Reset', { exact: true })).toHaveValue('rst_n');
+  await setup.getByRole('button', { name: 'Apply' }).click();
   await expect(page.getByText('Elaborated fifo')).toBeVisible();
   await tools.getByRole('button', { name: 'Prove' }).click();
 }

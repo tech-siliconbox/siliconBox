@@ -206,3 +206,7 @@ export const ToolRunDiffSchema = z.object({
   removed: z.array(PropertyNameSchema.extend({ before: z.string() })),
 });
 export type ToolRunDiff = z.infer<typeof ToolRunDiffSchema>;
+
+/** A run's log: the session's lines from its prove command to its end (none once trimmed). */
+export const ToolRunLogSchema = z.object({ events: z.array(ToolEventSchema) });
+export type ToolRunLog = z.infer<typeof ToolRunLogSchema>;

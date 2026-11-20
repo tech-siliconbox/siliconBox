@@ -185,7 +185,7 @@ export function propertyMenu(
     ),
     {
       label: 'Show Source',
-      action: { kind: 'openFile', name: property.file },
+      action: { kind: 'openFile', name: property.file, line: property.line },
       enabled: !['', 'Tcl'].includes(property.file),
     },
     null,

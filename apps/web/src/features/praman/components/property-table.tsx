@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import type { MenuItem } from '../menus';
 import type { PramanProperty } from '../praman-snapshot';
@@ -27,10 +27,14 @@ type PropertyTableProps = {
   onTask: (task: string) => void;
   /** Now, in milliseconds: the time of a property still running. */
   now: number;
+  /** The chosen row's property id; the log can choose one too. */
+  selected: string | null;
+  onSelect: (id: string) => void;
   onTrace: (property: PramanProperty) => void;
   onSource: (property: PramanProperty) => void;
-  menuOf: (property: PramanProperty) => (MenuItem | null)[];
-  onChoose: (item: MenuItem) => void;
+  /** Each row's ⋯ menu; a past run's table has none. */
+  menuOf?: (property: PramanProperty) => (MenuItem | null)[];
+  onChoose?: (item: MenuItem) => void;
 };
 
 const COLUMNS: readonly { key: SortKey; label: string }[] = [
@@ -43,7 +47,7 @@ const COLUMNS: readonly { key: SortKey; label: string }[] = [
   { key: 'source', label: 'Source' },
 ];
 
-/** The table's own state: filters and sort, the chosen row, and the folded ones. */
+/** The table's own state: filters and sort, and the folded rows. */
 function useTable(properties: PramanProperty[], instance: string) {
   const [query, setQuery] = useState<RowQuery>({
     result: 'all',
@@ -53,7 +57,6 @@ function useTable(properties: PramanProperty[], instance: string) {
     showRelated: true,
     sort: null,
   });
-  const [selected, setSelected] = useState<string | null>(null);
   const [folded, setFolded] = useState<ReadonlySet<string>>(new Set());
   const rows = propertyRows(properties, { ...query, instance }).filter(
     (row) => row.depth === 0 || !folded.has(row.property.parent),
@@ -64,16 +67,23 @@ function useTable(properties: PramanProperty[], instance: string) {
         ? new Set([...folded].filter((each) => each !== id))
         : new Set([...folded, id]),
     );
-  return { query, setQuery, selected, setSelected, folded, fold, rows };
+  return { query, setQuery, folded, fold, rows };
+}
+
+/** Keeps the chosen row in view when it is chosen from elsewhere (the log). */
+function useChosenInView(selected: string | null) {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    box.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
+  }, [selected]);
+  return box;
 }
 
 /** The elaborated design's properties, as Praman's property table: filter, sort, select, open. */
 export function PropertyTable(props: PropertyTableProps) {
-  const { properties } = props;
-  const { query, setQuery, selected, setSelected, folded, fold, rows } = useTable(
-    properties,
-    props.instance,
-  );
+  const { properties, selected } = props;
+  const { query, setQuery, folded, fold, rows } = useTable(properties, props.instance);
+  const box = useChosenInView(selected);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PropertyFilterBar
@@ -84,19 +94,19 @@ export function PropertyTable(props: PropertyTableProps) {
         task={props.task}
         onTask={props.onTask}
       />
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div ref={box} className="min-h-0 flex-1 overflow-auto">
         <table className="w-full text-left text-[13px] [&_tbody_tr:nth-child(even)]:bg-muted/40">
           <SortHead sort={query.sort} onSort={(sort) => setQuery({ ...query, sort })} />
           <tbody>
             {rows.map((row) => (
               <PropertyRow
                 key={row.property.id}
+                {...props}
                 row={row}
                 selected={selected === row.property.id}
                 folded={folded.has(row.property.id)}
-                onSelect={() => setSelected(row.property.id)}
                 onFold={() => fold(row.property.id)}
-                {...props}
+                onSelect={() => props.onSelect(row.property.id)}
               />
             ))}
           </tbody>
@@ -165,7 +175,7 @@ const typeLabel = ({ property, depth }: Row) =>
       : 'Cover (related)'
     : property.type.charAt(0).toUpperCase() + property.type.slice(1);
 
-type PropertyRowProps = PropertyTableProps & {
+type PropertyRowProps = Omit<PropertyTableProps, 'selected' | 'onSelect'> & {
   row: Row;
   selected: boolean;
   folded: boolean;
@@ -281,7 +291,9 @@ function ActionsCell({ property, onTrace, menuOf, onChoose }: ActionsCellProps) 
           Waveform
         </button>
       )}
-      <RowMenu name={property.name} items={menuOf(property)} onChoose={onChoose} />
+      {menuOf !== undefined && onChoose !== undefined && (
+        <RowMenu name={property.name} items={menuOf(property)} onChoose={onChoose} />
+      )}
     </td>
   );
 }

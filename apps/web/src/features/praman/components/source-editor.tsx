@@ -4,32 +4,31 @@ import { API_ROUTES } from '@siliconbox/shared';
 import { useState } from 'react';
 import { CodeEditor } from '@/components/shared/code-editor';
 import { Button } from '@/components/ui/button';
-import { useJson } from '../hooks/use-json';
+import { readText, useJson } from '../hooks/use-json';
 
 type SourceEditorProps = {
   sessionId: string;
   name: string;
+  /** A line to show, when the file was opened at one. */
+  goto: { line: number } | null;
   onSave: (name: string, text: string) => Promise<string | null>;
   onClose: () => void;
 };
 
-const readText = (body: unknown): string | null => {
-  const text = (body as { text?: unknown } | null)?.text;
-  return typeof text === 'string' ? text : null;
-};
-
 /** One session file in the editor; saving puts it back into the session. */
-export function SourceEditor({ sessionId, name, onSave, onClose }: SourceEditorProps) {
+export function SourceEditor({ sessionId, name, goto, onSave, onClose }: SourceEditorProps) {
   const url = `${API_ROUTES.toolSessionFiles(sessionId)}?name=${encodeURIComponent(name)}`;
   const { data, error, loading } = useJson(url, readText);
   if (loading) return <p className="p-4 text-[13px] text-muted-foreground">Opening {name}…</p>;
   if (data === null) return <p className="p-4 text-[13px] text-destructive">{error}</p>;
-  return <Draft key={name} name={name} initial={data} onSave={onSave} onClose={onClose} />;
+  return (
+    <Draft key={name} name={name} initial={data} goto={goto} onSave={onSave} onClose={onClose} />
+  );
 }
 
 type DraftProps = Omit<SourceEditorProps, 'sessionId'> & { initial: string };
 
-function Draft({ name, initial, onSave, onClose }: DraftProps) {
+function Draft({ name, initial, goto, onSave, onClose }: DraftProps) {
   const [text, setText] = useState(initial);
   const [saved, setSaved] = useState(initial);
   const save = async () => {
@@ -48,7 +47,7 @@ function Draft({ name, initial, onSave, onClose }: DraftProps) {
           Close
         </Button>
       </div>
-      <CodeEditor label={name} value={text} onChange={setText} />
+      <CodeEditor label={name} value={text} onChange={setText} goto={goto} />
     </div>
   );
 }

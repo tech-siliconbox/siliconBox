@@ -1,5 +1,5 @@
 import type { PramanCeilings } from '@siliconbox/shared';
-import type { PramanSnapshot } from './praman-snapshot';
+import type { PramanSnapshot, Port } from './praman-snapshot';
 import { tclCommand } from './tcl';
 
 /** One field of a command form; `max` caps a number at the learner's ceiling. */
@@ -19,7 +19,9 @@ export type CommandSpec = {
   build: (values: Readonly<Record<string, string>>) => string;
 };
 
+/** The menu's command forms; Clock and Reset has a dialog of its own. */
 export type CommandKind = 'elaborate' | 'setup' | 'limits';
+type SpecKind = Exclude<CommandKind, 'setup'>;
 
 const minutes = (seconds: number) => String(Math.max(1, Math.round(seconds / 60)));
 
@@ -31,30 +33,29 @@ function elaborateSpec(snapshot: PramanSnapshot | null): CommandSpec {
   };
 }
 
-/** The reset as the form shows it: Praman's null is "not declared yet", an empty signal "none". */
-function resetText(reset: PramanSnapshot['reset'] | undefined): string {
-  if (reset === undefined || reset === null) return '!rst_n';
-  return reset.signal === '' ? '' : `${reset.active_low ? '!' : ''}${reset.signal}`;
+/** The Clock and Reset dialog's choices: the clock, the reset signal and whether it is low. */
+export type ClockReset = { clock: string; reset: string; low: boolean };
+
+/** The 1-bit inputs of the top module: what can be a clock or a reset. */
+export const bitInputs = (ports: readonly Port[]) =>
+  ports.filter((port) => port.direction === 'input' && port.width === 1).map((port) => port.name);
+
+/** What the dialog shows first: the declared clock and reset, else what Praman found. */
+export function clockResetDefaults(snapshot: PramanSnapshot | null): ClockReset {
+  if (snapshot === null) return { clock: '', reset: '', low: true };
+  const { detected, reset } = snapshot;
+  const inputs = bitInputs(snapshot.ports);
+  const clock = snapshot.clock ?? detected.clocks.find((name) => inputs.includes(name)) ?? '';
+  return reset === null
+    ? { clock, reset: detected.signal, low: detected.active_low ?? true }
+    : { clock, reset: reset.signal, low: reset.active_low };
 }
 
-function setupSpec(snapshot: PramanSnapshot | null): CommandSpec {
-  return {
-    title: 'Clock and reset',
-    fields: [
-      { name: 'clock', label: 'Clock', defaultValue: snapshot?.clock ?? 'clk', type: 'text' },
-      {
-        name: 'reset',
-        label: 'Reset',
-        defaultValue: resetText(snapshot?.reset),
-        type: 'text',
-        hint: 'An expression such as !rst_n; leave it empty for a design without reset.',
-      },
-    ],
-    build: ({ clock = '', reset = '' }) => {
-      const resetLine = reset.trim() === '' ? 'reset -none' : tclCommand('reset', reset.trim());
-      return `${tclCommand('clock', clock.trim())}; ${resetLine}`;
-    },
-  };
+/** The Tcl the dialog runs: `clock` and `reset`, or -none for either. */
+export function clockResetLine({ clock, reset, low }: ClockReset): string {
+  const clockLine = clock === '' ? 'clock -none' : tclCommand('clock', clock);
+  const resetLine = reset === '' ? 'reset -none' : tclCommand('reset', `${low ? '!' : ''}${reset}`);
+  return `${clockLine}; ${resetLine}`;
 }
 
 function limitsSpec(snapshot: PramanSnapshot | null, ceilings: PramanCeilings): CommandSpec {
@@ -89,10 +90,9 @@ function limitsSpec(snapshot: PramanSnapshot | null, ceilings: PramanCeilings): 
 export function commandSpecs(
   snapshot: PramanSnapshot | null,
   ceilings: PramanCeilings,
-): Record<CommandKind, CommandSpec> {
+): Record<SpecKind, CommandSpec> {
   return {
     elaborate: elaborateSpec(snapshot),
-    setup: setupSpec(snapshot),
     limits: limitsSpec(snapshot, ceilings),
   };
 }
