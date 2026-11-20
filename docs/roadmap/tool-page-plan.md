@@ -123,7 +123,7 @@ Browser ──commands, poll──▶ web app /api/v1/tool/… (four gates)
 | 4 | Daily allowance | **Proof minutes per day per level** (Basic 60, Intermediate 120, Advance 240), counted from real solver time and separate from Drill runs. **One open session** per learner. |
 | 5 | Saved work | **Keep sessions and run history** per learner, as signed-in Praman does, for 180 days, included in data export and delete. Caps: 20 sessions, the last 50 runs, 1 MB of files per session, 2 MB per trace. Free Atlas holds 512 MB in all, another reason for M10 at launch. |
 | 6 | Scope | **The whole Praman tool**, in two releases: core first, then the deeper checks. Not included: the Formal Agent (AI), Certifaiger certified proofs, sharing sessions between learners. |
-| 7 | Name and address | The tool keeps the name **Praman** (page title and inside the tool, as on formal-verify). Page `/tool`, header link **"Formal Tool"**. |
+| 7 | Name and address | The tool keeps the name **Praman** (page title and inside the tool, as on formal-verify). Page `/tool`, header link **"Formal Tool"** (since 2026-11-20 Praman's own mark and name; ADR 0031 notes). |
 | 8 | Phones | Computers and tablets; phones get a short "open this on a computer" note |
 | 9 | Drills' engine | Drills **stay on today's pipeline**. Moving them to the new front end is a later ADR, with the publish gate run again on every Drill. |
 

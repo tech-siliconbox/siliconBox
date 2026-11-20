@@ -212,3 +212,7 @@ Details are in `docs/roadmap/tool-page-plan.md`, section 7.
 - 2026-11-20 (PR 2): a closed session reopens from its last save (files, analysed sources, the
   elaborated design and results), the way Praman restores a session after a restart, not by
   replaying its journal. Tcl variables are not kept. The journal stays the session's script.
+- 2026-11-20 (founder): the tool page is laid out like formal-verify's Praman, in SiliconBox's
+  theme, and the header link carries Praman's own mark and name (the blue P and "Praman")
+  instead of the words "Formal Tool". The page opens on "How Praman Works" for a learner without
+  a session.
