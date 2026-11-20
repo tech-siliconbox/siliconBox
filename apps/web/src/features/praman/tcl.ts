@@ -8,3 +8,6 @@ export function tclWord(word: string): string {
 
 /** A Tcl command from its words. */
 export const tclCommand = (...words: string[]): string => words.map(tclWord).join(' ');
+
+/** A Tcl list as one word: `{a.sv {my b.sv}}`. */
+export const tclList = (words: readonly string[]): string => tclWord(words.map(tclWord).join(' '));

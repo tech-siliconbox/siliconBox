@@ -64,6 +64,8 @@ export const API_ROUTES = {
   toolSessionScript: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/script`,
   toolSessionExample: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/example`,
   toolSessionWhatIf: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/what-if`,
+  toolSessionWhatIfResult: (sessionId: string, requestId: string) =>
+    `/api/v1/tool/sessions/${sessionId}/what-if/${requestId}`,
   toolSessionDrivers: (sessionId: string) => `/api/v1/tool/sessions/${sessionId}/drivers`,
   toolSessionCoverageTrace: (sessionId: string) =>
     `/api/v1/tool/sessions/${sessionId}/coverage-trace`,

@@ -1,5 +1,7 @@
 import { type Abilities, SESSION_SCRIPT } from './abilities';
-import type { Panel, ToolAction } from './tool-actions';
+import type { PramanProperty } from './praman-snapshot';
+import { tclWord } from './tcl';
+import type { CheckDialog, Panel, ReportTab, ToolAction } from './tool-actions';
 
 export type MenuItem = {
   label: string;
@@ -19,6 +21,22 @@ const command = (label: string, line: string, enabled: boolean): MenuItem => ({
   action: { kind: 'command', line },
   enabled,
   hint: line,
+});
+
+/** Runs a check and shows its result panel. */
+const report = (label: string, tab: ReportTab, line: string, enabled: boolean): MenuItem => ({
+  label,
+  action: { kind: 'report', tab, line },
+  enabled,
+  hint: line,
+});
+
+/** Opens a check's dialog, which builds its command. */
+const dialog = (label: string, which: CheckDialog, hint: string, enabled: boolean): MenuItem => ({
+  label,
+  action: { kind: 'dialog', dialog: which },
+  enabled,
+  hint,
 });
 
 function fileMenu(can: Abilities): Menu {
@@ -82,6 +100,10 @@ function proveMenu(can: Abilities): Menu {
       command('Check Dead Ends', 'check_assumptions -dead_end', can.elaborated),
       command('Check Reset', 'check_reset', can.elaborated),
       null,
+      dialog('Load Connectivity…', 'connectivity', 'check_conn', can.elaborated),
+      dialog('New Task…', 'task', 'task -create', can.elaborated),
+      dialog('Abstract a Register…', 'abstract', 'abstract', can.elaborated),
+      null,
       { label: 'Proof Limits…', action: { kind: 'form', form: 'limits' }, enabled: can.open },
     ],
   };
@@ -94,6 +116,12 @@ function reportsMenu(can: Abilities): Menu {
       command('Summary', 'report', can.elaborated),
       command('Design Information', 'get_design_info', can.elaborated),
       null,
+      report('Assertion Strength', 'strength', 'check_strength', can.elaborated),
+      report('Formal Coverage', 'coverage', 'check_cov', can.elaborated),
+      report('Proof Core', 'coverage', 'check_cov -type proof', can.elaborated),
+      dialog('Equivalence Check…', 'equivalence', 'check_equivalence', can.elaborated),
+      null,
+      { label: 'Download Report', action: { kind: 'downloadReport' }, enabled: can.proved },
       { label: 'Run History…', action: { kind: 'history' }, enabled: true },
     ],
   };
@@ -123,5 +151,59 @@ export function pramanMenus(can: Abilities, shown: Readonly<Record<Panel, boolea
         { label: 'About Praman', action: { kind: 'about' }, enabled: true },
       ],
     },
+  ];
+}
+
+const provable = (p: PramanProperty, can: Abilities) =>
+  can.elaborated && p.supported && (p.type === 'assert' || p.type === 'cover');
+
+/** A proven assertion or an unreachable cover: the assumptions it needs can be found. */
+const decided = (p: PramanProperty) =>
+  p.type === 'assert' ? p.status === 'proven' : p.type === 'cover' && p.status === 'unreachable';
+
+/** The table's own properties (not related covers or cases) can be disabled or split. */
+const shapeable = (p: PramanProperty, can: Abilities) =>
+  can.elaborated && p.supported && p.parent === '';
+
+/** The menu of one row of the property table: prove it alone, and shape how it is proven. */
+export function propertyMenu(
+  property: PramanProperty,
+  properties: readonly PramanProperty[],
+  can: Abilities,
+): (MenuItem | null)[] {
+  const name = tclWord(property.name.split(':')[0] ?? property.name);
+  const ownOrCase = property.parent === '' || property.related === 'case';
+  const split = properties.some((p) => p.parent === property.id && p.related === 'case');
+  const toggle = property.disabled ? '-enable' : '-disable';
+  return [
+    command('Prove Property', `prove -property ${name}`, provable(property, can)),
+    command(
+      'Needed Assumptions',
+      `get_needed_assumptions -property ${name}`,
+      can.elaborated && decided(property) && ownOrCase,
+    ),
+    {
+      label: 'Show Source',
+      action: { kind: 'openFile', name: property.file },
+      enabled: !['', 'Tcl'].includes(property.file),
+    },
+    null,
+    command(
+      property.disabled ? 'Enable' : 'Disable',
+      `${property.type} ${toggle} ${name}`,
+      shapeable(property, can),
+    ),
+    command(
+      'Remove',
+      `${property.type} -remove ${name}`,
+      shapeable(property, can) && property.file === 'Tcl',
+    ),
+    null,
+    {
+      label: 'Case Split…',
+      action: { kind: 'caseSplit', property: property.id },
+      enabled: shapeable(property, can) && property.type === 'assert',
+    },
+    command('Remove Case Split', `case_split -property ${name} -clear`, can.elaborated && split),
   ];
 }
