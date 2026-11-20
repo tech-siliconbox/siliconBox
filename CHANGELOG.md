@@ -4,6 +4,13 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (Praman, the formal tool page: the page, ADR 0031)
+
+- `/tool`, with "Formal Tool" in the header: Praman in the site's design. Pick, start, rename or delete a session. Load the example FIFO or add your own files; analyze, elaborate, set clock and reset and the limits (within your level's ceilings); prove and stop; read the property table, open a property's waveform with Praman's account of it, edit a file, type Tcl in the console, download the session's script and browse the run history with its kept traces.
+- Without a plan and a tool window the page shows a locked card with "See pricing"; on a phone it asks for a larger screen.
+- `CodeEditor` and `WaveformView` are now shared components (`components/shared`), used by Drills and Praman.
+- API: `GET /api/v1/tool/sessions/:id/files?name=` (a file's text) and `POST /api/v1/tool/sessions/:id/example` (the example design, added on the server).
+
 ### Added (Praman, the formal tool page: the web app's data and API, ADR 0031)
 
 - `/api/v1/tool` routes for a learner's Praman sessions (list, create, rename, delete, open, poll, commands, stop, files, trace, script) and runs (list, read, delete, trace), each through the four gates. They need a tool window and a plan (`praman` access); the learner's highest active level sets the ceilings sent with every call.

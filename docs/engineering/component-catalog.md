@@ -88,6 +88,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | InlineCourseHtml | A short piece of the author's markup inside a line (a question, an option, a rubric line), sanitised (`components/lesson/course-html.tsx`) | Built |
 | drills: DrillWorkspace, RunOutput | Drill page right side: file tabs (design read-only, properties editable), Run, queue position, per-property results, traces as waveforms | Built |
 | drills: useDrillRun, useDrillDraft | Start a run and poll it (1 s, 2 s, 5 s, `RUN_POLL_DELAYS_MS`); keep the learner's draft in this browser | Built |
+| praman: PramanWorkbench, SessionView, ToolBar, FilesPanel, HierarchyPanel, PropertyTable, SourceEditor, LogPanel, CommandForm, TracePanel, RunHistory, PramanLocked | The tool page (`/tool`, ADR 0031): sessions, menu actions as buttons, files and hierarchy, the property table, a file in the editor, the log with the Tcl console, the limits forms, a property's waveform and the run history; the locked card without access | Built |
+| praman: usePramanSession, useJson, commandSpecs, readPramanTrace, tclCommand | Open a session (waiting in line), poll it and send commands; GET JSON for a panel; the menu's command forms with the learner's ceilings; Praman's trace payload as a `Trace`; Tcl words for a command line | Built |
 | questions: QuestionCard, QuestionSearch, questionsHref | Public question bank list, GET search form, filter links | Built |
 | progress: MarkDoneButton | Marks a lesson done or not done | Built |
 | industry-ready: ServiceCard | Open or locked service card, equal heights in a row; links only to built services. The page groups them as Open now and Coming soon, in columns that leave no card alone | Built |
