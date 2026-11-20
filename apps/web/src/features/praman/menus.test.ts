@@ -30,7 +30,7 @@ describe('pramanMenus', () => {
       .filter((item) => item?.enabled === true && item.action.kind !== 'view')
       .map((item) => item?.label);
     expect(new Set(enabled)).toEqual(
-      new Set(['New Session', 'Sessions…', 'Run History…', 'About Praman']),
+      new Set(['New Session', 'Sessions…', 'Run History…', 'How Praman Works', 'About Praman']),
     );
   });
 

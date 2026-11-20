@@ -3,13 +3,22 @@
 import { API_ROUTES, type PramanCeilings } from '@siliconbox/shared';
 import { useRef, useState } from 'react';
 import { commandSpecs } from '../command-specs';
+import { useNow } from '../hooks/use-now';
 import type { SessionActions, SessionState } from '../hooks/use-praman-session';
 import { pramanMenus } from '../menus';
+import { proofProgress } from '../proof-clock';
 import type { Panel, ToolAction } from '../tool-actions';
 import { AboutDialog } from './about-dialog';
 import { CaseSplitDialog } from './case-split-dialog';
 import { type Abilities, abilitiesOf } from '../abilities';
-import { CenterPanel, HISTORY_TAB, PROPERTIES_TAB, fileTab, reportTab } from './center-panel';
+import {
+  CenterPanel,
+  GUIDE_TAB,
+  HISTORY_TAB,
+  PROPERTIES_TAB,
+  fileTab,
+  reportTab,
+} from './center-panel';
 import { CheckDialogs } from './check-dialogs';
 import { CommandDialog } from './command-dialog';
 import { FilePicker } from './file-picker';
@@ -51,10 +60,13 @@ type SimpleKind = Exclude<
   'command' | 'report' | 'view' | 'openFile' | 'openSession' | 'form' | 'dialog' | 'caseSplit'
 >;
 
-/** Tabs open after the property table: files and the run history. */
-function useTabs() {
-  const [tabs, setTabs] = useState<string[]>([]);
-  const [active, setActive] = useState<string>(PROPERTIES_TAB);
+/**
+ * Tabs open after the property table: how Praman works, files, results and the run history. The
+ * guide is open from the start, and shown first to a learner without a session.
+ */
+function useTabs(hasSession: boolean) {
+  const [tabs, setTabs] = useState<string[]>([GUIDE_TAB]);
+  const [active, setActive] = useState<string>(hasSession ? PROPERTIES_TAB : GUIDE_TAB);
   const open = (tab: string) => {
     if (!tabs.includes(tab)) setTabs([...tabs, tab]);
     setActive(tab);
@@ -78,7 +90,8 @@ function useScreen(
     console: true,
   });
   const [dialog, setDialog] = useState<OpenDialog | null>(null);
-  const tabs = useTabs();
+  const tabs = useTabs(session !== null);
+  const [instance, setInstance] = useState('');
   const simple: Record<SimpleKind, () => void> = {
     newSession: onNewSession,
     sessions: onSessions,
@@ -89,6 +102,7 @@ function useScreen(
       session && window.location.assign(API_ROUTES.toolSessionReport(session.id)),
     stop: () => void actions?.stop(),
     history: () => tabs.open(HISTORY_TAB),
+    guide: () => tabs.open(GUIDE_TAB),
     about: () => setDialog({ kind: 'about' }),
   };
   const check = (action: Extract<ToolAction, { kind: 'command' | 'report' }>) => {
@@ -103,7 +117,16 @@ function useScreen(
     else if (opensDialog(action)) setDialog(action);
     else simple[action.kind]();
   };
-  return { shown, tabs, act, dialog, closeDialog: () => setDialog(null), openPicker };
+  return {
+    shown,
+    tabs,
+    instance,
+    setInstance,
+    act,
+    dialog,
+    closeDialog: () => setDialog(null),
+    openPicker,
+  };
 }
 
 type Screen = ReturnType<typeof useScreen>;
@@ -115,22 +138,14 @@ export function PramanScreen(props: PramanScreenProps) {
   const picker = useRef<HTMLInputElement>(null);
   const screen = useScreen(props, () => picker.current?.click());
   const can = abilitiesOf(state);
-  const problem = notice ?? state?.error ?? null;
+  const now = useNow(state?.proofRunning === true);
   const addFiles = async (files: { name: string; text: string }[]) => {
     for (const file of files) await session?.actions.putFile(file.name, file.text);
   };
   return (
     <div className="flex h-full min-h-0 flex-col border border-border bg-muted text-[13px]">
-      <MenuBar menus={pramanMenus(can, screen.shown)} onAction={screen.act}>
-        <SessionStatus state={state} name={session?.name ?? ''} />
-      </MenuBar>
-      <ToolBar can={can} onAction={screen.act} />
-      {problem !== null && (
-        <p role="alert" className="border-b border-border bg-background px-3 py-1.5 text-danger">
-          {problem}
-        </p>
-      )}
-      <Workspace session={session} screen={screen} can={can} />
+      <Bars session={session} screen={screen} can={can} notice={notice} now={now} />
+      <Workspace session={session} screen={screen} can={can} ceilings={ceilings} now={now} />
       <Docks session={session} screen={screen} />
       <StatusBar state={state} />
       <FilePicker ref={picker} onAdd={addFiles} />
@@ -141,13 +156,46 @@ export function PramanScreen(props: PramanScreenProps) {
 
 type PartProps = { session: ScreenSession | null; screen: Screen };
 
-function Workspace({ session, screen, can }: PartProps & { can: Abilities }) {
+function Problem({ text }: { text: string | null }) {
+  if (text === null) return null;
+  return (
+    <p role="alert" className="border-b border-border bg-background px-3 py-1.5 text-danger">
+      {text}
+    </p>
+  );
+}
+
+type BarsProps = PartProps & { can: Abilities; notice: string | null; now: number };
+
+/** The menu bar, the toolbar with the proof's clock, and a problem to show under them. */
+function Bars({ session, screen, can, notice, now }: BarsProps) {
+  const state = session?.state ?? null;
+  return (
+    <>
+      <MenuBar menus={pramanMenus(can, screen.shown)} onAction={screen.act}>
+        <SessionStatus state={state} name={session?.name ?? ''} />
+      </MenuBar>
+      <ToolBar
+        can={can}
+        onAction={screen.act}
+        progress={proofProgress(state?.snapshot ?? null, now)}
+      />
+      <Problem text={notice ?? state?.error ?? null} />
+    </>
+  );
+}
+
+type WorkspaceProps = PartProps & { can: Abilities; ceilings: PramanCeilings; now: number };
+
+function Workspace({ session, screen, can, ceilings, now }: WorkspaceProps) {
   const { tabs } = screen;
   return (
     <div className="flex min-h-0 flex-1 gap-1 p-1">
       {screen.shown.left && (
         <LeftPanel
           snapshot={session?.state.snapshot ?? null}
+          instance={screen.instance}
+          onInstance={screen.setInstance}
           onOpen={(name) => tabs.open(fileTab(name))}
           onDelete={(name) => session?.actions.deleteFile(name) ?? Promise.resolve()}
         />
@@ -160,6 +208,9 @@ function Workspace({ session, screen, can }: PartProps & { can: Abilities }) {
         onSelect={tabs.setActive}
         onCloseTab={tabs.close}
         onAction={screen.act}
+        ceilings={ceilings}
+        instance={screen.instance}
+        now={now}
       />
     </div>
   );

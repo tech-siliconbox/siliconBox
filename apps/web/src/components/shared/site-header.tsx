@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BrandMark } from './brand-mark';
 import { NAV_LINKS } from './nav-links';
+import { PramanMark } from './praman-mark';
 import { SiteLink } from '@/components/ui/site-link';
 
 export function SiteHeader({ actions }: { actions: ReactNode }) {
@@ -15,8 +16,12 @@ export function SiteHeader({ actions }: { actions: ReactNode }) {
           <ul className="hidden items-center gap-5 sm:flex">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                <SiteLink href={link.href} className="text-sm text-link-idle hover:text-link-hover">
-                  {link.label}
+                <SiteLink
+                  href={link.href}
+                  title={'brand' in link ? 'Praman, the formal tool' : undefined}
+                  className="text-sm text-link-idle hover:text-link-hover"
+                >
+                  {'brand' in link ? <PramanMark /> : link.label}
                 </SiteLink>
               </li>
             ))}

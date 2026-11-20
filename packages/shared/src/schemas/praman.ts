@@ -27,6 +27,9 @@ export const TOOL_RUNS_KEPT = 50;
 export const TOOL_FILES_MAX_BYTES = 1024 * 1024;
 /** A longer trace is not kept; its run keeps its results. */
 export const TOOL_TRACE_MAX_BYTES = 2 * 1024 * 1024;
+/** An open session with no command (and no proof) for this long closes (the solver's
+ * PRAMAN_IDLE_SECONDS); it opens again from its last save. */
+export const TOOL_IDLE_MINUTES = 15;
 /** A session and its runs are deleted this long after the session was last used. */
 export const TOOL_RETENTION_DAYS = 180;
 /** One console line; longer scripts go in a file and are sourced. */

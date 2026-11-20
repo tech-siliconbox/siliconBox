@@ -1,13 +1,15 @@
 'use client';
 
-import { API_ROUTES } from '@siliconbox/shared';
+import { API_ROUTES, type PramanCeilings } from '@siliconbox/shared';
 import type { Abilities } from '../abilities';
 import type { SessionActions, SessionState } from '../hooks/use-praman-session';
 import { propertyMenu } from '../menus';
+import { tclWord } from '../tcl';
 import type { CoverageItem } from '../praman-reports';
 import type { ReportTab, ToolAction } from '../tool-actions';
 import { CoveragePanel } from './coverage-panel';
 import { EquivalencePanel } from './equivalence-panel';
+import { HowItWorks } from './how-it-works';
 import { PanelTabs } from './panel-tabs';
 import { PropertyTable } from './property-table';
 import { RunHistory } from './run-history';
@@ -19,6 +21,7 @@ import { DesignGuide, NoSessionGuide } from './welcome';
 /** The centre's tabs: the property table always, then results, open files and the run history. */
 export const PROPERTIES_TAB = 'properties';
 export const HISTORY_TAB = 'history';
+export const GUIDE_TAB = 'guide';
 export const fileTab = (name: string) => `file:${name}`;
 export const reportTab = (tab: ReportTab) => `report:${tab}`;
 const REPORT_TABS: readonly ReportTab[] = ['strength', 'coverage', 'equivalence'];
@@ -28,6 +31,7 @@ const REPORT_LABEL: Readonly<Record<string, string>> = {
   [reportTab('coverage')]: 'Coverage',
   [reportTab('equivalence')]: 'Equivalence',
   [HISTORY_TAB]: 'Run History',
+  [GUIDE_TAB]: 'How Praman Works',
 };
 const labelOf = (tab: string) => REPORT_LABEL[tab] ?? tab.slice('file:'.length);
 
@@ -42,6 +46,11 @@ type CenterPanelProps = {
   onSelect: (tab: string) => void;
   onCloseTab: (tab: string) => void;
   onAction: (action: ToolAction) => void;
+  ceilings: PramanCeilings;
+  /** The instance chosen in the hierarchy ('' for all). */
+  instance: string;
+  /** Now, in milliseconds, for the time of properties still running. */
+  now: number;
 };
 
 /** The property table, the deeper checks' results, the files open in tabs, and the run history. */
@@ -68,7 +77,13 @@ export function CenterPanel({ tabs, active, onSelect, onCloseTab, ...rest }: Cen
 
 type TabBodyProps = Omit<CenterPanelProps, 'tabs' | 'onSelect'>;
 
-function TabBody({ session, active, onCloseTab, onAction, can }: TabBodyProps) {
+function TabBody({ session, active, onCloseTab, onAction, ...rest }: TabBodyProps) {
+  if (active === GUIDE_TAB) {
+    const start = () => onAction({ kind: 'newSession' });
+    return (
+      <HowItWorks ceilings={rest.ceilings} {...(session === null ? { onNewSession: start } : {})} />
+    );
+  }
   if (active === HISTORY_TAB) {
     return <RunHistory onClose={() => onCloseTab(HISTORY_TAB)} onAction={onAction} />;
   }
@@ -86,14 +101,16 @@ function TabBody({ session, active, onCloseTab, onAction, can }: TabBodyProps) {
   }
   const report = REPORT_TABS.find((tab) => reportTab(tab) === active);
   if (report !== undefined) {
-    return <Report tab={report} session={session} can={can} onAction={onAction} />;
+    return <Report tab={report} session={session} can={rest.can} onAction={onAction} />;
   }
-  return <Properties session={session} can={can} onAction={onAction} />;
+  return <Properties session={session} onAction={onAction} {...rest} />;
 }
 
 type PanelProps = { session: Session; can: Abilities; onAction: (action: ToolAction) => void };
 
-function Properties({ session, can, onAction }: PanelProps) {
+type PropertiesProps = PanelProps & { instance: string; now: number };
+
+function Properties({ session, can, onAction, instance, now }: PropertiesProps) {
   const snapshot = session.state.snapshot;
   if (snapshot === null || snapshot.properties.length === 0) {
     return (
@@ -111,6 +128,21 @@ function Properties({ session, can, onAction }: PanelProps) {
       {(open) => (
         <PropertyTable
           properties={snapshot.properties}
+          instance={instance}
+          now={now}
+          tasks={snapshot.tasks}
+          task={snapshot.task}
+          onTask={(task) =>
+            onAction({
+              kind: 'command',
+              line: `task -set ${tclWord(task === '' ? '<embedded>' : task)}`,
+            })
+          }
+          onSource={(property) =>
+            property.file !== '' &&
+            property.file !== 'Tcl' &&
+            onAction({ kind: 'openFile', name: property.file })
+          }
           onTrace={(property) =>
             open({
               url: traceOf(property.id),

@@ -148,6 +148,7 @@ export function pramanMenus(can: Abilities, shown: Readonly<Record<Panel, boolea
       label: 'Help',
       items: [
         command('Commands', 'help', can.open),
+        { label: 'How Praman Works', action: { kind: 'guide' }, enabled: true },
         { label: 'About Praman', action: { kind: 'about' }, enabled: true },
       ],
     },

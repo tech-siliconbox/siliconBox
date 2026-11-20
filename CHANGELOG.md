@@ -4,6 +4,20 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Changed (Praman works like the tool, ADR 0031)
+
+- **Header:** the tool's link shows Praman's own mark (the blue P and "Praman").
+- **How Praman Works:** a guide tab covering the flow button by button, reading the results (with the status icons), debugging, the deeper checks, the console and the learner's own limits. It opens first for a learner without a session; Help reopens it.
+- **Property table:**
+  - a filter bar: name, type, All / Failing / Undetermined / Passing / Not run with counts, Related covers, and the task;
+  - status icons, sortable columns (Type, Name, Engine, Bound with "Infinite" for full proofs, Time, Source);
+  - related covers folded under their assertion;
+  - row selection, double-click to open the trace or source;
+  - a footer with Total, Shown, Selected and the results by kind.
+- **Design Hierarchy:** each instance shows its property count and worst result; choosing one shows only its properties in the table.
+- **Files tab:** shows a count, and each file is marked analyzed or shows its line count.
+- **Toolbar:** shows the proof's clock against its limit and how many properties are decided.
+
 ### Added (Praman: load test and launch readiness, ADR 0031)
 
 - `apps/web/loadtest/praman-sessions.js`: a k6 load test of Praman sessions. Each learner signs in, waits in line, loads the example, proves it and polls; it records the time in line, the proof time and p95 route times. `pnpm --filter @siliconbox/web loadtest:seed` makes its invented learners on a local database only.

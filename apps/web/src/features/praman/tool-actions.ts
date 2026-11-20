@@ -29,4 +29,6 @@ export type ToolAction =
   | { kind: 'stop' }
   | { kind: 'history' }
   | { kind: 'view'; panel: Panel }
-  | { kind: 'about' };
+  | { kind: 'about' }
+  /** Shows how Praman works and how to use it. */
+  | { kind: 'guide' };

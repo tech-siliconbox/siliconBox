@@ -61,6 +61,11 @@ export const PramanPropertySchema = z.object({
   disabled: z.boolean().default(false),
   /** The task it is in; '' for the design's own properties. */
   task: z.string().default(''),
+  /** While it runs: when its engines took it up (server time), and what they are doing. */
+  started_at: z.number().nullable().default(null),
+  activity: z.string().default(''),
+  /** A case of a split: its expression. */
+  expr: z.string().default(''),
 });
 export type PramanProperty = z.infer<typeof PramanPropertySchema>;
 
@@ -97,5 +102,8 @@ export const PramanSnapshotSchema = z.object({
   coverage: CoverageSchema.nullable().catch(null),
   equivalence: EquivalenceSchema.nullable().catch(null),
   abstracts: z.array(z.object({ signal: z.string(), kind: z.string() })).catch([]),
+  /** Tasks made with task -create, and the current one ('' for the design's own properties). */
+  tasks: z.array(z.string()).catch([]),
+  task: z.string().catch(''),
 });
 export type PramanSnapshot = z.infer<typeof PramanSnapshotSchema>;
