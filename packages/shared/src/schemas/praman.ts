@@ -97,6 +97,12 @@ export const ToolWhatIfSchema = z.strictObject({
   quiet: z.boolean().default(false),
 });
 
+/** Params of `GET /api/v1/tool/sessions/:id/what-if/:requestId`: a what-if still proving. */
+export const ToolWhatIfParamsSchema = z.strictObject({
+  id: z.uuid(),
+  requestId: z.string().regex(/^[0-9a-f]{32}$/),
+});
+
 /** Query of `GET /api/v1/tool/sessions/:id/drivers`: what set a signal at a cycle of a trace. */
 export const ToolDriversQuerySchema = z.strictObject({
   property: NameSchema,

@@ -5,7 +5,12 @@ import { type ToolSessionRecord, findToolSession } from '@/db/tool-sessions';
 import type { Identity } from '../auth/authenticate';
 import { assertPraman } from '../entitlements';
 import { AppError } from '../errors';
-import { sendSolverRequest } from '../solver-client';
+import {
+  type SolverReply,
+  readSolverReply,
+  sendSolverRequest,
+  startSolverRequest,
+} from '../solver-client';
 import { secondsLeft } from './allowance';
 
 /**
@@ -60,7 +65,16 @@ const HOST_ERRORS: Readonly<Record<number, ErrorCode>> = {
   423: 'TOOL_PROOF_RUNNING',
 };
 
-/** Sends a request to the open session; a refusal by the host becomes an AppError. */
+/** The host's reply; a refusal by the host becomes an AppError. */
+function accepted(op: unknown, reply: Record<string, unknown>): Record<string, unknown> {
+  const refused = HostErrorSchema.safeParse(reply);
+  if (!refused.success) return reply;
+  const code = HOST_ERRORS[refused.data.status] ?? 'INTERNAL';
+  // The host's own words may quote file names: only the operation and status are logged.
+  throw new AppError(code, `host refused ${String(op)} (${refused.data.status})`);
+}
+
+/** Sends a request to the open session and waits for its reply. */
 export async function ask(
   { identity }: Access,
   sessionId: string,
@@ -68,11 +82,29 @@ export async function ask(
 ): Promise<Record<string, unknown>> {
   const reply = await sendSolverRequest(identity.userId, sessionId, request);
   if (reply === null) throw new AppError('TOOL_SESSION_CLOSED', `session ${sessionId} not open`);
-  const refused = HostErrorSchema.safeParse(reply);
-  if (refused.success) {
-    const code = HOST_ERRORS[refused.data.status] ?? 'INTERNAL';
-    // The host's own words may quote file names: only the operation and status are logged.
-    throw new AppError(code, `host refused ${String(request.op)} (${refused.data.status})`);
-  }
-  return reply;
+  return accepted(request.op, reply);
+}
+
+const settled = (op: unknown, sent: SolverReply): SolverReply =>
+  'pending' in sent ? sent : { reply: accepted(op, sent.reply) };
+
+/** Sends a request that may run long (a what-if proves): its reply, or the id to read it by. */
+export async function askLong(
+  { identity }: Access,
+  sessionId: string,
+  request: Record<string, unknown>,
+): Promise<SolverReply> {
+  const sent = await startSolverRequest(identity.userId, sessionId, request);
+  if (sent === null) throw new AppError('TOOL_SESSION_CLOSED', `session ${sessionId} not open`);
+  return settled(request.op, sent);
+}
+
+/** The reply to a long request sent before, or still its id while the host works on it. */
+export async function askLater(
+  { identity }: Access,
+  sessionId: string,
+  requestId: string,
+  op: string,
+): Promise<SolverReply> {
+  return settled(op, await readSolverReply(identity.userId, sessionId, requestId));
 }
