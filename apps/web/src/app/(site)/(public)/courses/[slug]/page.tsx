@@ -1,7 +1,11 @@
+import { type CourseOutline, ROUTES } from '@siliconbox/shared';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { CourseHtml } from '@/components/lesson/course-html';
+import { ComingSoonBadge } from '@/components/shared/coming-soon-badge';
+import { Card } from '@/components/ui/card';
 import { Eyebrow } from '@/components/ui/eyebrow';
+import { SiteLink } from '@/components/ui/site-link';
 import { findCourseOutlines, findLessonCourses } from '@/db/content';
 import { linkedLessonSlugs, resolveCourseLinks } from '@/server/course-html';
 import { optionalPageIdentity } from '@/server/auth/page-identity';
@@ -30,23 +34,53 @@ async function AuthorCourseHome({ introduction }: { introduction: string }) {
   );
 }
 
+/** The course's title, level and summary, above its outline (or its coming-soon note). */
+function CourseHead({ course }: { course: CourseOutline }) {
+  return (
+    <header className="flex flex-col gap-4">
+      <Eyebrow>Course</Eyebrow>
+      <h1 className="text-4xl font-bold leading-[1.06] tracking-tighter sm:text-5xl">
+        {course.title}
+      </h1>
+      <div className="flex flex-wrap gap-2">
+        <CourseLevelBadge course={course} />
+        {course.comingSoon && <ComingSoonBadge />}
+      </div>
+      {course.summary && (
+        <p className="text-base leading-relaxed text-muted-foreground">{course.summary}</p>
+      )}
+    </header>
+  );
+}
+
+/** A course still being written: no outline yet, and where to start meanwhile. */
+function ComingSoonCourse({ course }: { course: CourseOutline }) {
+  return (
+    <div className={`mx-auto flex max-w-4xl flex-col gap-10 px-4 sm:px-6 ${PAGE_SPACING}`}>
+      <CourseHead course={course} />
+      <Card className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">This course is coming soon</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          It is being written. Its modules and Drills open here when it is ready, and it can be
+          bought then. Until then, start with a course that is open now.
+        </p>
+        <SiteLink href={ROUTES.courses} className="w-fit text-sm font-medium hover:underline">
+          See the open courses →
+        </SiteLink>
+      </Card>
+    </div>
+  );
+}
+
 export default async function CoursePage({ params }: CoursePageProps) {
   const course = await findCourse((await params).slug);
+  if (course.comingSoon) return <ComingSoonCourse course={course} />;
   if (course.introduction) return <AuthorCourseHome introduction={course.introduction} />;
   const identity = await optionalPageIdentity();
   const done = await findDoneInCourse(identity, course);
   return (
     <div className={`mx-auto flex max-w-4xl flex-col gap-10 px-4 sm:px-6 ${PAGE_SPACING}`}>
-      <header className="flex flex-col gap-4">
-        <Eyebrow>Course</Eyebrow>
-        <h1 className="text-4xl font-bold leading-[1.06] tracking-tighter sm:text-5xl">
-          {course.title}
-        </h1>
-        <CourseLevelBadge course={course} />
-        {course.summary && (
-          <p className="text-base leading-relaxed text-muted-foreground">{course.summary}</p>
-        )}
-      </header>
+      <CourseHead course={course} />
       <CourseOutlineView course={course} doneLessonIds={done} />
     </div>
   );

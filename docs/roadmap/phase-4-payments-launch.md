@@ -15,7 +15,7 @@ Goal: take payment safely and open to learners.
 - [ ] Analytics and Drill pass-rate tracking
 - [ ] Terms (with no-sharing clause), refund policy, privacy notice and DPDP consent and deletion flow
 - [ ] Vercel Pro live; solver on an always-on host
-- [ ] Load test at 2x target on staging; results recorded
+- [ ] Load test at 2x target on production before it opens to learners (ADR 0032); results recorded
 - [ ] Third-party penetration test; close critical and high findings
 - [ ] Incident plan and runbooks reviewed
 - [ ] `/release-check` returns go

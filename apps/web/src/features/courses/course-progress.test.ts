@@ -14,6 +14,7 @@ const COURSE: CourseOutline = {
   slug: 'invented',
   title: 'Invented course',
   level: 'basic',
+  comingSoon: false,
   modules: [
     { title: 'Empty', lessons: [], drills: [] },
     { title: 'One', lessons: [lesson('a', 150)], drills: [] },

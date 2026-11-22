@@ -6,7 +6,7 @@ MongoDB. Schemas are Zod in `packages/shared` and validate every write. Field li
 
 | Collection | Holds | Readable by |
 | --- | --- | --- |
-| `courses`, `modules`, `lessons` | Course tree; lesson body in blocks. Written by Payload; `publicId` (UUID) for URLs | Server reads published only; outline public |
+| `courses`, `modules`, `lessons` | Course tree; lesson body in blocks. Written by Payload; `publicId` (UUID) for URLs. A course's `availability` is `open` or `comingSoon` (no outline, none of its lessons or Drills served) | Server reads published, open courses only; outline public |
 | `_courses_versions`, `_lessons_versions` | Payload's saved versions for draft, publish, rollback (drafts of published documents live only here) | Admin |
 | `admins` | CMS accounts with role (Author, Editor, Support, Owner), separate from learner `users` | Admin |
 | `access-grants` | Append-only record of each admin grant: learner, kind, level, window, reason, who granted | Support, Owner |

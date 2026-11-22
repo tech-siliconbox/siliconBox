@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { AssessmentQuestionSchema, KeyAnswerSchema, OPTION_LETTERS } from './assessment';
 import { RubricItemSchema } from './capstone';
 import { DRILL_MODES, DRILL_SOLVERS, DRILL_TARGETS, TOP_MODULE_PATTERN } from './drill';
-import { COURSE_HTML_MAX, LessonBlockSchema, SlugSchema } from './lesson';
+import { COURSE_AVAILABILITY, COURSE_HTML_MAX, LessonBlockSchema, SlugSchema } from './lesson';
 import { LevelSchema } from './level';
 
 // The JSON file `pnpm content:import` reads. Documents are matched by slug, so importing again
@@ -117,16 +117,22 @@ const ImportModuleSchema = z
     message: 'A module needs at least one lesson or Drill',
   });
 
-const ImportCourseSchema = z.strictObject({
-  slug: SlugSchema,
-  title,
-  level: LevelSchema,
-  summary: z.string().trim().max(600).optional(),
-  introduction: z.string().trim().max(COURSE_HTML_MAX).optional(),
-  order,
-  status: StatusSchema,
-  modules: z.array(ImportModuleSchema).min(1),
-});
+const ImportCourseSchema = z
+  .strictObject({
+    slug: SlugSchema,
+    title,
+    level: LevelSchema,
+    summary: z.string().trim().max(600).optional(),
+    introduction: z.string().trim().max(COURSE_HTML_MAX).optional(),
+    availability: z.enum(COURSE_AVAILABILITY).default('open'),
+    order,
+    status: StatusSchema,
+    // A course coming soon may have no modules yet; an open one needs at least one.
+    modules: z.array(ImportModuleSchema),
+  })
+  .refine((course) => course.availability === 'comingSoon' || course.modules.length > 0, {
+    message: 'An open course needs at least one module',
+  });
 
 export const ContentImportSchema = z
   .strictObject({ courses: z.array(ImportCourseSchema).min(1) })

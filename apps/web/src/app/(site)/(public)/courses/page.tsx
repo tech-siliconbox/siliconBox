@@ -1,5 +1,6 @@
 import { type CourseOutline, LEVELS, ROUTES } from '@siliconbox/shared';
 import type { Metadata } from 'next';
+import { ComingSoonBadge } from '@/components/shared/coming-soon-badge';
 import { EmptyState } from '@/components/shared/empty-state';
 import { Card } from '@/components/ui/card';
 import { SiteLink } from '@/components/ui/site-link';
@@ -33,11 +34,17 @@ function CourseCard({ course }: { course: CourseOutline }) {
           </p>
         )}
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
-          <span className="font-mono text-[11px] text-muted-foreground">
-            {countOf(course.modules.length, 'module')}
-            {drills > 0 && ` · ${countOf(drills, 'Drill')}`}
+          {course.comingSoon ? (
+            <ComingSoonBadge />
+          ) : (
+            <span className="font-mono text-[11px] text-muted-foreground">
+              {countOf(course.modules.length, 'module')}
+              {drills > 0 && ` · ${countOf(drills, 'Drill')}`}
+            </span>
+          )}
+          <span className="text-sm font-medium group-hover:underline">
+            {course.comingSoon ? 'Learn more →' : 'View course →'}
           </span>
-          <span className="text-sm font-medium group-hover:underline">View course →</span>
         </div>
       </Card>
     </SiteLink>
@@ -49,8 +56,8 @@ export default async function CoursesPage() {
   return (
     <div className={`mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6 ${PAGE_SPACING}`}>
       <PageIntro eyebrow="Courses" title="Course outlines">
-        Three levels, each building on the last. Every outline is open to read, and Module 1 of each
-        course is free once you sign in.
+        Three levels, each building on the last. Every open course&apos;s outline is free to read,
+        and its Module 1 is free once you sign in. The others say when they are coming.
       </PageIntro>
       {courses.length === 0 ? (
         <EmptyState

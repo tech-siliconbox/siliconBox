@@ -35,3 +35,4 @@ Each file records one hard-to-reverse decision. Add a new one with `/new-adr <ti
 | [0029](0029-assessments-and-capstone-grading.md) | Graded assessments and capstone projects |
 | [0030](0030-ai-feedback-through-claude.md) | AI feedback on CVs and resumes through Claude (proposed) |
 | [0031](0031-praman-formal-tool-page.md) | Praman, the formal tool page: one sandboxed container per session |
+| [0032](0032-production-only.md) | One deployed environment: production (no staging) |

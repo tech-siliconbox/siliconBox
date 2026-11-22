@@ -10,6 +10,12 @@ Currency is INR. No GST for now (business not registered); the tax rate is a set
 | Intermediate | ₹10,000 | Basic and Intermediate | 6 months (3 + 3) | 3 months |
 | Advance | ₹15,000 | All three levels | 9 months (3 + 3 + 3) | 3 months |
 
+**Coming soon (founder, 2026-11-21):** only Basic is final. Intermediate and Advance show as coming soon, and an editor opens each course in the CMS (Availability: Open) when its content is final. Until then:
+
+- pricing lists the level but it cannot be bought;
+- its course page shows no outline;
+- none of its lessons, Drills or course work is served, even to a learner with access.
+
 ## What each purchase gives
 
 | You buy | You already hold | You pay | You get |

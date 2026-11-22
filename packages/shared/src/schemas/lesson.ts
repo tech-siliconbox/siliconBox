@@ -249,6 +249,13 @@ export const OutlineModuleSchema = z.object({
   lessons: z.array(OutlineLessonSchema),
   drills: z.array(OutlineDrillSchema).default([]),
 });
+/**
+ * Whether a course is open, or still being written: a course coming soon says so in the
+ * catalogue and on pricing, shows no outline, and none of its lessons or Drills is served.
+ */
+export const COURSE_AVAILABILITY = ['open', 'comingSoon'] as const;
+export type CourseAvailability = (typeof COURSE_AVAILABILITY)[number];
+
 export const CourseOutlineSchema = z.object({
   slug: z.string().min(1),
   title: z.string().min(1),
@@ -256,6 +263,8 @@ export const CourseOutlineSchema = z.object({
   summary: z.string().nullish(),
   // The course home page in the author's markup, shown instead of the plain outline (public).
   introduction: z.string().max(COURSE_HTML_MAX).nullish(),
+  /** Coming soon: its modules are left out (an empty list). */
+  comingSoon: z.boolean().default(false),
   modules: z.array(OutlineModuleSchema),
 });
 export type CourseOutline = z.infer<typeof CourseOutlineSchema>;

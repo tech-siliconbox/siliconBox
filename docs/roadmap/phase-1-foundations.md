@@ -9,7 +9,7 @@ Goal: a safe base that every later phase builds on.
 - [x] Code-quality tooling from `docs/engineering/coding-standards.md`: ESLint rules (complexity, function length, no unused, no console), jscpd (`pnpm dedupe:check`), knip (`pnpm unused:check`), dependency-cruiser (`pnpm deps:check`); ruff and vulture for the solver
 - [x] Shared foundations created once: `packages/shared` constants, schemas, error codes; `withApiGate`, `assertEntitled`, `AppError`, config; UI primitives and `Watermarked`, `LockedCard`, `CompanyTag`; catalog updated
 - [x] CI: typecheck, lint, test, dependency scan, secret scan
-- [ ] Environments: dev, staging, production; preview deployments per PR
+- [ ] Environments: local development and production only, no staging or previews (ADR 0032, founder 2026-11-21)
 - [x] MongoDB Atlas (Mumbai) with separate roles: learner-facing user cannot read `drill_private` or `answers`
 - [x] migrate-mongo wired into CI; first migration creates core collections and unique indexes
 - [ ] Nightly `mongodump` job to private storage; one restore practised
@@ -37,11 +37,11 @@ Goal: a safe base that every later phase builds on.
 - One device: second sign-in ends the first session; the open page is told within a minute (e2e test).
 - CSRF: origin check on every write (with SameSite=Lax cookies). A separate CSRF token is not added yet.
 - Payload CMS and admin roles: built in phase 2 (see that file).
-- Gate: not formally met, because staging needs Vercel, which the founder deferred. On 2026-10-01 the founder asked to continue, so phase 2 started with this gate open.
+- Gate: not formally met, because production needs Vercel, which the founder deferred (there is no staging, ADR 0032). On 2026-10-01 the founder asked to continue, so phase 2 started with this gate open.
 
 ## Gate
 
-Sign-in, roles and backups work in staging; the wrapper test proves no route skips a gate.
+Sign-in, roles and backups work in production before it opens to learners (ADR 0032); the wrapper test proves no route skips a gate.
 
 ## Docs to read
 

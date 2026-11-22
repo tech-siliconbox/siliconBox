@@ -18,7 +18,7 @@ decision, account or content only the founder can supply.
 | Content importer (`pnpm content:import`, JSON) and 30 placeholder modules | Dev | Done |
 | Support grants, extends or shortens access, audited | Dev | Done |
 | Lesson page and API, pacing, both watermarks | Dev | Done |
-| Course content (10 modules per course) | Founder | Basic converted and imported (2026-11-18); Intermediate and Advance in preparation |
+| Course content (10 modules per course) | Founder | Basic final, converted and imported (2026-11-18); Intermediate and Advance show as coming soon (founder, 2026-11-21), not sold until opened in the CMS |
 | Demo content in the dev database: 30 original demo lessons (titles end in "(demo)") stand in until the real content is imported over the same slugs; none may remain at launch | Founder + Dev | Demo published on dev |
 | Question bank: questions, companies, answers in the CMS; public list, search, filters | Dev | Done |
 | Question bank: serving answers to entitled learners | Dev | Done (answers-only database user, ADR 0019) |
@@ -55,7 +55,7 @@ decision, account or content only the founder can supply.
 | Checkout, signed webhook, refunds, entitlement writes (pricing rules already done and tested) | Dev | Rules done; endpoints not started |
 | Email: verification and password reset (Resend, ADR 0028) | Dev | Built; at hosting, verify `siliconbox.in` in Resend (DNS records) and set `EMAIL_FROM` to an address on it |
 | Email: receipts, new-device alerts, expiry reminders | Dev | Not started (same provider) |
-| Vercel Pro, Cloudflare (WAF, Access + MFA on admin), staging and production | Founder + Dev | Deferred |
+| Vercel Pro, Cloudflare (WAF, Access + MFA on admin), production (no staging, ADR 0032) | Founder + Dev | Deferred |
 | Dedicated Mumbai cluster | Founder | Done (`siliconbox-dev`, ap-south-1) |
 | Least-privilege Atlas users | Founder + Dev | Done: site, answers reader and admin users, verified |
 | Backups to off-cluster storage, one encrypted restore drill | Founder + Dev | Off until launch (ADR 0022); script kept |

@@ -1,5 +1,6 @@
 import { LEVEL_LABELS, ROUTES, currentStreak } from '@siliconbox/shared';
 import type { Metadata } from 'next';
+import { ComingSoonBadge } from '@/components/shared/coming-soon-badge';
 import { PageIntro } from '@/components/shared/page-intro';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -63,11 +64,15 @@ function CourseList({ courses, done }: { courses: Course[]; done: Done }) {
               <SiteLink href={ROUTES.course(course.slug)} className="font-semibold hover:underline">
                 {course.title}
               </SiteLink>
-              <span className="text-[12px] text-muted-foreground">
-                {windowText(access, 'Module 1 free · buy to open the rest')}
-              </span>
+              {course.comingSoon ? (
+                <ComingSoonBadge />
+              ) : (
+                <span className="text-[12px] text-muted-foreground">
+                  {windowText(access, 'Module 1 free · buy to open the rest')}
+                </span>
+              )}
             </div>
-            <CourseProgressBar course={course} doneLessonIds={done} />
+            {!course.comingSoon && <CourseProgressBar course={course} doneLessonIds={done} />}
           </li>
         ))}
       </ul>
