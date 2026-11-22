@@ -141,6 +141,8 @@ export function convertCourse(sources: CourseSources, options: CourseOptions) {
     slug: options.slug,
     title: home.heading,
     level: options.level,
+    // A converted course is the finished content: open (an editor may set it to coming soon).
+    availability: 'open',
     order: options.order,
     status: 'published',
     ...(home.lead ? { summary: home.lead } : {}),

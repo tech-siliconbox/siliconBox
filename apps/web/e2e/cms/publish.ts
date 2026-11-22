@@ -111,18 +111,19 @@ export const EVERY_OTHER_BLOCK = [
   },
 ];
 
-/** A Support admin grants a learner Basic content (or tool) access for a day, via the CMS API. */
+/** A Support admin grants a learner content (Basic unless said) or tool access for a day. */
 export async function grantAccess(
   support: APIRequestContext,
   learnerEmail: string,
   kind: 'content' | 'tool' = 'content',
+  level: 'basic' | 'intermediate' | 'advance' = 'basic',
 ) {
   const now = Date.now();
   return support.post('/cms-api/access-grants', {
     data: {
       learnerEmail,
       kind,
-      ...(kind === 'content' ? { level: 'basic' } : {}),
+      ...(kind === 'content' ? { level } : {}),
       startsAt: new Date(now - 60_000).toISOString(),
       endsAt: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
       reason: 'End-to-end test grant',

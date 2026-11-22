@@ -1,5 +1,6 @@
 import 'server-only';
 import {
+  type CourseAvailability,
   type CourseOutline,
   CourseOutlineSchema,
   DRILL_MODES,
@@ -28,6 +29,7 @@ import { COLLECTIONS } from './collections';
 // never-published draft, which `_status` filters out).
 
 const PUBLISHED = 'published';
+const COMING_SOON: CourseAvailability = 'comingSoon';
 
 /** Joins modules, then the published course, onto the documents flowing through. */
 function withModuleAndCourse(moduleField: string): Document[] {
@@ -50,7 +52,8 @@ function withModuleAndCourse(moduleField: string): Document[] {
       },
     },
     { $unwind: '$course' },
-    { $match: { 'course._status': PUBLISHED } },
+    // A course coming soon serves none of its lessons, Drills or course work.
+    { $match: { 'course._status': PUBLISHED, 'course.availability': { $ne: COMING_SOON } } },
   ];
 }
 
@@ -210,7 +213,9 @@ export async function findCourseOutlines(slug?: string): Promise<CourseOutline[]
           level: 1,
           summary: 1,
           introduction: 1,
-          modules: 1,
+          // A course coming soon shows no outline: its modules may be placeholders.
+          comingSoon: { $eq: ['$availability', COMING_SOON] },
+          modules: { $cond: [{ $eq: ['$availability', COMING_SOON] }, [], '$modules'] },
         },
       },
     ])

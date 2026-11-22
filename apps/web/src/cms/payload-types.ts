@@ -181,6 +181,10 @@ export interface Course {
   title: string;
   slug: string;
   level: 'basic' | 'intermediate' | 'advance';
+  /**
+   * Coming soon: the catalogue and pricing say so, the course page shows no outline, and none of its lessons or Drills is served, even to learners with access.
+   */
+  availability: 'open' | 'comingSoon';
   summary?: string | null;
   /**
    * Optional: the course home page in your own markup (shown publicly instead of the plain outline). Links to lessons are written lesson:<slug>.
@@ -1460,6 +1464,7 @@ export interface CoursesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   level?: T;
+  availability?: T;
   summary?: T;
   introduction?: T;
   order?: T;

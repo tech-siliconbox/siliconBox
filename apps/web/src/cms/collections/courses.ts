@@ -1,4 +1,4 @@
-import { LEVELS } from '@siliconbox/shared';
+import { COURSE_AVAILABILITY, type CourseAvailability, LEVELS } from '@siliconbox/shared';
 import type { CollectionConfig } from 'payload';
 import { contentAccess } from '../access';
 import {
@@ -8,6 +8,11 @@ import {
 import { orderField, titleField } from '../fields/common';
 import { publicIdField } from '../fields/public-id';
 import { slugField } from '../fields/slug';
+
+const AVAILABILITY_LABEL: Readonly<Record<CourseAvailability, string>> = {
+  open: 'Open',
+  comingSoon: 'Coming soon',
+};
 
 export const Courses: CollectionConfig = {
   slug: 'courses',
@@ -27,6 +32,18 @@ export const Courses: CollectionConfig = {
       type: 'select',
       required: true,
       options: LEVELS.map((level) => ({ label: level, value: level })),
+    },
+    {
+      name: 'availability',
+      type: 'select',
+      required: true,
+      defaultValue: 'open',
+      options: COURSE_AVAILABILITY.map((value) => ({ label: AVAILABILITY_LABEL[value], value })),
+      admin: {
+        position: 'sidebar',
+        description:
+          'Coming soon: the catalogue and pricing say so, the course page shows no outline, and none of its lessons or Drills is served, even to learners with access.',
+      },
     },
     { name: 'summary', type: 'textarea', maxLength: 600 },
     {

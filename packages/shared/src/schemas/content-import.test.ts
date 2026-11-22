@@ -105,4 +105,14 @@ describe('ContentImportSchema', () => {
   ])('rejects %s', (_label, input) => {
     expect(ContentImportSchema.safeParse(input).success).toBe(false);
   });
+
+  it('takes a course coming soon without modules, never an open one', () => {
+    const coming = { ...course, slug: 'advance', level: 'advance', modules: [] };
+    const parsed = ContentImportSchema.parse({
+      courses: [{ ...coming, availability: 'comingSoon' }],
+    });
+    expect(parsed.courses[0]?.availability).toBe('comingSoon');
+    expect(ContentImportSchema.safeParse({ courses: [coming] }).success).toBe(false);
+    expect(ContentImportSchema.parse({ courses: [course] }).courses[0]?.availability).toBe('open');
+  });
 });

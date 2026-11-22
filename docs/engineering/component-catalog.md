@@ -33,7 +33,8 @@ Check here before writing a component, hook or helper. Add a row when you create
 | WaveformView, waveRows, BitWave, BusWave | A counterexample or cover trace as waveform rows (bits as lines, buses as labelled segments); `waveRows` (`lib/waveform.ts`) turns a trace into rows. `BitWave` and `BusWave` (`components/shared/wave-shapes.tsx`) draw every waveform's rows, Drills' and Praman's Visualize alike. Used by the Drill workspace | Built |
 | CompanyTag | Company name, with the logo once permission is confirmed | Built |
 | EmptyState | Standard empty display | Built |
-| ErrorState | Standard error display (used by the site's `error.tsx`) | Built |
+| ComingSoonBadge | "Coming soon" on a course or level still being written (catalogue, course page, Overview, pricing) | Built |
+| ErrorState | Standard error display (used by the site's `error.tsx` and `not-found.tsx`) | Built |
 | ProtectedContent | Wraps paid views: no selecting, copying, right-click, dragging or printing of text; blurs while the window is out of focus; code examples stay copyable (ADR 0023) | Built |
 | PaidContentLocked | Why a lesson or answer is locked, with the way forward | Built |
 | SessionGuard | Re-checks the session every minute and on focus; sends the learner to sign-in with the reason | Built |

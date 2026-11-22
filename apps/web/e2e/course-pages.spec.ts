@@ -179,3 +179,61 @@ async function expectModuleIndexAndPhoneLayout(page: Page, practice: Locator): P
   const runButton = await practice.getByRole('button', { name: 'Run verification' }).boundingBox();
   expect((runButton?.x ?? Infinity) + (runButton?.width ?? 0)).toBeLessThanOrEqual(390);
 }
+
+const SOON = `e2e-soon-course-${run}`;
+const SOON_LESSON = `e2e-soon-lesson-${run}`;
+
+/** An Advance course still being written, with a published module page. */
+async function publishComingSoonCourse(editor: APIRequestContext) {
+  const course = await createDoc(editor, 'courses', {
+    title: `Invented coming course ${run}`,
+    slug: SOON,
+    level: 'advance',
+    availability: 'comingSoon',
+    order: 3,
+    _status: 'published',
+  });
+  const module = await createDoc(editor, 'modules', {
+    title: `Invented coming module ${run}`,
+    slug: `e2e-soon-module-${run}`,
+    course: course.id,
+    order: 1,
+  });
+  const lesson = await createDoc(editor, 'lessons', {
+    title: `Invented coming lesson ${run}`,
+    slug: SOON_LESSON,
+    module: module.id,
+    order: 1,
+    preview: true,
+    blocks: [paragraph('Invented text of a course not open yet.')],
+    _status: 'published',
+  });
+  expect([course.status, module.status, lesson.status]).toEqual([201, 201, 201]);
+}
+
+test('a course coming soon says so, shows no outline and serves none of its pages', async ({
+  page,
+}) => {
+  await publishComingSoonCourse(await signInAsAdmin('editor'));
+  failOnCspViolation(page);
+
+  // The catalogue and the course page say it is coming; its modules are not listed.
+  await page.goto(ROUTES.courses);
+  const card = page.getByRole('link', { name: new RegExp(`Invented coming course ${run}`) });
+  await expect(card).toContainText('Coming soon');
+  await page.goto(ROUTES.course(SOON));
+  await expect(page.getByRole('heading', { name: 'This course is coming soon' })).toBeVisible();
+  await expect(page.getByText(`Invented coming module ${run}`)).toHaveCount(0);
+  // Pricing shows the level as coming, not for sale.
+  await page.goto('/pricing');
+  await expect(page.getByText('this level can be bought when it opens')).toBeVisible();
+
+  // Even a learner with the level's access is not served its pages.
+  const learner = newLearner();
+  await signUp(page, learner);
+  await grantAccess(await signInAsAdmin('support'), learner.email, 'content', 'advance');
+  const lessonPage = await page.goto(ROUTES.lesson(SOON, SOON_LESSON));
+  expect(lessonPage?.status()).toBe(404);
+  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+  await expect(page.getByText('Invented text of a course not open yet.')).toHaveCount(0);
+});
