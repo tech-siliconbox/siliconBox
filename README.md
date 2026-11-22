@@ -20,35 +20,48 @@ A paid learning platform for formal verification: lessons, hands-on Drills and a
 | `infra/` | Environment and deployment notes |
 | `.claude/` | Claude Code rules, subagents, commands and skills |
 
-## Status (2026-10-02, evening)
+## Status (2026-11-22)
 
-Nothing is deployed yet; everything runs locally against the development MongoDB Atlas database
-and Upstash Redis. Payments stay disabled until the phase 3 solver gate is met. Details and
-checklists: `docs/roadmap/`.
+Nothing is deployed yet. Everything runs locally against the development MongoDB Atlas cluster
+and Upstash Redis; there will be one deployed environment, production (ADR 0032). Payments are
+not built, and stay off until the phase 3 solver gate is met. Main is green on CI: 481 unit
+tests, 61 end-to-end tests and 383 solver tests. Details and checklists: `docs/roadmap/`; what is
+left before launch: `docs/roadmap/path-to-launch.md`.
 
 ### Built
 
 | Area | What works |
 | --- | --- |
-| Foundations | pnpm monorepo; strict TypeScript; lint, format, duplicate, unused-code and layering checks; unit and end-to-end tests; CI workflow |
-| Access rules | Prices, upgrades, content and tool windows as pure, tested rules (entitlement matrix rows 1 to 16) |
-| Accounts | Sign-up and sign-in (breached passwords refused), Google when configured, one device at a time with a "signed in elsewhere" message, sign-ins audited |
-| Protection | Every API route through one gate (origin, session, rate limit, validation, entitlement), nonce CSP, security headers, visible and invisible watermarks |
-| Content | Payload CMS at `/admin` with Author, Editor, Support and Owner roles, drafts and versions; courses, modules and lessons with ten block types (including tables, answers, reveals and an interactive state graph); HTML converter and JSON importer; the real Basic course imported; 3 demo courses with 10 modules each (original demo text, to be replaced by the real content) |
-| Support | Grant, extend or shorten a learner's access in the admin, with a reason, audited |
-| Learning | Public course outlines; lesson page and API that serve published lessons only to entitled learners, paced (per minute and per day) and watermarked; progress marks |
+| Foundations | pnpm monorepo; strict TypeScript; lint, format, duplicate, unused-code and layering checks; unit, end-to-end and solver tests; CI with four jobs (web, e2e, solver, security); exact dependency pins |
+| Access rules | Prices, upgrades, content and tool windows as pure, tested rules (`pnpm test:entitlements`, every matrix row) |
+| Accounts | Sign-up and sign-in by email and password (breached passwords refused) or Google; email verification and password reset through Resend; one device at a time; sign-ins audited |
+| Protection | Every API route (47) through one gate: origin, session, rate limit, validation, entitlement. Also: nonce CSP and security headers; visible and invisible watermarks with a trace tool for Support; copy protection on paid pages; copyrighted content only inside its page (ADR 0027); readable addresses; AI crawlers refused |
+| Database | Least-privilege users (site, answers reader, grader, admin), checked by `db:verify-roles`; 12 migrations |
+| Content | Payload CMS at `/admin` (Author, Editor, Support, Owner) with drafts and versions; one page per module in the site's design (ADR 0024); HTML converter and JSON importer. **Basic** is final and imported (10 modules and the SVA cheatsheet). **Intermediate and Advance** show as coming soon: no outline, nothing served, not sold |
+| Learning | Public outlines; Module 1 free once signed in; lessons paced and watermarked; progress |
+| Drills | 8 Basic Drills published, checked by the publish gate (`pnpm drills:verify`); the Drill workspace runs them on the solver, graded against hidden designs (ADR 0021) |
+| Course work | Graded assessments and capstone projects (ADR 0029); Performance page |
+| Member area | Overview, Activity, Performance, Settings (data download and account deletion), Help, profile with photo |
 | Question bank | Public, searchable list with company tags and years; answers for learners with active access |
-| Drills | Written in the CMS with private solutions and per-level caps; learners run them once the solver exists (phase 3) |
-| Admin tools | Lesson preview, security alerts for Support, Industry Ready services switched open or locked |
-| Career tools | Resume Builder (ATS-friendly PDF) and CV screening (formal verification report); free for learners with active access |
-| Solver | Engine from `formal-verify-backend`, hardened (13 findings fixed with tests); signed calls, Redis queue, worker, one locked-down container per run; the site's run API (`POST /api/v1/drills/:id/runs`, `GET /api/v1/runs/:id`) with quotas and a result cache. The Drill workspace page is next |
+| Industry Ready | Resume Builder: 5 resumes, 4 templates, PDF, docx and Markdown, imports. CV screening with job match. AI feedback is built but hidden until an Anthropic key is set (ADR 0030, proposed) |
+| Praman (`/tool`) | The formal tool (ADR 0031), one sandboxed container per session. Menus, toolbar, property table, hierarchy, Tcl console and log. Visualize (waveform, why it fails, drivers, what-if). Reports: strength, coverage, proof core, equivalence. Run history, signal lists, resizable layout |
+| Solver | Hardened engine: 21 findings fixed with tests; signed calls, Redis queue, one locked-down container per Drill run or Praman session |
 
-### In progress (phase 2)
+### Not built yet
 
-Scheduled publishing (needs the host's cron). Phase 2 is otherwise complete. Full list of
-what is left before launch: `docs/roadmap/path-to-launch.md`.
+Payments (phase 4: products, checkout, Razorpay webhook, refunds, receipts and reminders), the
+legal pages and consent, analytics, scheduled publishing (needs the host's cron), the solver's
+status page. The always-on solver host, the attack test there, the load test and the outside
+penetration test wait on hosting.
 
 ### Waiting on the founder
 
-Vercel, Cloudflare and an email provider (deferred), backup storage choice, a least-privilege
-Atlas user, course content, and the open questions in `docs/roadmap/README.md`.
+- A Razorpay business account.
+- Terms, refund policy and privacy notice.
+- Hosting accounts: Oracle Cloud for the solver (Oracle A1 with gVisor and 8 session slots is
+  recommended, to confirm), Vercel, Cloudflare, and the production Atlas project; verify
+  `siliconbox.in` in Resend.
+- Budgets: the penetration test, the solver host, Vercel Pro from the first sale.
+- The Intermediate and Advance content.
+- The open questions in `docs/roadmap/README.md`.
+

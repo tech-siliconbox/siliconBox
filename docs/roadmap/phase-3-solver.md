@@ -46,6 +46,13 @@ the founder's review. The engine now keeps helper logic in properties modules (i
 everything but the SVA). ADR 0021 (proposed): grade runs against the hidden designs, so a
 trivial checker cannot "solve" a Drill. Next: decide ADR 0021, the host and the attack test.
 
+2026-11-22: ADR 0021 was accepted and built: runs are graded against the hidden designs, and
+the grader database user is created and verified. Eight Basic Drills are published. Praman's
+solver side (ADR 0031) added eight hardening findings for sessions (14 to 21), all fixed with
+tests, so 21 in all. Left: the host (recommended Oracle A1 with gVisor, to confirm), the network
+allow-list there, a smaller image, the status page, and the attack test against the deployed
+runner.
+
 ## Gate
 
 All findings Fixed with regression tests and the attack test passes. Only then start phase 4.
