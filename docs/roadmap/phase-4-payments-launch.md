@@ -20,6 +20,17 @@ Goal: take payment safely and open to learners.
 - [ ] Incident plan and runbooks reviewed
 - [ ] `/release-check` returns go
 
+## Progress
+
+2026-11-22: not started; it follows the phase 3 gate. Already in place:
+- the pricing and upgrade rules, with every matrix row tested;
+- Support's grants that extend or shorten windows, with a reason, audited;
+- email verification (ADR 0028);
+- data download and account deletion.
+
+The access model leaves promo codes out of scope for now, but the list above names them: to
+settle with the founder.
+
 ## Gate
 
 Load test at 2x and an outside penetration test are clear; Vercel Pro is live.

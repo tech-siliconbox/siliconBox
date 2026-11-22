@@ -14,27 +14,42 @@ Summary of everything left before launch: [path-to-launch.md](path-to-launch.md)
 
 ## Current phase
 
-Phase 3 (in progress): the solver, run API and container runner are done; the Drill workspace and the publish gate are next. Phase 2 is done apart from scheduled publishing (needs the host's cron); phase 1's gate waits on staging (Vercel, deferred by the founder). See the progress notes in each phase file.
+As of 2026-11-22:
 
-Alongside: Praman, the formal tool page (`/tool`). Plan confirmed 2026-11-19 ([tool-page-plan.md](tool-page-plan.md), [ADR 0031](../adr/0031-praman-formal-tool-page.md)); built in six PRs. It opens to learners only after its own hardening gate and an always-on host that runs containers.
+- **Phase 3 (in progress):** everything that can be built without a host is done:
+  - the solver, with 21 hardening findings fixed with tests;
+  - the run API and a container per run;
+  - the Drill workspace, the publish gate, and grading against hidden designs.
+
+  The gate needs the always-on solver host, the network allow-list there, and the attack test
+  against the deployed runner.
+- **Phases 1 and 2:** done in code. Phase 1's gate waits on production (there is no staging,
+  ADR 0032). Phase 2 has scheduled publishing left, which needs the host's cron.
+- **Content:** only Basic is final; Intermediate and Advance show as coming soon.
+- **Praman** (`/tool`, ADR 0031) is built: all six plan PRs and the rest of the tool's
+  experience. It opens to learners with the solver host. The load test and host recommendation
+  are in `load-test-results.md`.
+- **Phase 4 (payments)** has not started. By the rule above it follows the phase 3 gate,
+  unless the founder waives that gate, as phase 1's was.
 
 ## Blockers and founder decisions
 
 - [ ] Team size and start date (sets the calendar)
 - [ ] Approve Vercel Pro from the first paid sale
 - [ ] Razorpay business account opened and verified
-- [ ] Budget for a third-party penetration test and an always-on solver host
+- [ ] Budget for a third-party penetration test and an always-on solver host (recommended: Oracle A1 with gVisor and 8 session slots, `load-test-results.md`)
 - [ ] Company logos: ask permission, or launch with names only
 - [ ] Industry Ready: order of building interview prep, coaching and mock interviews
 - [ ] Legal documents: terms (with no-sharing clause), refund policy, privacy notice
 - [ ] GST registration timing
-- [ ] Course content and questions written, owned and ready to import
+- [ ] Course content and questions written, owned and ready to import (Basic done; Intermediate and Advance coming soon, founder 2026-11-21)
 - [x] First free lesson: free for signed-in learners, as the test matrix says (founder, 2026-11-18)
 - [ ] Buying a lower level while a higher one is active (code refuses it for now)
 - [x] How the server reads `answers`: a separate answers-only database user (ADR 0019, 2026-10-02)
 - [ ] If Redis is down, should any routes stay open (code refuses every gated call for now)
 - [ ] Approve ADR 0017 (nonce CSP means public pages are not cached at the edge)
 - [x] Backups: none while the database holds only development data; turn on before real learners' data (ADR 0022)
+- [x] Environments: production only, no staging (founder 2026-11-21, ADR 0032)
 - [x] Hosting until launch: free tiers (ADR 0022, `docs/architecture/hosting.md`); Vercel Pro and Atlas M10 at the first sale
 
 ## How to work a phase
