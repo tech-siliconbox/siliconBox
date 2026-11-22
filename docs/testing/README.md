@@ -7,7 +7,7 @@
 | End to end | Playwright | Sign-in, one-device sign-out, read a lesson, run a Drill, test-mode purchase and upgrade |
 | Solver | Pytest + attack tests | Each hardening finding has a regression test; attack test against the deployed runner |
 | Drill gate | CI | Fixture Drill: reference PASS, seeded bug FAIL on the real solver |
-| Load | k6 | 2x target on staging; see `docs/architecture/scaling.md` |
+| Load | k6 | 2x target on production before it opens, later on a local stack (ADR 0032); see `docs/architecture/scaling.md` |
 | Security | Scans + review + external pen test | Dependency and image scans, secret scan, `/review-security`, third-party test |
 
 ## Rules

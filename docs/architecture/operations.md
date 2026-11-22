@@ -2,7 +2,7 @@
 
 ## Environments
 
-Dev, staging and production. Preview deployments per pull request. Feature flags for risky launches.
+Local development and production only (ADR 0032): no staging and no preview deployments; every pull request's CI runs the full end-to-end suite on a throwaway local stack. Switches, off by default, for risky launches.
 
 ## Monitoring and alerts
 

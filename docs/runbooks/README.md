@@ -2,7 +2,7 @@
 
 | Runbook | When |
 | --- | --- |
-| [deploy.md](deploy.md) | Releasing to staging or production |
+| [deploy.md](deploy.md) | Releasing to production (there is no staging) |
 | [backup-and-restore.md](backup-and-restore.md) | Nightly backups and quarterly restore drill |
 | [rotate-secrets.md](rotate-secrets.md) | Key rotation or a suspected exposure |
 | [solver-down.md](solver-down.md) | Learners cannot run Drills |

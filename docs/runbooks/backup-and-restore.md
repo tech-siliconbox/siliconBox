@@ -8,7 +8,7 @@
 
 ## Quarterly restore drill
 
-1. Create an empty staging database.
+1. Create an empty scratch database (never production; there is no staging, ADR 0032).
 2. Restore the latest archive with `infra/scripts/restore-mongo.sh` (decrypts, then `mongorestore` with a namespace rename).
 3. Check: entitlements count, latest orders, a sample lesson, unique indexes present.
 4. Record date, duration and result here or in `docs/roadmap/`.

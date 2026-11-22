@@ -6,7 +6,7 @@ Summary of everything left before launch: [path-to-launch.md](path-to-launch.md)
 
 | Phase | Name | Gate to finish |
 | --- | --- | --- |
-| [1](phase-1-foundations.md) | Foundations | Sign-in, roles and backups work in staging |
+| [1](phase-1-foundations.md) | Foundations | Sign-in, roles and backups work in production, before learners (ADR 0032) |
 | [2](phase-2-content.md) | Content | An editor publishes a lesson and a learner reads it, watermarked |
 | [3](phase-3-solver.md) | Solver (riskiest) | The runner passes an attack test before payments open |
 | [4](phase-4-payments-launch.md) | Payments and launch | Load test at 2x and an outside penetration test are clear; Vercel Pro live |

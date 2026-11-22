@@ -32,4 +32,4 @@ Move to the next hosting stage when any happens (tune after a load test): Atlas 
 
 ## Load test
 
-k6 at 2x the target with realistic Drill designs, against staging. Record p95 page time, p95 queue wait, run time and database operations a second. The measured numbers set the worker count. Results go in `docs/roadmap/load-test-results.md`.
+k6 at 2x the target with realistic Drill designs, against production before it opens to learners, later on a local stack (ADR 0032). Record p95 page time, p95 queue wait, run time and database operations a second. The measured numbers set the worker count. Results go in `docs/roadmap/load-test-results.md`.

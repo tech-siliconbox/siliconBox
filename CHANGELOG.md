@@ -4,6 +4,18 @@ All notable changes are listed here, newest first. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added (courses coming soon; production only)
+
+- **Coming soon:** a course's Availability (Open or Coming soon) is set in the CMS. A course coming soon:
+  - says so in the catalogue, on its page and on the Overview;
+  - shows no outline;
+  - serves none of its lessons, Drills or course work, even to learners with access;
+  - is shown on pricing but not sold, while every course of its level is coming soon.
+
+  The import format takes `availability`, and a course coming soon may have no modules yet. Only Basic is final; Intermediate and Advance are to be set to Coming soon (founder, 2026-11-21).
+- **Page not found:** the site's own 404 page, in its design. Next's default page has inline styles, which the CSP blocks.
+- **ADR 0032:** one deployed environment, production, with no staging and no preview deployments. Every pull request's full end-to-end suite on a throwaway local stack stands in for staging. Roadmap gates, runbooks and the load-test rules are updated.
+
 ### Added (Praman, the rest of the tool's experience, phase 2)
 
 - **Visualize:**

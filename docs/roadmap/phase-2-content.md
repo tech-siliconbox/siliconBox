@@ -30,7 +30,7 @@ Goal: editors can publish content and learners can read it safely.
 - Learner side: public outlines (`/courses`, `/courses/[slug]`, titles only), lesson page `/learn/[id]` and `GET /api/v1/lessons/:id`. Each read is paced (12 a minute), checked against entitlements, `no-store`, and carries the visible and invisible watermark. Diagrams are sanitised inline SVG.
 - Watermarks: visible tile on every signed-in page; invisible 32-bit code after the first word of every paragraph and callout, traced through the private `watermark_codes` table. Still to do: a trace tool for admins.
 - Pacing: per-minute limit done. Still to do: daily cap, anomaly alerts, and the 30 to 60 second published-lesson memory cache.
-- Gate status: an editor publishes a lesson and a signed-in learner reads it, watermarked, on one device; this passes end to end against the dev database. It is not yet shown on staging.
+- Gate status: an editor publishes a lesson and a signed-in learner reads it, watermarked, on one device; this passes end to end against the dev database. It is not yet shown on production (there is no staging, ADR 0032).
 
 - Question bank (2026-10-02): `companies`, `questions` (drafts, company tags with year and internal source note) and `answers` (admins only) in the CMS; public `/questions` page and `GET /api/v1/questions` with text search, topic and company filters, 20 a page. Still to do: serving answers to entitled learners (waits on the answers database-user decision) and company logos (permission and storage).
 - Progress (2026-10-02): `POST /api/v1/progress` (lesson must be published and readable by the learner); "Mark as done" on lessons; ✓ on the outline for signed-in learners.
